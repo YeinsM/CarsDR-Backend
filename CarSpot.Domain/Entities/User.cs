@@ -7,16 +7,16 @@ public class User : BaseEntity
     public string FullName { get; private set; }
     public string Email { get; private set; }
     public string PasswordHash { get; private set;}
-    public bool IsBlocked { get; private set; }
-    public DateTime? BlockedAt { get; private set; }
+    [NotMapped]
+    public string ResetPassword { get; private set; }
+    
 
     public User(string email, string passwordHash, string fullName)
     {
         Email = email;
         PasswordHash = passwordHash;
         FullName = fullName;
-        IsBlocked = false;
-        BlockedAt = null;
+        
     } 
 
     public void UpdateInfo(string fullName)
@@ -66,28 +66,36 @@ public class User : BaseEntity
         SetUpdatedAt();
     }
 
-    public void Block()
+     public void SetResetPassword(string newPassword, string confirmNewPassword)
     {
-        if (IsBlocked)
-            throw new InvalidOperationException("User is blocked.");
+        if (string.IsNullOrWhiteSpace(newPassword))
+            throw new ArgumentException("New password cannot be null or empty.");
 
-        IsBlocked = true;
-        BlockedAt = DateTime.Now;
+        if (newPassword != confirmNewPassword)
+            throw new ArgumentException("Passwords do not match.");
+
+        ValidatePassword(newPassword);
+
+        ResetPassword = newPassword; 
     }
 
-    public void Unblock()
+    public void ConfirmResetPassword()
     {
-        if (!IsBlocked)
-            throw new InvalidOperationException("User is not blocked.");
+        if (string.IsNullOrWhiteSpace(ResetPassword))
+            throw new InvalidOperationException("No password to reset.");
 
-        IsBlocked = false;
-        BlockedAt = null;
+        PasswordHash = BCrypt.Net.BCrypt.HashPassword(ResetPassword);
+        ResetPassword = null; 
+        SetUpdatedAt();
     }
 
-    public void CheckIfBlocked()
+    private void ValidatePassword(string password)
     {
-        if (IsBlocked)
-            throw new InvalidOperationException("The user is blocked and cannot perform this action..");
+        if (password.Length < 6)
+            throw new ArgumentException("The password must be at least 6 characters long.");
+
+        if (!password.Any(char.IsUpper) || !password.Any(char.IsLower) || !password.Any(char.IsDigit))
+            throw new ArgumentException("The password must contain uppercase, lowercase, and numbers.");
     }
 
 }

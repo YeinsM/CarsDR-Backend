@@ -1,7 +1,7 @@
 using CarSpot.Domain.Entities;
 
 namespace CarSpot.Application.Interfaces;
-    public interface IUserRepository
+    public interface IUserRepository 
     {
     Task<IEnumerable<User>> GetAllAsync();
     Task<User?> GetByIdAsync(int id);
