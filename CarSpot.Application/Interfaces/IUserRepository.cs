@@ -1,9 +1,11 @@
 using CarSpot.Domain.Entities;
 
-namespace CarSpot.Application.interfaces;
-
-public interface IUserRepository
-{
+namespace CarSpot.Application.Interfaces;
+    public interface IUserRepository
+    {
+    Task<IEnumerable<User>> GetAllAsync();
     Task<User?> GetByIdAsync(int id);
-    Task AddAsync (User user);
-}
+    Task<User?> GetByEmailAsync(string email);
+    Task AddAsync(User user);
+    Task UpdateAsync(User user);
+    }

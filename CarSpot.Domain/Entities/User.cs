@@ -4,18 +4,29 @@ using BCrypt;
 
 public class User : BaseEntity
 {
+    public string FullName { get; private set; }
     public string Email { get; private set; }
     public string PasswordHash { get; private set;}
     public bool IsBlocked { get; private set; }
     public DateTime? BlockedAt { get; private set; }
 
-    public User(string email, string passwordHash)
+    public User(string email, string passwordHash, string fullName)
     {
         Email = email;
         PasswordHash = passwordHash;
+        FullName = fullName;
         IsBlocked = false;
         BlockedAt = null;
     } 
+
+    public void UpdateInfo(string fullName)
+    {
+        if(string.IsNullOrWhiteSpace(FullName))
+         throw new ArgumentNullException("Invalid fullname.");
+           
+        FullName = fullName;
+        SetUpdatedAt();
+    }
 
     public void UpdateEmail(string newEmail)
     {
@@ -41,17 +52,18 @@ public class User : BaseEntity
         throw new ArgumentException("current password is incorrect.");
 
     
-        if (newPassword.Length < 8)
-        throw new ArgumentException("The new password must be at least 8 characters long.");
+        if (newPassword.Length < 6)
+        throw new ArgumentException("The new password must be at least 6 characters long.");
 
         if (!newPassword.Any(char.IsUpper) || !newPassword.Any(char.IsLower) || !newPassword.Any(char.IsDigit))
         throw new ArgumentException("The new password must contain uppercase, lowercase and numbers..");
 
     
-    string newPasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        string newPasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
 
     
-    PasswordHash = newPasswordHash;
+        PasswordHash = newPasswordHash;
+        SetUpdatedAt();
     }
 
     public void Block()
