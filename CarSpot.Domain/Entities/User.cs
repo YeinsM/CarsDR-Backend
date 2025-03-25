@@ -1,6 +1,11 @@
 using CarSpot.Domain.Common;
-using CarSpot.Domain.Common.Entities;
+using CarSpot.Domain.Entities;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 using BCrypt;
+
+namespace CarSpot.Domain.Entities;
 
 public class User : BaseEntity
 {
@@ -8,7 +13,7 @@ public class User : BaseEntity
     public string Email { get; private set; }
     public string PasswordHash { get; private set;}
     [NotMapped]
-    public string ResetPassword { get; private set; }
+    public string? ResetPassword { get; private set; }
     
 
     public User(string email, string passwordHash, string fullName)

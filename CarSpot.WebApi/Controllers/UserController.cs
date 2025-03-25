@@ -56,17 +56,27 @@ namespace CarSpot.WebApi.Controllers;
         return NoContent();
     }
 
-    [HttpPatch("{id:int}/change-password")]
+  [HttpPatch("{id:int}/change-password")]
     public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordRequest request)
     {
-        var user = await _userRepository.GetByIdAsync(id);
-        if (user == null) return NotFound();
-        if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, user.PasswordHash))
-        return BadRequest("Incorrect old password.");
-        var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-        user.ChangePassword(newPasswordHash);
+        try
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null) return NotFound();
+
+        
+            user.ChangePassword(
+            request.CurrentPassword,
+            request.NewPassword, 
+            request.ConfirmNewPassword);
+
         await _userRepository.UpdateAsync(user);
         return NoContent();
+        }
+             catch (ArgumentException ex)
+        {
+             return BadRequest(ex.Message);
+        }
     }
 
     [HttpPatch("{id:int}/deactivate")]

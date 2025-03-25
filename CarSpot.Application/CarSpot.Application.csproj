@@ -8,12 +8,19 @@
 
   <ItemGroup>
     <ProjectReference Include="..\CarSpot.Domain\CarSpot.Domain.csproj" />
+    
   </ItemGroup>
+ 
 
   <ItemGroup>
     <Folder Include="Interfaces\" />
     <Folder Include="DTOs\" />
     <Folder Include="Services\" />
+  </ItemGroup>
+ 
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.3" />
   </ItemGroup>
 
 </Project>
