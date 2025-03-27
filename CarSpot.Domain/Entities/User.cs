@@ -1,35 +1,30 @@
 using CarSpot.Domain.Common;
-using CarSpot.Domain.Entities;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
 using BCrypt;
-
-namespace CarSpot.Domain.Entities;
+using System.ComponentModel.DataAnnotations.Schema;
 
 public class User : BaseEntity
 {
-    public string FullName { get; private set; }
+    public string Username { get; private set; }
     public string Email { get; private set; }
-    public string PasswordHash { get; private set;}
+    public string Password { get; private set;}
     [NotMapped]
     public string? ResetPassword { get; private set; }
     
 
-    public User(string email, string passwordHash, string fullName)
+    public User(string email, string password, string username)
     {
         Email = email;
-        PasswordHash = passwordHash;
-        FullName = fullName;
+        Password = password;
+        Username = username;
         
     } 
 
-    public void UpdateInfo(string fullName)
+    public void UpdateInfo(string username)
     {
-        if(string.IsNullOrWhiteSpace(FullName))
+        if(string.IsNullOrWhiteSpace(Username))
          throw new ArgumentNullException("Invalid fullname.");
            
-        FullName = fullName;
+        Username = username;
         SetUpdatedAt();
     }
 
@@ -43,31 +38,27 @@ public class User : BaseEntity
         
     }
 
-    public void ChangePassword(string currentPassword, string newPassword, string confirmNewPassword)
+    public void ChangePassword(string currentPassword, string? newPassword, string confirmNewPassword)
     {
         if (string.IsNullOrWhiteSpace(newPassword))
-        throw new ArgumentException("no characters found.");
+            throw new ArgumentException("no characters found.");
 
-    
         if (newPassword != confirmNewPassword)
-        throw new ArgumentException("passwords do not match.");
+            throw new ArgumentException("passwords do not match.");
 
-    
-        if (!BCrypt.Net.BCrypt.Verify(currentPassword, PasswordHash))
-        throw new ArgumentException("current password is incorrect.");
+        if (!BCrypt.Net.BCrypt.Verify(currentPassword, Password))
+            throw new ArgumentException("current password is incorrect.");
 
-    
         if (newPassword.Length < 6)
-        throw new ArgumentException("The new password must be at least 6 characters long.");
+            throw new ArgumentException("The new password must be at least 6 characters long.");
 
         if (!newPassword.Any(char.IsUpper) || !newPassword.Any(char.IsLower) || !newPassword.Any(char.IsDigit))
-        throw new ArgumentException("The new password must contain uppercase, lowercase and numbers..");
+            throw new ArgumentException("The new password must contain uppercase, lowercase and numbers..");
 
-    
-        string newPasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-
-    
-        PasswordHash = newPasswordHash;
+        // Remove this line as it's creating a new variable with the same name
+        // string newPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        
+        Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
         SetUpdatedAt();
     }
 
@@ -89,7 +80,7 @@ public class User : BaseEntity
         if (string.IsNullOrWhiteSpace(ResetPassword))
             throw new InvalidOperationException("No password to reset.");
 
-        PasswordHash = BCrypt.Net.BCrypt.HashPassword(ResetPassword);
+        Password = BCrypt.Net.BCrypt.HashPassword(ResetPassword);
         ResetPassword = null; 
         SetUpdatedAt();
     }

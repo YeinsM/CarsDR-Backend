@@ -1,5 +1,5 @@
 using CarSpot.Application.Interfaces;
-using CarSpot.Domain.Entities;
+using CarSpot.Domain;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 

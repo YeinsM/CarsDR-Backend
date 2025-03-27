@@ -1,4 +1,4 @@
-using CarSpot.Domain.Entities;
+using CarSpot.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -19,10 +19,10 @@ namespace CarSpot.Infrastructure.Persistence.Context;
             entity.Property(u => u.Email)
             .HasMaxLength(200)
             .IsRequired();
-            entity.Property(u => u.PasswordHash)
+            entity.Property(u => u.Password)
             .HasMaxLength(256)
             .IsRequired();
-            entity.Property(u => u.FullName)
+            entity.Property(u => u.Username)
             .HasMaxLength(100)
             .IsRequired();
             entity.Property(u => u.IsActive)

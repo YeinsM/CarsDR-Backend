@@ -1,6 +1,5 @@
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
-using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using BCrypt.Net;
 using System.Data.SqlClient;
@@ -34,8 +33,8 @@ public class UsersController : ControllerBase
     {
         if (await _userRepository.GetByEmailAsync(request.Email) != null)
             return BadRequest("Email already registered.");
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-        var user = new User(request.Email, passwordHash, request.FullName);
+        var password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        var user = new User(request.Email, password, request.Username);
         await _userRepository.AddAsync(user);
         return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
     }
@@ -44,7 +43,7 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
-        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             return Unauthorized("Invalid credentials.");
         return Ok("Login successful.");
     }
@@ -54,7 +53,7 @@ public class UsersController : ControllerBase
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null) return NotFound();
-        user.UpdateInfo(request.FullName);
+        user.UpdateInfo(request.Username);
         await _userRepository.UpdateAsync(user);
         return NoContent();
     }
