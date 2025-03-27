@@ -3,7 +3,8 @@ using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using BCrypt.Net;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.WebApi.Controllers;
 
@@ -34,8 +35,8 @@ public class UsersController : ControllerBase
     {
         if (await _userRepository.GetByEmailAsync(request.Email) != null)
             return BadRequest("Email already registered.");
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
-        var user = new User(request.Email, passwordHash, request.FullName);
+        var password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        var user = new User(request.Email, request.Password, request.FirstName, request.LastName);
         await _userRepository.AddAsync(user);
         return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
     }
@@ -44,20 +45,109 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
-        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             return Unauthorized("Invalid credentials.");
         return Ok("Login successful.");
     }
 
-    [HttpPut("{id:int}")]
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
+    {
+        try
+        {
+            if (request == null)
+                return BadRequest(new
+                {
+                    Status = 400,
+                    Error = "Bad Request",
+                    Message = "Request body is required"
+                });
+
+            
+            if (string.IsNullOrEmpty(request.Email))
+                return BadRequest(new
+                {
+                    Status = 400,
+                    Error = "Validation Error",
+                    Message = "Email is required"
+                });
+
+            var user = new User(
+                firstName: request.FirstName,
+                lastName: request.LastName,
+                email: request.Email,
+                password: request.Password
+            );
+
+            await _userRepository.AddAsync(user);
+            await _userRepository.SaveChangesAsync();
+
+            return Ok(new
+            {
+                Status = 200,
+                Message = "User registered successfully",
+                UserId = user.Id
+            });
+        }
+        catch (DbUpdateException ex)
+        {
+            return StatusCode(500, new
+            {
+                Status = 500,
+                Error = "Database Error",
+                Message = "Error saving user data"
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                Status = 500,
+                Error = "Server Error",
+                Message = "An unexpected error occurred"
+            });
+        }
+    }
+
+    [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserRequest request)
     {
-        var user = await _userRepository.GetByIdAsync(id);
-        if (user == null) return NotFound();
-        user.UpdateInfo(request.FullName);
-        await _userRepository.UpdateAsync(user);
-        return NoContent();
+        try
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null)
+                return NotFound(new
+                {
+                    Status = 404,
+                    Error = "Not Found",
+                    Message = $"User with id {id} not found"
+                });
+
+            user.UpdateBasicInfo(
+                firstName: request.FirstName,
+                lastName: request.LastName,
+                username: request.Username
+            );
+
+            await _userRepository.SaveChangesAsync();
+            return Ok(new
+            {
+                Status = 200,
+                Message = "User updated successfully",
+                User = user
+            });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new
+            {
+                Status = 500,
+                Error = "Server Error",
+                Message = "Error updating user data"
+            });
+        }
     }
+
 
     [HttpPatch("{id:int}/change-password")]
     public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordRequest request)
@@ -117,4 +207,6 @@ public class UsersController : ControllerBase
             return StatusCode(500, $"Connection failed: {ex.Message}");
         }
     }
+
+
 }

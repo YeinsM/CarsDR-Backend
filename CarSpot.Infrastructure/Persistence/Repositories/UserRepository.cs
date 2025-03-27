@@ -37,4 +37,9 @@ namespace CarSpot.Infrastructure.Persistence.Repositories;
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
     }
+
+     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.SaveChangesAsync(cancellationToken);
+    }
 }

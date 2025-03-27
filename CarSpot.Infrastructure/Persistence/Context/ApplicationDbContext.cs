@@ -13,16 +13,17 @@ namespace CarSpot.Infrastructure.Persistence.Context;
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(u => u.Id);
             entity.Property(u => u.Email)
             .HasMaxLength(200)
             .IsRequired();
-            entity.Property(u => u.PasswordHash)
+            entity.Property(u => u.Password)
             .HasMaxLength(256)
             .IsRequired();
-            entity.Property(u => u.FullName)
+            entity.Property(u => u.Username)
             .HasMaxLength(100)
             .IsRequired();
             entity.Property(u => u.IsActive)

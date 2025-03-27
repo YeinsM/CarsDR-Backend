@@ -9,69 +9,92 @@ namespace CarSpot.Domain.Entities;
 
 public class User : BaseEntity
 {
-    public string FullName { get; private set; }
+    public string FirstName { get; private set; }
+    public string LastName { get; private set; }
+    public string? Username { get; private set; }
     public string Email { get; private set; }
-    public string PasswordHash { get; private set;}
+    public string Password { get; private set; } 
     [NotMapped]
     public string? ResetPassword { get; private set; }
+
     
+    [NotMapped]
+    public string FullName => $"{FirstName} {LastName}";
 
-    public User(string email, string passwordHash, string fullName)
+    public User(string firstName, string lastName, string email, string password)
     {
-        Email = email;
-        PasswordHash = passwordHash;
-        FullName = fullName;
+        if (string.IsNullOrWhiteSpace(firstName))
+            throw new ArgumentNullException(nameof(firstName), "First name is required.");
         
-    } 
+        if (string.IsNullOrWhiteSpace(lastName))
+            throw new ArgumentNullException(nameof(lastName), "Last name is required.");
+            
+            
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentNullException(nameof(email), "Email is required.");
+            
+        if (string.IsNullOrWhiteSpace(password))
+            throw new ArgumentNullException(nameof(password), "Password is required.");
 
-    public void UpdateInfo(string fullName)
+        FirstName = firstName;
+        LastName = lastName;
+        Email = email;
+        Password = BCrypt.Net.BCrypt.HashPassword(password); 
+    }
+
+    public void UpdateBasicInfo(string firstName, string lastName, string username)
     {
-        if(string.IsNullOrWhiteSpace(FullName))
-         throw new ArgumentNullException("Invalid fullname.");
+        if (string.IsNullOrWhiteSpace(firstName))
+            throw new ArgumentNullException(nameof(firstName), "Invalid first name.");
            
-        FullName = fullName;
+        if (string.IsNullOrWhiteSpace(lastName))
+            throw new ArgumentNullException(nameof(lastName), "Invalid last name.");
+            
+        if (string.IsNullOrWhiteSpace(username))
+            throw new ArgumentNullException(nameof(username), "Invalid username.");
+
+        FirstName = firstName;
+        LastName = lastName;
+        Username = username;
         SetUpdatedAt();
     }
 
+    
     public void UpdateEmail(string newEmail)
     {
         if(string.IsNullOrWhiteSpace(newEmail))
-         throw new ArgumentNullException("Invalid email.");
+            throw new ArgumentNullException("Invalid email.");
            
         Email = newEmail;
         SetUpdatedAt();
         
     }
 
-    public void ChangePassword(string currentPassword, string newPassword, string confirmNewPassword)
+    public void ChangePassword(string currentPassword, string? newPassword, string confirmNewPassword)
     {
         if (string.IsNullOrWhiteSpace(newPassword))
-        throw new ArgumentException("no characters found.");
+            throw new ArgumentException("no characters found.");
 
-    
         if (newPassword != confirmNewPassword)
-        throw new ArgumentException("passwords do not match.");
+            throw new ArgumentException("passwords do not match.");
 
-    
-        if (!BCrypt.Net.BCrypt.Verify(currentPassword, PasswordHash))
-        throw new ArgumentException("current password is incorrect.");
+        if (!BCrypt.Net.BCrypt.Verify(currentPassword, Password))
+            throw new ArgumentException("current password is incorrect.");
 
-    
         if (newPassword.Length < 6)
-        throw new ArgumentException("The new password must be at least 6 characters long.");
+            throw new ArgumentException("The new password must be at least 6 characters long.");
 
         if (!newPassword.Any(char.IsUpper) || !newPassword.Any(char.IsLower) || !newPassword.Any(char.IsDigit))
-        throw new ArgumentException("The new password must contain uppercase, lowercase and numbers..");
+            throw new ArgumentException("The new password must contain uppercase, lowercase and numbers..");
 
-    
-        string newPasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-
-    
-        PasswordHash = newPasswordHash;
+        // Remove this line as it's creating a new variable with the same name
+        // string newPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        
+        Password = BCrypt.Net.BCrypt.HashPassword(newPassword);
         SetUpdatedAt();
     }
 
-     public void SetResetPassword(string newPassword, string confirmNewPassword)
+    public void SetResetPassword(string newPassword, string confirmNewPassword)
     {
         if (string.IsNullOrWhiteSpace(newPassword))
             throw new ArgumentException("New password cannot be null or empty.");
@@ -89,7 +112,7 @@ public class User : BaseEntity
         if (string.IsNullOrWhiteSpace(ResetPassword))
             throw new InvalidOperationException("No password to reset.");
 
-        PasswordHash = BCrypt.Net.BCrypt.HashPassword(ResetPassword);
+        Password = BCrypt.Net.BCrypt.HashPassword(ResetPassword);
         ResetPassword = null; 
         SetUpdatedAt();
     }
@@ -102,5 +125,5 @@ public class User : BaseEntity
         if (!password.Any(char.IsUpper) || !password.Any(char.IsLower) || !password.Any(char.IsDigit))
             throw new ArgumentException("The password must contain uppercase, lowercase, and numbers.");
     }
-
+    
 }
