@@ -1,5 +1,6 @@
 using CarSpot.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace CarSpot.Infrastructure.Persistence.Context;
     public class ApplicationDbContext : DbContext
@@ -27,7 +28,7 @@ namespace CarSpot.Infrastructure.Persistence.Context;
             entity.Property(u => u.IsActive)
             .HasDefaultValue(true);
             entity.Property(u => u.CreatedAt)
-            .HasDefaultValueSql("GETUTCDATE()");
+            .HasDefaultValueSql("GETDATE()");
             entity.Property(u => u.UpdatedAt)
             .IsRequired(false);
         });

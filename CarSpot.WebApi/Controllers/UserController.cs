@@ -3,17 +3,20 @@ using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using BCrypt.Net;
+using System.Data.SqlClient;
 
 namespace CarSpot.WebApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-    public class UsersController : ControllerBase
-    {
+public class UsersController : ControllerBase
+{
     private readonly IUserRepository _userRepository;
-    public UsersController(IUserRepository userRepository)
+    private readonly IConfiguration _configuration;
+    public UsersController(IUserRepository userRepository, IConfiguration configuration)
     {
         _userRepository = userRepository;
+        _configuration = configuration;
     }
 
     [HttpGet]
@@ -30,7 +33,7 @@ namespace CarSpot.WebApi.Controllers;
     public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
     {
         if (await _userRepository.GetByEmailAsync(request.Email) != null)
-        return BadRequest("Email already registered.");
+            return BadRequest("Email already registered.");
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(request.Password);
         var user = new User(request.Email, passwordHash, request.FullName);
         await _userRepository.AddAsync(user);
@@ -42,10 +45,10 @@ namespace CarSpot.WebApi.Controllers;
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
         if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-        return Unauthorized("Invalid credentials.");
+            return Unauthorized("Invalid credentials.");
         return Ok("Login successful.");
     }
-    
+
     [HttpPut("{id:int}")]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserRequest request)
     {
@@ -59,14 +62,24 @@ namespace CarSpot.WebApi.Controllers;
     [HttpPatch("{id:int}/change-password")]
     public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordRequest request)
     {
-        var user = await _userRepository.GetByIdAsync(id);
-        if (user == null) return NotFound();
-        if (!BCrypt.Net.BCrypt.Verify(request.OldPassword, user.PasswordHash))
-        return BadRequest("Incorrect old password.");
-        var newPasswordHash = BCrypt.Net.BCrypt.HashPassword(request.NewPassword);
-        user.ChangePassword(newPasswordHash);
-        await _userRepository.UpdateAsync(user);
-        return NoContent();
+        try
+        {
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null) return NotFound();
+
+
+            user.ChangePassword(
+            request.CurrentPassword,
+            request.NewPassword,
+            request.ConfirmNewPassword);
+
+            await _userRepository.UpdateAsync(user);
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
     }
 
     [HttpPatch("{id:int}/deactivate")]
@@ -88,5 +101,20 @@ namespace CarSpot.WebApi.Controllers;
         await _userRepository.UpdateAsync(user);
         return NoContent();
 
+    }
+
+    [HttpGet("test-connection")]
+    public async Task<IActionResult> TestConnection()
+    {
+        try
+        {
+            using var conn = new SqlConnection(_configuration.GetConnectionString("Default"));
+            await conn.OpenAsync();
+            return Ok("Connected to Azure SQL successfully!");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, $"Connection failed: {ex.Message}");
+        }
     }
 }
