@@ -1,4 +1,4 @@
-using CarSpot.Domain.Entities;
+using CarSpot.Domain;
 
 namespace CarSpot.Application.Interfaces;
     public interface IUserRepository 

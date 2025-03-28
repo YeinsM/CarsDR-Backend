@@ -1,4 +1,4 @@
-using CarSpot.Domain.Entities;
+using CarSpot.Domain;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

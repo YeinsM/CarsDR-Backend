@@ -1,19 +1,16 @@
 using CarSpot.Domain.Common;
-using CarSpot.Domain.Entities;
-using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using Microsoft.EntityFrameworkCore;
 using BCrypt;
-
-namespace CarSpot.Domain.Entities;
+using System.ComponentModel.DataAnnotations.Schema;
 
 public class User : BaseEntity
 {
+
     public string FirstName { get; private set; }
     public string LastName { get; private set; }
     public string Username { get; private set; }
     public string Email { get; private set; }
     public string Password { get; private set; } 
+
     [NotMapped]
     public string? ResetPassword { get; private set; }
 
@@ -21,10 +18,12 @@ public class User : BaseEntity
     [NotMapped]
     public string FullName => $"{FirstName} {LastName}";
 
+
     public User(string firstName, string lastName, string email, string password, string username)
     {
         if (string.IsNullOrWhiteSpace(firstName))
             throw new ArgumentNullException(nameof(firstName), "First name is required.");
+
         
         if (string.IsNullOrWhiteSpace(lastName))
             throw new ArgumentNullException(nameof(lastName), "Last name is required.");
@@ -43,6 +42,7 @@ public class User : BaseEntity
         Password = BCrypt.Net.BCrypt.HashPassword(password); 
     }
 
+
     public void UpdateBasicInfo(string firstName, string lastName, string username)
     {
         if (string.IsNullOrWhiteSpace(firstName))
@@ -56,6 +56,7 @@ public class User : BaseEntity
 
         FirstName = firstName;
         LastName = lastName;
+
         Username = username;
         SetUpdatedAt();
     }

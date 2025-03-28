@@ -1,6 +1,5 @@
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
-using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using BCrypt.Net;
 using Microsoft.Data.SqlClient;
@@ -35,8 +34,10 @@ public class UsersController : ControllerBase
     {
         if (await _userRepository.GetByEmailAsync(request.Email) != null)
             return BadRequest("Email already registered.");
+
         //var password = BCrypt.Net.BCrypt.HashPassword(request.Password);
         var user = new User(request.FirstName, request.LastName, request.Email, request.Password, request.Username);
+
         await _userRepository.AddAsync(user);
         return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
     }
@@ -113,6 +114,7 @@ public class UsersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserRequest request)
     {
+
         try
         {
             var user = await _userRepository.GetByIdAsync(id);
@@ -147,6 +149,7 @@ public class UsersController : ControllerBase
                 Message = "Error updating user data"
             });
         }
+
     }
 
 
