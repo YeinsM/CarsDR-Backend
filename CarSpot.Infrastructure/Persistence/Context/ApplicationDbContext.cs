@@ -3,12 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace CarSpot.Infrastructure.Persistence.Context;
-    public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : base(options)
     { }
-    
+
     public DbSet<User> Users { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -17,6 +17,12 @@ namespace CarSpot.Infrastructure.Persistence.Context;
         modelBuilder.Entity<User>(entity =>
         {
             entity.HasKey(u => u.Id);
+            entity.Property(e => e.FirstName)
+            .HasMaxLength(100)
+            .IsRequired();
+            entity.Property(e => e.LastName)
+            .HasMaxLength(100)
+            .IsRequired();
             entity.Property(u => u.Email)
             .HasMaxLength(200)
             .IsRequired();
