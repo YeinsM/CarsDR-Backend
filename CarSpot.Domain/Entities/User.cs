@@ -11,7 +11,7 @@ public class User : BaseEntity
 {
     public string FirstName { get; private set; }
     public string LastName { get; private set; }
-    public string? Username { get; private set; }
+    public string Username { get; private set; }
     public string Email { get; private set; }
     public string Password { get; private set; } 
     [NotMapped]
@@ -21,7 +21,7 @@ public class User : BaseEntity
     [NotMapped]
     public string FullName => $"{FirstName} {LastName}";
 
-    public User(string firstName, string lastName, string email, string password)
+    public User(string firstName, string lastName, string email, string password, string username)
     {
         if (string.IsNullOrWhiteSpace(firstName))
             throw new ArgumentNullException(nameof(firstName), "First name is required.");
@@ -39,6 +39,7 @@ public class User : BaseEntity
         FirstName = firstName;
         LastName = lastName;
         Email = email;
+        Username = username;
         Password = BCrypt.Net.BCrypt.HashPassword(password); 
     }
 

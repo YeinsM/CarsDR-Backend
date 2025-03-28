@@ -35,8 +35,8 @@ public class UsersController : ControllerBase
     {
         if (await _userRepository.GetByEmailAsync(request.Email) != null)
             return BadRequest("Email already registered.");
-        var password = BCrypt.Net.BCrypt.HashPassword(request.Password);
-        var user = new User(request.Email, request.Password, request.FirstName, request.LastName);
+        //var password = BCrypt.Net.BCrypt.HashPassword(request.Password);
+        var user = new User(request.FirstName, request.LastName, request.Email, request.Password, request.Username);
         await _userRepository.AddAsync(user);
         return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
     }
@@ -76,7 +76,8 @@ public class UsersController : ControllerBase
                 firstName: request.FirstName,
                 lastName: request.LastName,
                 email: request.Email,
-                password: request.Password
+                password: request.Password,
+                username : request.Username
             );
 
             await _userRepository.AddAsync(user);
