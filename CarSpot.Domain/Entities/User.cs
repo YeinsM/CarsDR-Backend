@@ -4,34 +4,68 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 public class User : BaseEntity
 {
+
+    public string FirstName { get; private set; }
+    public string LastName { get; private set; }
     public string Username { get; private set; }
     public string Email { get; private set; }
-    public string Password { get; private set;}
+    public string Password { get; private set; } 
+
     [NotMapped]
     public string? ResetPassword { get; private set; }
+
     
+    [NotMapped]
+    public string FullName => $"{FirstName} {LastName}";
 
-    public User(string email, string password, string username)
+
+    public User(string firstName, string lastName, string email, string password, string username)
     {
-        Email = email;
-        Password = password;
-        Username = username;
+        if (string.IsNullOrWhiteSpace(firstName))
+            throw new ArgumentNullException(nameof(firstName), "First name is required.");
+
         
-    } 
+        if (string.IsNullOrWhiteSpace(lastName))
+            throw new ArgumentNullException(nameof(lastName), "Last name is required.");
+            
+            
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentNullException(nameof(email), "Email is required.");
+            
+        if (string.IsNullOrWhiteSpace(password))
+            throw new ArgumentNullException(nameof(password), "Password is required.");
 
-    public void UpdateInfo(string username)
+        FirstName = firstName;
+        LastName = lastName;
+        Email = email;
+        Username = username;
+        Password = BCrypt.Net.BCrypt.HashPassword(password); 
+    }
+
+
+    public void UpdateBasicInfo(string firstName, string lastName, string username)
     {
-        if(string.IsNullOrWhiteSpace(Username))
-         throw new ArgumentNullException("Invalid fullname.");
+        if (string.IsNullOrWhiteSpace(firstName))
+            throw new ArgumentNullException(nameof(firstName), "Invalid first name.");
            
+        if (string.IsNullOrWhiteSpace(lastName))
+            throw new ArgumentNullException(nameof(lastName), "Invalid last name.");
+            
+        if (string.IsNullOrWhiteSpace(username))
+            throw new ArgumentNullException(nameof(username), "Invalid username.");
+
+        FirstName = firstName;
+        LastName = lastName;
+
         Username = username;
         SetUpdatedAt();
     }
 
+    
     public void UpdateEmail(string newEmail)
     {
         if(string.IsNullOrWhiteSpace(newEmail))
-         throw new ArgumentNullException("Invalid email.");
+            throw new ArgumentNullException("Invalid email.");
            
         Email = newEmail;
         SetUpdatedAt();
@@ -62,7 +96,7 @@ public class User : BaseEntity
         SetUpdatedAt();
     }
 
-     public void SetResetPassword(string newPassword, string confirmNewPassword)
+    public void SetResetPassword(string newPassword, string confirmNewPassword)
     {
         if (string.IsNullOrWhiteSpace(newPassword))
             throw new ArgumentException("New password cannot be null or empty.");
@@ -93,5 +127,5 @@ public class User : BaseEntity
         if (!password.Any(char.IsUpper) || !password.Any(char.IsLower) || !password.Any(char.IsDigit))
             throw new ArgumentException("The password must contain uppercase, lowercase, and numbers.");
     }
-
+    
 }
