@@ -1,0 +1,32 @@
+name: Deploy to EC2 Windows IIS
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.0'
+
+    - name: Publish project
+      run: |
+        dotnet publish -c Release -o publish
+
+    - name: Copy files to EC2 (SCP)
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.WINRM_HOST }}
+        username: ${{ secrets.WINRM_USERNAME }}
+        key: ${{ secrets.EC2_KEY }}
+        source: "publish/"
+        target: "C:/inetpub/wwwroot/carspot"
