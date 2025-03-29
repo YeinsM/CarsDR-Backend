@@ -1,7 +1,6 @@
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using BCrypt.Net;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -45,8 +44,11 @@ public class UsersController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+
+        string pass = BCrypt.Net.BCrypt.HashPassword(request.Password);
+
         var user = await _userRepository.GetByEmailAsync(request.Email);
-        if (user == null || !BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
+        if (user == null || BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             return Unauthorized("Invalid credentials.");
         return Ok("Login successful.");
     }
@@ -64,7 +66,7 @@ public class UsersController : ControllerBase
                     Message = "Request body is required"
                 });
 
-            
+
             if (string.IsNullOrEmpty(request.Email))
                 return BadRequest(new
                 {
@@ -78,7 +80,7 @@ public class UsersController : ControllerBase
                 lastName: request.LastName,
                 email: request.Email,
                 password: request.Password,
-                username : request.Username
+                username: request.Username
             );
 
             await _userRepository.AddAsync(user);
