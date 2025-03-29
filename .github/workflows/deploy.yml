@@ -27,6 +27,7 @@ jobs:
       with:
         host: ${{ secrets.WINRM_HOST }}
         username: ${{ secrets.WINRM_USERNAME }}
+        password: ${{ secrets.WINRM_PASSWORD }}
         key: ${{ secrets.EC2_KEY }}
         source: "publish/"
         target: "C:/inetpub/wwwroot/carspot"
