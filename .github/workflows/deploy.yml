@@ -26,7 +26,7 @@ jobs:
       run: |
         echo "Host: ${{ secrets.WINRM_HOST }}"
         echo "Username: ${{ secrets.WINRM_USERNAME }}"
-        echo "Password: ${{ secrets.WINRM_PASSWORD }}"
+        echo "Password: ${{ secrets.GITHUB_TOKEN }}"
         echo "Private key exist? ${{ secrets.EC2_KEY != 'No' }}"
 
     - name: Copy files to EC2 (SCP)
