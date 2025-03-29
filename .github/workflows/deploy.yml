@@ -25,7 +25,7 @@ jobs:
     - name: Debug Secrets
       run: |
         echo "Host: ${{ secrets.WINRM_HOST }}"
-        echo "Username: ${{ secrets.WINRM_USERNAME }}"
+        echo "Username: ${{ secrets.EC2_KEY }}"
         echo "Password: ${{ secrets.GITHUB_TOKEN }}"
         echo "Private key exist? ${{ secrets.EC2_KEY != 'No' }}"
 
