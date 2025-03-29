@@ -35,6 +35,6 @@ jobs:
         host: ${{ secrets.WINRM_HOST }}
         username: ${{ secrets.WINRM_USERNAME }}
         password: ${{ secrets.WINRM_PASSWORD }}
-        key: ${{ secrets..GITHUB_TOKEN }}
+        key: ${{ secrets.GITHUB_TOKEN }}
         source: "publish/"
         target: "C:/inetpub/wwwroot/carspot"
