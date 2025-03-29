@@ -1,0 +1,47 @@
+name: Deploy to EC2 Windows IIS
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build-and-deploy:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.0'
+
+    - name: Publish project
+      run: |
+        dotnet publish -c Release -o publish
+
+    - name: Copy files to EC2 (WinRM)
+      uses: appleboy/winrm-action@v1.1.0
+      with:
+        host: ${{ secrets.WINRM_HOST }}
+        username: ${{ secrets.WINRM_USERNAME }}
+        password: ${{ secrets.WINRM_PASSWORD }}
+        port: 5985
+        script: |
+          mkdir C:\inetpub\wwwroot\carspot -Force
+          Remove-Item -Recurse -Force C:\inetpub\wwwroot\carspot\* || echo "Cleaned"
+          exit
+          
+    - name: Deploy published files
+      uses: appleboy/winrm-action@v1.1.0
+      with:
+        host: ${{ secrets.WINRM_HOST }}
+        username: ${{ secrets.WINRM_USERNAME }}
+        password: ${{ secrets.WINRM_PASSWORD }}
+        port: 5985
+        script: |
+          Invoke-WebRequest https://github.com/${{ github.repository }}/archive/${{ github.sha }}.zip -OutFile app.zip
+          Expand-Archive app.zip -DestinationPath C:\inetpub\wwwroot\carspot
+          Remove-Item app.zip
