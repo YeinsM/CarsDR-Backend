@@ -30,3 +30,4 @@ jobs:
         password: ${{ secrets.PASSWORD }}
         source: "publish/"
         target: "/c/inetpub/wwwroot/carspot"
+        debug: true
