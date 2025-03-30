@@ -28,11 +28,10 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.KEY }}
         password: ${{ secrets.PASSWORD }}
-        script_stop: true
-        shell: powershell
         script: |
-          Stop-Service W3SVC
-          Remove-Item -Recurse -Force "C:\inetpub\wwwroot\carspot\*" -ErrorAction SilentlyContinue
+          powershell -Command "Stop-Service W3SVC"
+          powershell -Command "Remove-Item -Recurse -Force 'C:\inetpub\wwwroot\carspot\*' -ErrorAction SilentlyContinue"
+
 
 
     - name: Copy files to EC2 (SCP)
