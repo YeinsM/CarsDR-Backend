@@ -28,6 +28,7 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.KEY }}
         password: ${{ secrets.PASSWORD }}
+        script: Remove-Item -Recurse -Force "C:\inetpub\wwwroot\carspot\*" -ErrorAction SilentlyContinue
         source: "publish/*"
         target: "C:/inetpub/wwwroot/carspot"
         debug: true
