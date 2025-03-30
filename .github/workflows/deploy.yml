@@ -29,5 +29,5 @@ jobs:
         key: ${{ secrets.KEY }}
         password: ${{ secrets.PASSWORD }}
         source: "publish/"
-        target: "/c/inetpub/wwwroot/carspot"
+        target: "C:/inetpub/wwwroot/carspot"
         debug: true
