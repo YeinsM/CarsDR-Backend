@@ -21,6 +21,17 @@ jobs:
     - name: Publish project
       run: dotnet publish -c Release -o publish
 
+    - name: Stop IIS & clean target folder
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USER }}
+        key: ${{ secrets.KEY }}
+        password: ${{ secrets.PASSWORD }}
+        script: |
+          Stop-Service W3SVC
+          Remove-Item -Recurse -Force "C:\inetpub\wwwroot\carspot\*" -ErrorAction SilentlyContinue
+
     - name: Copy files to EC2 (SCP)
       uses: appleboy/scp-action@master
       with:
@@ -28,8 +39,16 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.KEY }}
         password: ${{ secrets.PASSWORD }}
-        script: Remove-Item -Recurse -Force "C:\inetpub\wwwroot\carspot\*" -ErrorAction SilentlyContinue
         source: "publish"
         target: "C:/inetpub/wwwroot/carspot"
         strip_components: 1
         debug: true
+
+    - name: Start IIS again
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USER }}
+        key: ${{ secrets.KEY }}
+        password: ${{ secrets.PASSWORD }}
+        script: Start-Service W3SVC
