@@ -28,6 +28,6 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.KEY }}
         password: ${{ secrets.PASSWORD }}
-        source: "publish/"
-        target: "C:/inetpub/wwwroot/test"
+        source: "publish/*"
+        target: "C:/inetpub/wwwroot/carspot"
         debug: true
