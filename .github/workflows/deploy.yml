@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -19,29 +19,14 @@ jobs:
         dotnet-version: '8.0.x'
 
     - name: Publish project
-      run: |
-        dotnet publish -c Release -o publish
+      run: dotnet publish -c Release -o publish
 
-    - name: Copy files to EC2 (WinRM)
-      uses: appleboy/winrm-action@v1.1.0
-      with:
-        host: ${{ secrets.WINRM_HOST }}
-        username: ${{ secrets.WINRM_USERNAME }}
-        password: ${{ secrets.WINRM_PASSWORD }}
-        port: 5985
-        script: |
-          mkdir C:\inetpub\wwwroot\carspot -Force
-          Remove-Item -Recurse -Force C:\inetpub\wwwroot\carspot\* || echo "Cleaned"
-          exit
-          
-    - name: Deploy published files
-      uses: appleboy/winrm-action@v1.1.0
+    - name: Copy files to EC2 (SCP)
+      uses: appleboy/scp-action@master
       with:
         host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
         password: ${{ secrets.PASSWORD }}
-        port: 5985
-        script: |
-          Invoke-WebRequest https://github.com/${{ github.repository }}/archive/${{ github.sha }}.zip -OutFile app.zip
-          Expand-Archive app.zip -DestinationPath C:\inetpub\wwwroot\carspot
-          Remove-Item app.zip
+        source: "publish/"
+        target: "/c/inetpub/wwwroot/carspot"
