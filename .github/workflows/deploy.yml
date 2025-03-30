@@ -28,6 +28,8 @@ jobs:
         username: ${{ secrets.USER }}
         key: ${{ secrets.KEY }}
         password: ${{ secrets.PASSWORD }}
+        script_stop: true
+        shell: pwsh
         script: |
           Stop-Service W3SVC
           Remove-Item -Recurse -Force "C:\inetpub\wwwroot\carspot\*" -ErrorAction SilentlyContinue
