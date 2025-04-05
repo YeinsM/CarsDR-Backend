@@ -6,7 +6,7 @@ namespace CarSpot.Domain.Entities
     {
         public string Name { get; private set; }
         public int MakeId { get; private set; }
-        public Make Make { get; private set; } = null!;
+        public Make? Make { get; private set; }
         public ICollection<Vehicle> Vehicles { get; private set; } = new List<Vehicle>();
 
         public Model(string name, int makeId)

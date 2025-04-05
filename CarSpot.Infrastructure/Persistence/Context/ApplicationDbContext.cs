@@ -47,8 +47,8 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Make>(entity =>
          {
-       entity.HasKey(m => m.Id);
-       entity.Property(m => m.Name)
+            entity.HasKey(m => m.Id);
+            entity.Property(m => m.Name)
              .HasMaxLength(100)
              .IsRequired();
         });
