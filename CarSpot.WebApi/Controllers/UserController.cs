@@ -4,6 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using BCrypt.Net;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using CarSpot.Domain.ValueObjects;
+using CarSpot.Domain.Entities;
+
+
 
 namespace CarSpot.WebApi.Controllers;
 
@@ -36,8 +40,8 @@ public class UsersController : ControllerBase
         if (await _userRepository.IsEmailRegisteredAsync(request.Email))
             return BadRequest("Email already registered.");
 
-        
-        var user = new User(request.FirstName, request.LastName, request.Email, request.Password, request.Username);
+        var hashedPassword = HashedPassword.From(request.Password);
+        var user = new User(request.FirstName, request.LastName, request.Email, hashedPassword, request.Username);
 
         await _userRepository.RegisterUserAsync(user.FirstName, user.LastName, user.Email, user.Password, user.Username);
         return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
@@ -46,10 +50,15 @@ public class UsersController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        if (!await _userRepository.ValidateCredentialsAsync(request.Email, request.Password))
-            return Unauthorized("Invalid credentials.");
+        var hashedPassword = HashedPassword.From(request.Password);
+
+        var user = await _userRepository.ValidateCredentialsAsync(request.Email, hashedPassword);
+
+        if (user is null)
+        return Unauthorized("Invalid credentials.");
 
         return Ok("Login successful.");
+
     }
 
     [HttpPost("register")]
@@ -62,12 +71,13 @@ public class UsersController : ControllerBase
 
             if (string.IsNullOrEmpty(request.Email))
                 return BadRequest(new { Status = 400, Error = "Validation Error", Message = "Email is required" });
+            var hashedPassword = HashedPassword.From(request.Password);
 
             var user = await _userRepository.RegisterUserAsync(
                 request.FirstName,
                 request.LastName,
                 request.Email,
-                request.Password,
+                hashedPassword,
                 request.Username);
 
             return Ok(new
