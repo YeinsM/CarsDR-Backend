@@ -33,7 +33,8 @@ namespace CarSpot.WebApi.Controllers
             if (model == null)
                 return NotFound("Model not found.");
 
-            return Ok(model);
+            var dto = new ModelDto(model.Id, model.Name, model.MakeId);
+            return Ok(dto);
         }
 
         [HttpPost]
@@ -53,7 +54,7 @@ namespace CarSpot.WebApi.Controllers
                 return NotFound();
             }
 
-            
+
             model.Update(updateRequest.Name, updateRequest.MakeId);
 
             await _modelRepository.UpdateAsync(model);

@@ -6,7 +6,6 @@ namespace CarSpot.Domain.Entities
     {
         public string VIN { get; private set; } = string.Empty;
         public int ModelId { get; private set; }
-       
         public Model? Model { get; private set; }
         public int Year { get; private set; }
         public string Color { get; private set; } = string.Empty;

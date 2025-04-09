@@ -5,6 +5,5 @@ public record VehicleDto(
     string VIN,
     int Year,
     string Color,
-    int MakeId,
     int ModelId
 );
