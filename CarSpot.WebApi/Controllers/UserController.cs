@@ -87,11 +87,11 @@ public class UsersController : ControllerBase
                 UserId = user.Id
             });
         }
-        catch (DbUpdateException ex)
+        catch (DbUpdateException)
         {
             return StatusCode(500, new { Status = 500, Error = "Database Error", Message = "Error saving user data" });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(500, new { Status = 500, Error = "Server Error", Message = "An unexpected error occurred" });
         }

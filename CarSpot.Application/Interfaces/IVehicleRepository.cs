@@ -1,6 +1,8 @@
 using CarSpot.Domain;
 using CarSpot.Domain.Entities;
 
+
+
 namespace CarSpot.Application.Interfaces
 {
     public interface IVehicleRepository
@@ -9,5 +11,8 @@ namespace CarSpot.Application.Interfaces
         Task<Vehicle?> GetByIdAsync(int id);
         Task<Vehicle> AddAsync(Vehicle vehicle);
         Task<int> SaveChangesAsync();
+       
+
+
     }
 }

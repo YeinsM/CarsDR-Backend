@@ -3,7 +3,6 @@ using System.Linq;
 using BCrypt.Net;
 
 namespace CarSpot.Domain.ValueObjects
-
 {
     public class HashedPassword
     {
@@ -18,6 +17,14 @@ namespace CarSpot.Domain.ValueObjects
         {
             Validate(rawPassword);
             var hashed = BCrypt.Net.BCrypt.HashPassword(rawPassword);
+            return new HashedPassword(hashed);
+        }
+
+        public static HashedPassword FromHashed(string hashed)
+        {
+            if (string.IsNullOrWhiteSpace(hashed))
+                throw new ArgumentException("Hashed password cannot be empty.");
+
             return new HashedPassword(hashed);
         }
 
@@ -48,10 +55,5 @@ namespace CarSpot.Domain.ValueObjects
         }
 
         public override string ToString() => Value;
-    
-        
-                
-            
-    }    
-
+    }
 }

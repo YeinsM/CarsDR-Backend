@@ -4,7 +4,7 @@ namespace CarSpot.Domain.Entities
 {
     public class Model : BaseEntity
     {
-        public string Name { get; private set; }
+        public string Name { get; private set; } = null!;
         public int MakeId { get; private set; }
         public Make? Make { get; private set; }
         public ICollection<Vehicle> Vehicles { get; private set; } = new List<Vehicle>();
@@ -17,5 +17,13 @@ namespace CarSpot.Domain.Entities
             MakeId = makeId;
             Name = name;
         }
+
+
+        public void Update(string name, int makeId)
+        {
+            Name = name;
+            MakeId = makeId;
+        }
+
     }
 }

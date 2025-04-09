@@ -1,7 +1,11 @@
 using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
-using CarSpot.Infrastructure.Persistence.Context;
+using CarSpot.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
+using CarSpot.Infrastructure.Persistence.Context;
+
+
+
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
@@ -42,6 +46,11 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
         {
             return await _context.SaveChangesAsync();
         }
+
+       
+
+        
+
     }
 }
 
