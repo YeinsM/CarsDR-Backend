@@ -3,6 +3,10 @@ using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using CarSpot.Domain.ValueObjects;
+using CarSpot.Domain.Entities;
+
+
 
 namespace CarSpot.WebApi.Controllers;
 
@@ -12,6 +16,7 @@ public class UsersController : ControllerBase
 {
     private readonly IUserRepository _userRepository;
     private readonly IConfiguration _configuration;
+
     public UsersController(IUserRepository userRepository, IConfiguration configuration)
     {
         _userRepository = userRepository;
@@ -31,13 +36,13 @@ public class UsersController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
     {
-        if (await _userRepository.GetByEmailAsync(request.Email) != null)
+        if (await _userRepository.IsEmailRegisteredAsync(request.Email))
             return BadRequest("Email already registered.");
 
-        //var password = BCrypt.Net.BCrypt.HashPassword(request.Password);
-        var user = new User(request.FirstName, request.LastName, request.Email, request.Password, request.Username);
+        var hashedPassword = HashedPassword.From(request.Password);
+        var user = new User(request.FirstName, request.LastName, request.Email, hashedPassword, request.Username);
 
-        await _userRepository.AddAsync(user);
+        await _userRepository.RegisterUserAsync(user.FirstName, user.LastName, user.Email, user.Password, user.Username);
         return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
     }
 
@@ -50,7 +55,9 @@ public class UsersController : ControllerBase
         var user = await _userRepository.GetByEmailAsync(request.Email);
         if (user == null || BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
             return Unauthorized("Invalid credentials.");
+
         return Ok("Login successful.");
+
     }
 
     [HttpPost("register")]
@@ -59,21 +66,11 @@ public class UsersController : ControllerBase
         try
         {
             if (request == null)
-                return BadRequest(new
-                {
-                    Status = 400,
-                    Error = "Bad Request",
-                    Message = "Request body is required"
-                });
-
+                return BadRequest(new { Status = 400, Error = "Bad Request", Message = "Request body is required" });
 
             if (string.IsNullOrEmpty(request.Email))
-                return BadRequest(new
-                {
-                    Status = 400,
-                    Error = "Validation Error",
-                    Message = "Email is required"
-                });
+                return BadRequest(new { Status = 400, Error = "Validation Error", Message = "Email is required" });
+            var hashedPassword = HashedPassword.From(request.Password);
 
             var user = new User(
                 firstName: request.FirstName,
@@ -86,6 +83,7 @@ public class UsersController : ControllerBase
             await _userRepository.AddAsync(user);
             await _userRepository.SaveChangesAsync();
 
+
             return Ok(new
             {
                 Status = 200,
@@ -93,23 +91,13 @@ public class UsersController : ControllerBase
                 UserId = user.Id
             });
         }
-        catch (DbUpdateException ex)
+        catch (DbUpdateException)
         {
-            return StatusCode(500, new
-            {
-                Status = 500,
-                Error = "Database Error",
-                Message = "Error saving user data"
-            });
+            return StatusCode(500, new { Status = 500, Error = "Database Error", Message = "Error saving user data" });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            return StatusCode(500, new
-            {
-                Status = 500,
-                Error = "Server Error",
-                Message = "An unexpected error occurred"
-            });
+            return StatusCode(500, new { Status = 500, Error = "Server Error", Message = "An unexpected error occurred" });
         }
     }
 
@@ -131,29 +119,25 @@ public class UsersController : ControllerBase
             user.UpdateBasicInfo(
                 firstName: request.FirstName,
                 lastName: request.LastName,
-                username: request.Username
-            );
+                username: request.Username);
 
-            await _userRepository.SaveChangesAsync();
             return Ok(new
             {
                 Status = 200,
                 Message = "User updated successfully",
-                User = user
+                User = new { user.Id, user.Username }
             });
         }
-        catch (Exception ex)
+        catch (KeyNotFoundException)
         {
-            return StatusCode(500, new
-            {
-                Status = 500,
-                Error = "Server Error",
-                Message = "Error updating user data"
-            });
+            return NotFound(new { Status = 404, Message = $"User with id {id} not found" });
+        }
+        catch (DbUpdateException)
+        {
+            return StatusCode(500, new { Status = 500, Message = "Database error" });
         }
 
     }
-
 
     [HttpPatch("{id:int}/change-password")]
     public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordRequest request)
@@ -169,7 +153,7 @@ public class UsersController : ControllerBase
             request.NewPassword,
             request.ConfirmNewPassword);
 
-            await _userRepository.UpdateAsync(user);
+            await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username);
             return NoContent();
         }
         catch (ArgumentException ex)
@@ -184,7 +168,7 @@ public class UsersController : ControllerBase
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null) return NotFound();
         user.Deactivate();
-        await _userRepository.UpdateAsync(user);
+        await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username);
         return NoContent();
     }
 
@@ -194,7 +178,7 @@ public class UsersController : ControllerBase
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null) return NotFound();
         user.Activate();
-        await _userRepository.UpdateAsync(user);
+        await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username);
         return NoContent();
 
     }
