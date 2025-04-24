@@ -80,7 +80,8 @@ public class UsersController : ControllerBase
                 username: request.Username
             );
 
-            await _userRepository.AddAsync(user);
+            await _userRepository.GetByIdAsync(user.Id);
+
             await _userRepository.SaveChangesAsync();
 
 
