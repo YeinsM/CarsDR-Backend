@@ -1,29 +1,42 @@
 using BCrypt.Net;
 
-namespace CarSpot.Domain.ValueObjects;
-
-public class HashedPassword
+namespace CarSpot.Domain.ValueObjects
 {
-    private readonly string _value;
-
-    private HashedPassword(string value)
+    public class HashedPassword
     {
-        _value = value ?? throw new ArgumentNullException(nameof(value));
+        public string Value { get; private set; }
+
+        private HashedPassword(string value)
+        {
+            Value = value;
+        }
+
+        public static HashedPassword Create(string password)
+        {
+            var hashed = BCrypt.Net.BCrypt.HashPassword(password);
+            return new HashedPassword(hashed);
+        }
+
+        public static HashedPassword FromHashed(string hashed)
+        {
+            return new HashedPassword(hashed);
+        }
+
+
+        public bool Matches(string plainText)
+        {
+            return BCrypt.Net.BCrypt.Verify(plainText, Value);
+        }
+
+        public static void Validate(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password))
+                throw new ArgumentException("Password cannot be empty.");
+        }
+
+        public bool Verify(string plainText)
+        {
+            return BCrypt.Net.BCrypt.Verify(plainText, Value);
+        }
     }
-
-    public static HashedPassword Create(string plainPassword)
-    {
-        var hashed = BCrypt.Net.BCrypt.HashPassword(plainPassword);
-        return new HashedPassword(hashed);
-    }
-
-    public bool Verify(string plainPassword)
-    {
-        return BCrypt.Net.BCrypt.Verify(plainPassword, _value);
-    }
-
-    public override string ToString() => _value;
-
-    public static implicit operator string(HashedPassword hashedPassword)
-        => hashedPassword._value;
 }

@@ -19,7 +19,7 @@ namespace CarSpot.Domain.Entities
         [NotMapped]
         public string FullName => $"{FirstName} {LastName}";
 
-        // Constructor para inicializar el usuario.
+
         public User(string firstName, string lastName, string email, HashedPassword password, string username)
         {
             if (string.IsNullOrWhiteSpace(firstName))
@@ -40,14 +40,14 @@ namespace CarSpot.Domain.Entities
             Username = username;
         }
 
-        // Método de registro que genera un evento de dominio.
+
         public void Register()
         {
-            // Suponiendo que DomainEvents es una lista de eventos de dominio, se agrega un nuevo evento.
-            AddDomainEvent(new UserRegisteredEvent(Id, Email));
+
+            AddDomainEvent(new UserRegisteredEvent(Id, Email, FullName));
         }
 
-        // Actualiza la información básica del usuario.
+
         public void UpdateBasicInfo(string firstName, string lastName, string username)
         {
             if (string.IsNullOrWhiteSpace(firstName))
@@ -62,7 +62,7 @@ namespace CarSpot.Domain.Entities
             Username = username;
         }
 
-        // Actualiza el email del usuario.
+
         public void UpdateEmail(string newEmail)
         {
             if (string.IsNullOrWhiteSpace(newEmail))
@@ -71,7 +71,7 @@ namespace CarSpot.Domain.Entities
             Email = newEmail;
         }
 
-        // Cambia la contraseña del usuario.
+
         public void ChangePassword(string currentPassword, string newPassword, string confirmPassword)
         {
             if (!Password.Verify(currentPassword))
@@ -83,7 +83,7 @@ namespace CarSpot.Domain.Entities
             AddDomainEvent(new UserPasswordChangedEvent(Id));
         }
 
-        // Establece la nueva contraseña para el proceso de restablecimiento.
+
         public void SetResetPassword(string newPassword, string confirmNewPassword)
         {
             if (newPassword != confirmNewPassword)
@@ -93,21 +93,18 @@ namespace CarSpot.Domain.Entities
             ResetPassword = newPassword;
         }
 
-        // Confirma el restablecimiento de la contraseña.
+
         public void ConfirmResetPassword()
         {
             if (string.IsNullOrWhiteSpace(ResetPassword))
                 throw new InvalidOperationException("No password to reset.");
 
-            Password = HashedPassword.From(ResetPassword);
+            Password = HashedPassword.FromHashed(ResetPassword);
             ResetPassword = null;
         }
 
-        // Método para agregar eventos de dominio a una lista de eventos.
-        private void AddDomainEvent(IDomainEvent domainEvent)
-        {
-            // Aquí debes tener una colección o lista para almacenar los eventos de dominio.
-            DomainEvents.Add(domainEvent);
-        }
+       
+
+
     }
 }

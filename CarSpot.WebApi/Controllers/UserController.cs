@@ -39,7 +39,7 @@ public class UsersController : ControllerBase
         if (await _userRepository.IsEmailRegisteredAsync(request.Email))
             return BadRequest("Email already registered.");
 
-        var hashedPassword = HashedPassword.From(request.Password);
+        var hashedPassword = HashedPassword.FromHashed(request.Password);
         var user = new User(request.FirstName, request.LastName, request.Email, hashedPassword, request.Username);
 
         await _userRepository.RegisterUserAsync(user.FirstName, user.LastName, user.Email, user.Password, user.Username);
@@ -65,11 +65,11 @@ public class UsersController : ControllerBase
     {
         try
         {
-            
+
             if (request == null)
                 return BadRequest(new { Status = 400, Error = "Bad Request", Message = "Request body is required" });
 
-            
+
             if (string.IsNullOrWhiteSpace(request.FirstName))
                 return BadRequest(new { Status = 400, Error = "Validation Error", Message = "FirstName is required" });
 
@@ -79,14 +79,14 @@ public class UsersController : ControllerBase
             if (string.IsNullOrWhiteSpace(request.Password))
                 return BadRequest(new { Status = 400, Error = "Validation Error", Message = "Password is required" });
 
-            
+
             if (await _userRepository.IsEmailRegisteredAsync(request.Email))
                 return Conflict(new { Status = 409, Error = "Conflict", Message = "Email already registered" });
 
-            
-            var hashedPassword = HashedPassword.From(request.Password);
 
-            
+            var hashedPassword = HashedPassword.FromHashed(request.Password);
+
+
             var user = await _userRepository.RegisterUserAsync(
                 request.FirstName,
                 request.LastName,
@@ -219,5 +219,22 @@ public class UsersController : ControllerBase
         }
     }
 
+    [HttpPost("test-email")]
+    public async Task<IActionResult> SendTestEmail(
+    [FromBody] SendTestEmailRequest request,
+    [FromServices] IEmailService emailService)
+    {
+        await emailService.SendEmailAsync(
+            request.Email, 
+            "Correo de prueba desde CarSpot 💌",
+            "Hola, este es un correo de prueba 😎"
+        );
+
+        return Ok($"Correo enviado a {request.Email}");
+    }
+
+    public record SendTestEmailRequest(string Email); 
 
 }
+
+
