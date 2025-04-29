@@ -38,19 +38,19 @@ public class UserRepository : IUserRepository
         return await _context.Users.AnyAsync(u => u.Email == email);
     }
 
-    public async Task<User> ValidateCredentialsAsync(string email, HashedPassword password)
-    {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+    public async Task<User?> ValidateCredentialsAsync(string email, HashedPassword password)
+{
+    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-        if (user is null)
+    if (user is null)
         return null;
 
-    
-        if (!user.Password.Matches(password.Value))
+    if (!user.Password.Verify(password.Value))
         return null;
 
-        return user;
-    }
+    return user;
+}
+
 
 
     public async Task<User> RegisterUserAsync(string firstName, string lastName, string email, HashedPassword password, string username)

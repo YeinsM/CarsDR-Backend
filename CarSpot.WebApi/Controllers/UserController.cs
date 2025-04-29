@@ -53,7 +53,7 @@ public class UsersController : ControllerBase
         string pass = BCrypt.Net.BCrypt.HashPassword(request.Password);
 
         var user = await _userRepository.GetByEmailAsync(request.Email);
-        if (user == null || BCrypt.Net.BCrypt.Verify(request.Password, user.Email))
+        if (user == null || !user.Password.Verify(request.Password))
             return Unauthorized("Invalid credentials.");
 
         return Ok("Login successful.");
@@ -84,7 +84,7 @@ public class UsersController : ControllerBase
                 return Conflict(new { Status = 409, Error = "Conflict", Message = "Email already registered" });
 
 
-            var hashedPassword = HashedPassword.FromHashed(request.Password);
+            var hashedPassword = HashedPassword.Create(request.Password);
 
 
             var user = await _userRepository.RegisterUserAsync(
@@ -226,8 +226,8 @@ public class UsersController : ControllerBase
     {
         await emailService.SendEmailAsync(
             request.Email, 
-            "Correo de prueba desde CarSpot 💌",
-            "Hola, este es un correo de prueba 😎"
+            "Correo de prueba desde CarSpot ",
+            "Hola, este es un correo de prueba "
         );
 
         return Ok($"Correo enviado a {request.Email}");

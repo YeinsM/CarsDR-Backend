@@ -1,4 +1,4 @@
-// CarSpot.Domain/Common/DomainEvents.cs
+
 using CarSpot.Domain.Common;
 
 namespace CarSpot.Domain.Common;

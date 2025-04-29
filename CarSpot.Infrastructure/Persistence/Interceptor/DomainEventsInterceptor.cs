@@ -46,11 +46,11 @@ public class DomainEventsInterceptor : SaveChangesInterceptor
                         break;
 
                     case UserPasswordChangedEvent passwordChangedEvent:
-                        // Podés loguear o notificar si querés
+                        
                         break;
 
                     case UserLoggedInDomainEvent loggedInEvent:
-                        // Podés loguear también
+                        
                         break;
                 }
             }

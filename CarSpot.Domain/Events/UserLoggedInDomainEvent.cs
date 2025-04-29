@@ -5,9 +5,9 @@ namespace CarSpot.Domain.Events;
 
 public class UserLoggedInDomainEvent : IDomainEvent
 {
-    public Guid UserId { get; }
+    public int UserId { get; }
 
-    public UserLoggedInDomainEvent(Guid userId)
+    public UserLoggedInDomainEvent(int userId)
     {
         UserId = userId;
     }

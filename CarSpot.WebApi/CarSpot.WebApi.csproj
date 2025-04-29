@@ -15,8 +15,7 @@
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.3" />
-    <PackageReference Remove="Microsoft.AspNetCore.Razor.Design" />
-    <PackageReference Remove="Microsoft.AspNetCore.Razor.Runtime" />
+    
 
   </ItemGroup>
 

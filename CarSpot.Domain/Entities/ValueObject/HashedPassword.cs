@@ -22,12 +22,6 @@ namespace CarSpot.Domain.ValueObjects
             return new HashedPassword(hashed);
         }
 
-
-        public bool Matches(string plainText)
-        {
-            return BCrypt.Net.BCrypt.Verify(plainText, Value);
-        }
-
         public static void Validate(string password)
         {
             if (string.IsNullOrWhiteSpace(password))
