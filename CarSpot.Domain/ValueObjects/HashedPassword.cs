@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using BCrypt.Net;
-
 namespace CarSpot.Domain.ValueObjects
 {
     public class HashedPassword

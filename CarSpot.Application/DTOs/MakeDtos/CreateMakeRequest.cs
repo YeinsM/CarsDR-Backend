@@ -1,3 +1,3 @@
-namespace CarSpot.Application.DTOs;
+namespace CarSpot.Application.DTOs.MakeDtos;
 
 public record CreateMakeRequest(string Name);

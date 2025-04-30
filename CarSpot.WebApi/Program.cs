@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using CarSpot.Infrastructure.Persistence.Context;
 using CarSpot.Infrastructure.Persistence.Repositories;
 using CarSpot.Application.Interfaces;
+using CarSpot.Domain.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,12 +13,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
-builder.Services.AddScoped<IModelRepository, ModelRepository>();
-builder.Services.AddScoped<IMakeRepository, MakeRepository>();
-
-
-
+builder.Services.AddScoped<IRepository<User>, UserRepository>();
+builder.Services.AddScoped<IRepository<Vehicle>, VehicleRepository>();
+builder.Services.AddScoped<IRepository<Make>, MakeRepository>();
+builder.Services.AddScoped<IRepository<Model>, ModelRepository>();
 
 
 
@@ -41,7 +40,7 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsProduction())
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();

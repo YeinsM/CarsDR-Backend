@@ -12,24 +12,15 @@ namespace CarSpot.WebApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UsersController : ControllerBase
+public class UsersController(IUserRepository _userRepository, IConfiguration _configuration, IRepository<User> _userRepositoryG) : ControllerBase
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IConfiguration _configuration;
-
-    public UsersController(IUserRepository userRepository, IConfiguration configuration)
-    {
-        _userRepository = userRepository;
-        _configuration = configuration;
-    }
-
     [HttpGet]
-    public async Task<IActionResult> GetAll() => Ok(await _userRepository.GetAllAsync());
+    public async Task<IActionResult> GetAll() => Ok(await _userRepositoryG.GetAllAsync());
 
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
-        var user = await _userRepository.GetByIdAsync(id);
+        var user = await _userRepositoryG.GetByIdAsync(id);
         return user == null ? NotFound() : Ok(user);
     }
 
@@ -49,15 +40,11 @@ public class UsersController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-
-        string pass = BCrypt.Net.BCrypt.HashPassword(request.Password);
-
         var user = await _userRepository.GetByEmailAsync(request.Email);
-        if (user == null || BCrypt.Net.BCrypt.Verify(request.Password, user.Password))
+        if (user == null || !user.Password.Matches(request.Password))
             return Unauthorized("Invalid credentials.");
 
         return Ok("Login successful.");
-
     }
 
     [HttpPost("register")]
@@ -70,19 +57,20 @@ public class UsersController : ControllerBase
 
             if (string.IsNullOrEmpty(request.Email))
                 return BadRequest(new { Status = 400, Error = "Validation Error", Message = "Email is required" });
-            var hashedPassword = HashedPassword.From(request.Password);
+
+            var hashedPassword = HashedPassword.From(request.Password); // Fix: Convert string password to HashedPassword
 
             var user = new User(
                 firstName: request.FirstName,
                 lastName: request.LastName,
                 email: request.Email,
-                password: request.Password,
+                password: hashedPassword, // Fix: Use hashedPassword instead of raw string
                 username: request.Username
             );
 
-            await _userRepository.AddAsync(user);
+            // Fix: Replace AddAsync with RegisterUserAsync
+            await _userRepository.RegisterUserAsync(user.FirstName, user.LastName, user.Email, user.Password, user.Username);
             await _userRepository.SaveChangesAsync();
-
 
             return Ok(new
             {
@@ -107,7 +95,7 @@ public class UsersController : ControllerBase
 
         try
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            var user = await _userRepositoryG.GetByIdAsync(id);
             if (user == null)
                 return NotFound(new
                 {
@@ -144,7 +132,7 @@ public class UsersController : ControllerBase
     {
         try
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            var user = await _userRepositoryG.GetByIdAsync(id);
             if (user == null) return NotFound();
 
 
@@ -165,7 +153,7 @@ public class UsersController : ControllerBase
     [HttpPatch("{id:int}/deactivate")]
     public async Task<IActionResult> Deactivate(int id)
     {
-        var user = await _userRepository.GetByIdAsync(id);
+        var user = await _userRepositoryG.GetByIdAsync(id);
         if (user == null) return NotFound();
         user.Deactivate();
         await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username);
@@ -175,7 +163,7 @@ public class UsersController : ControllerBase
     [HttpPatch("{id:int}/activate")]
     public async Task<IActionResult> Activate(int id)
     {
-        var user = await _userRepository.GetByIdAsync(id);
+        var user = await _userRepositoryG.GetByIdAsync(id);
         if (user == null) return NotFound();
         user.Activate();
         await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username);
@@ -195,6 +183,48 @@ public class UsersController : ControllerBase
         catch (Exception ex)
         {
             return StatusCode(500, $"Connection failed: {ex.Message}");
+        }
+    }
+
+    [HttpPost("send-test-email")]
+    public async Task<IActionResult> SendTestEmail()
+    {
+        try
+        {
+            // Email credentials
+            var smtpServer = "smtp.zoho.com";
+            var smtpPort = 587;
+            var fromEmail = "notifications@techbrains.com.do";
+            var fromPassword = "Techbrains25@";
+
+            // Email details
+            var toEmail = "kellycasares13@gmail.com";
+            var subject = "Test Email desde CarSpot";
+            var body = "Esto es una prueba desde la aplicacion, tenemos email mija.";
+
+            using var smtpClient = new System.Net.Mail.SmtpClient(smtpServer, smtpPort)
+            {
+                Credentials = new System.Net.NetworkCredential(fromEmail, fromPassword),
+                EnableSsl = true
+            };
+
+            var mailMessage = new System.Net.Mail.MailMessage
+            {
+                From = new System.Net.Mail.MailAddress(fromEmail),
+                Subject = subject,
+                Body = body,
+                IsBodyHtml = false
+            };
+
+            mailMessage.To.Add(toEmail);
+
+            await smtpClient.SendMailAsync(mailMessage);
+
+            return Ok(new { Status = 200, Message = "Test email sent successfully!" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Status = 500, Error = "Email Error", Message = ex.Message });
         }
     }
 

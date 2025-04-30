@@ -7,15 +7,8 @@ using CarSpot.Infrastructure.Persistence.Context;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
-    public class ModelRepository : IModelRepository
+    public class ModelRepository(ApplicationDbContext _context) : IRepository<Model>
     {
-        private readonly ApplicationDbContext _context;
-
-        public ModelRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         public async Task<IEnumerable<Model>> GetAllAsync()
         {
             return await _context.Models

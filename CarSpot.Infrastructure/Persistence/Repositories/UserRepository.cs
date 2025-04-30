@@ -9,7 +9,7 @@ using CarSpot.Domain.ValueObjects;
 
 
 namespace CarSpot.Infrastructure.Persistence.Repositories;
-public class UserRepository : IUserRepository
+public class UserRepository : IRepository<User>, IUserRepository
 {
     private readonly ApplicationDbContext _context;
 
@@ -76,5 +76,20 @@ public class UserRepository : IUserRepository
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    Task IRepository<User>.AddAsync(User entity)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task IRepository<User>.UpdateAsync(User entity)
+    {
+        throw new NotImplementedException();
+    }
+
+    Task IRepository<User>.DeleteAsync(User entity)
+    {
+        throw new NotImplementedException();
     }
 }

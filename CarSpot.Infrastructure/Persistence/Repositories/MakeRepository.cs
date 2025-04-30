@@ -1,5 +1,4 @@
 using CarSpot.Domain.Entities;
-using CarSpot.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using CarSpot.Application.Interfaces;
 using CarSpot.Infrastructure.Persistence.Context;
@@ -7,45 +6,38 @@ using CarSpot.Infrastructure.Persistence.Context;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
-    public class MakeRepository : IMakeRepository
+    public class MakeRepository(ApplicationDbContext context) : IRepository<Make>
     {
-        private readonly ApplicationDbContext _context;
-
-        public MakeRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         public async Task<IEnumerable<Make>> GetAllAsync()
         {
-            return await _context.Makes
+            return await context.Makes
                 .Include(m => m.Models)
                 .ToListAsync();
         }
 
         public async Task<Make?> GetByIdAsync(int id)
         {
-            return await _context.Makes
+            return await context.Makes
                 .Include(m => m.Models)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
         public async Task AddAsync(Make make)
         {
-            _context.Makes.Add(make);
-            await _context.SaveChangesAsync();
+            await context.Makes.AddAsync(make);
+            await context.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(Make make)
         {
-            _context.Makes.Update(make);
-            await _context.SaveChangesAsync();
+            context.Makes.Update(make);
+            await context.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Make make)
         {
-            _context.Makes.Remove(make);
-            await _context.SaveChangesAsync();
+            context.Makes.Remove(make);
+            await context.SaveChangesAsync();
         }
     }
 }

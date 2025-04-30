@@ -1,7 +1,5 @@
 using CarSpot.Domain.Entities;
 
-using CarSpot.Application.Interfaces;
-
 namespace CarSpot.Application.Interfaces
 {
     public interface IMakeRepository

@@ -7,8 +7,6 @@ using CarSpot.Domain.ValueObjects;
 namespace CarSpot.Application.Interfaces;
     public interface IUserRepository
 {
-    Task<IEnumerable<User>> GetAllAsync();
-    Task<User?> GetByIdAsync(int id);
     Task<User?> GetByEmailAsync(string email);
     Task<bool> IsEmailRegisteredAsync(string email);
     Task<User> ValidateCredentialsAsync(string email, HashedPassword password);

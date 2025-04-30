@@ -1,8 +1,7 @@
 using CarSpot.Domain.Entities;
-using CarSpot.Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using CarSpot.Application.Interfaces;
 using CarSpot.Application.DTOs;
+using CarSpot.Application.Interfaces;
 
 
 
@@ -10,15 +9,8 @@ namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ModelController : ControllerBase
+    public class ModelController(IRepository<Model> _modelRepository) : ControllerBase
     {
-        private readonly IModelRepository _modelRepository;
-
-        public ModelController(IModelRepository modelRepository)
-        {
-            _modelRepository = modelRepository;
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -53,7 +45,6 @@ namespace CarSpot.WebApi.Controllers
             {
                 return NotFound();
             }
-
 
             model.Update(updateRequest.Name, updateRequest.MakeId);
 

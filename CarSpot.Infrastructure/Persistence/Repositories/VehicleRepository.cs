@@ -1,23 +1,12 @@
 using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
-using CarSpot.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using CarSpot.Infrastructure.Persistence.Context;
 
-
-
-
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
-    public class VehicleRepository : IVehicleRepository
+    public class VehicleRepository(ApplicationDbContext _context) : IRepository<Vehicle>
     {
-        private readonly ApplicationDbContext _context;
-
-        public VehicleRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
-
         public async Task<IEnumerable<Vehicle>> GetAllAsync()
         {
             return await _context.Vehicles
@@ -35,22 +24,23 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
 
-        public async Task<Vehicle> AddAsync(Vehicle vehicle)
+        public async Task AddAsync(Vehicle vehicle)
         {
             await _context.Vehicles.AddAsync(vehicle);
             await _context.SaveChangesAsync();
-            return vehicle;
         }
 
-        public async Task<int> SaveChangesAsync()
+        public async Task UpdateAsync(Vehicle vehicle)
         {
-            return await _context.SaveChangesAsync();
+            _context.Vehicles.Update(vehicle);
+            await _context.SaveChangesAsync();
         }
 
-       
-
-        
-
+        public async Task DeleteAsync(Vehicle vehicle)
+        {
+            _context.Vehicles.Remove(vehicle);
+            await _context.SaveChangesAsync();
+        }
     }
 }
 
