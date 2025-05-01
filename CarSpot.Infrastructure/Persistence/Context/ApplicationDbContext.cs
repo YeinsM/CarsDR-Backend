@@ -16,6 +16,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<Make> Makes { get; set; }
     public DbSet<Model> Models { get; set; }
+    public DbSet<Menu> Menus { get; set; }
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -94,6 +96,13 @@ public class ApplicationDbContext : DbContext
 
 
         });
+
+        modelBuilder.Entity<Menu>(entity =>
+            {
+                entity.HasKey(m => m.Id);
+                entity.Property(m => m.Label).IsRequired();
+                entity.Property(m => m.Icon).IsRequired();
+            });
 
     }
 }

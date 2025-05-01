@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using CarSpot.Infrastructure.Persistence.Context;
 using CarSpot.Infrastructure.Persistence.Repositories;
 using CarSpot.Application.Interfaces;
+using CarSpot.Application.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,6 +17,8 @@ builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IModelRepository, ModelRepository>();
 builder.Services.AddScoped<IMakeRepository, MakeRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IMenuRepository, MenuRepository>();
+builder.Services.AddScoped<IMenuService, MenuService>();
 
 
 
