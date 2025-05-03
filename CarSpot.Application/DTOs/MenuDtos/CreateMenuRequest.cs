@@ -4,11 +4,10 @@ using CarSpot.Domain.Entities;
 
 namespace CarSpot.Application.DTOs
 {
-    public record CreateMenuRequest(
+     public record CreateMenuRequest(
         [Required][StringLength(100)] string Label,
         [Required][StringLength(50)] string Icon,
-        [Required][StringLength(100)] List<Menu[]> Menub,
-        [Required]
-        string? To
+        string? To,
+        int? ParentId
     );
 }

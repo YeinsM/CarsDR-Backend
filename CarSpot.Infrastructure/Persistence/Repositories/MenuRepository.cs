@@ -15,20 +15,20 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
 
         public MenuRepository(ApplicationDbContext dbContext)
         {
-            _dbContext = dbContext;
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
         public async Task<Menu> GetByIdAsync(int id)
         {
-            return await _dbContext.Menus
-                .Include(m => m.Menub)
+            return await _dbContext!.Menus
+                .Include(c => c.Children)
                 .FirstOrDefaultAsync(m => m.Id == id);
         }
 
         public async Task<IEnumerable<Menu>> GetAllAsync()
         {
             return await _dbContext.Menus
-                .Include(m => m.Menub)
+                .Include(m => m.Children)
                 .ToListAsync();
         }
 
@@ -41,7 +41,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
         public async Task Update(Menu menu)
         {
             _dbContext.Menus.Update(menu);
-            _dbContext.SaveChangesAsync();
+            await _dbContext.SaveChangesAsync();
         }
 
         public async Task DeleteAsync(int id)

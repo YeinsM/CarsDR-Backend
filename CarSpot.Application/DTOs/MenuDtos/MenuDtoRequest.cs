@@ -7,6 +7,8 @@ namespace CarSpot.Application.DTOs
         int Id,
         string Label,
         string Icon,
-        string? To
+        string? To,
+        int? ParentId,
+        List<MenuResponse> Children
     );
 }

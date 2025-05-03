@@ -10,12 +10,15 @@ using CarSpot.Domain.ValueObjects;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories;
 public class UserRepository : IUserRepository
+
 {
     private readonly ApplicationDbContext _context;
+    private readonly IEmailService _emailService;
 
-    public UserRepository(ApplicationDbContext context)
+    public UserRepository(ApplicationDbContext context, IEmailService emailService)
     {
         _context = context;
+        _emailService = emailService;
     }
 
     public async Task<IEnumerable<User>> GetAllAsync()
@@ -59,6 +62,9 @@ public class UserRepository : IUserRepository
         var user = new User(firstName, lastName, email, password, username);
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
+        var bodyMessage = _emailService.Body(user);
+        var emailSettings = await _context.EmailSettings.FirstOrDefaultAsync(e => e.NickName == "CarSpot");
+        await _emailService.SendEmailAsync(user.Email, "Bienvenido al sistema", bodyMessage, emailSettings!.NickName!);
         return user;
     }
 

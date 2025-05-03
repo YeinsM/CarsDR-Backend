@@ -227,7 +227,8 @@ public class UsersController : ControllerBase
         await emailService.SendEmailAsync(
             request.Email, 
             "Correo de prueba desde CarSpot ",
-            "Hola, este es un correo de prueba "
+            "Hola, este es un correo de prueba ",
+            "CarSpot"
         );
 
         return Ok($"Correo enviado a {request.Email}");

@@ -42,6 +42,7 @@ public class DomainEventsInterceptor : SaveChangesInterceptor
                             registeredEvent.Email,
                             "Welcome to CarSpot!",
                             $"Hi {registeredEvent.FullName}, welcome to the app!"
+                            , "CarSpot"
                         );
                         break;
 

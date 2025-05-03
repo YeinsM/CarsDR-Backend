@@ -17,6 +17,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Make> Makes { get; set; }
     public DbSet<Model> Models { get; set; }
     public DbSet<Menu> Menus { get; set; }
+    public DbSet<EmailSettings> EmailSettings { get; set; }
+
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -98,11 +100,31 @@ public class ApplicationDbContext : DbContext
         });
 
         modelBuilder.Entity<Menu>(entity =>
-            {
-                entity.HasKey(m => m.Id);
-                entity.Property(m => m.Label).IsRequired();
-                entity.Property(m => m.Icon).IsRequired();
-            });
+        {
+            entity.HasKey(m => m.Id);
+            entity.Property(m => m.Label).IsRequired();
+            entity.Property(m => m.Icon).IsRequired();
+            entity.Property(m => m.To).IsRequired(false);
+            entity.Property(m => m.ParentId).IsRequired(false);
+
+
+            entity.HasMany<Menu>(m => m.Children)
+               .WithOne()
+               .HasForeignKey(m => m.ParentId)
+               .OnDelete(DeleteBehavior.Restrict);
+        });
+
+
+        modelBuilder.Entity<EmailSettings>(entity =>
+         {
+            entity.ToTable("EmailSettings");
+
+            entity.Property(e => e.SmtpServer).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.SmtpPort).IsRequired();
+            entity.Property(e => e.FromEmail).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.FromPassword).IsRequired();
+    });
+
 
     }
 }

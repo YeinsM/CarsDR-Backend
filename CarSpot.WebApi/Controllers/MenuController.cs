@@ -9,10 +9,12 @@ using CarSpot.Application.Interfaces;
 public class MenuController : ControllerBase
 {
     private readonly IMenuRepository _repository;
+    private readonly MenuTreeBuilder _menuTreeBuilder;
 
     public MenuController(IMenuRepository repository)
     {
         _repository = repository;
+        _menuTreeBuilder = new MenuTreeBuilder();
     }
 
    
@@ -20,7 +22,8 @@ public class MenuController : ControllerBase
     public async Task<IActionResult> GetAllAsync()
     {
         var menus = await _repository.GetAllAsync();
-        return Ok(menus);
+        var tree = _menuTreeBuilder.Build(menus.ToList());
+        return Ok(tree);
     }
 
     
@@ -35,7 +38,7 @@ public class MenuController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateMenuRequest request)
     {
-        var menu = new Menu(request.Label, request.Icon, request.Menub, request.To);
+        var menu = new Menu(request.Label, request.Icon, request.To);
         await _repository.AddAsync(menu);
         return CreatedAtAction(nameof(GetById), new { id = menu.Id }, menu);
     }
@@ -47,8 +50,8 @@ public class MenuController : ControllerBase
         var menu = await _repository.GetByIdAsync(id);
         if (menu == null) return NotFound();
 
-        menu.Update(request.Label, request.Icon, request.Menub, request.To);
-        _repository.Update(menu);
+        menu.Update(request.Label, request.Icon, request.To);
+        await _repository.Update(menu);
 
         return NoContent();
     }

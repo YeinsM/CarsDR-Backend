@@ -19,6 +19,8 @@ builder.Services.AddScoped<IMakeRepository, MakeRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IMenuRepository, MenuRepository>();
 builder.Services.AddScoped<IMenuService, MenuService>();
+builder.Services.AddScoped<IEmailSettingsRepository, EmailSettingsRepository>();
+
 
 
 
