@@ -8,7 +8,7 @@ namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class MakeController(IMakeRepository _makeRepository) : ControllerBase
+    public class MakeController(IRepository<Make> _makeRepository) : ControllerBase
     {
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Make>>> GetAll()

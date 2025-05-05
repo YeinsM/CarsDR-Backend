@@ -1,6 +1,4 @@
 using CarSpot.Application.Interfaces;
-using CarSpot.Domain;
-using CarSpot.Infrastructure.Persistence.Repositories;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using CarSpot.Domain.Entities;
@@ -12,6 +10,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories;
 public class UserRepository : IRepository<User>, IUserRepository
 {
     private readonly ApplicationDbContext _context;
+    private readonly IEmailService _emailService;
 
     public UserRepository(ApplicationDbContext context)
     {
@@ -59,6 +58,11 @@ public class UserRepository : IRepository<User>, IUserRepository
         var user = new User(firstName, lastName, email, password, username);
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
+
+        var emailSettings = await _context.EmailSettings.FirstOrDefaultAsync(e => e.nickName == "CarSpot");
+
+        _emailService.SendEmail(user.Email, emailSettings.FromEmail, "Bienvenido al Sistema");
+
         return user;
     }
 
