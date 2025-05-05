@@ -243,6 +243,4 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
             return StatusCode(500, new { Status = 500, Error = "Email Error", Message = ex.Message });
         }
     }
-
-
 }
