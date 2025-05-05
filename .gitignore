@@ -268,7 +268,7 @@ ServiceFabricBackup/
 *.ldf
 *.ndf
 
-# Business Intelligence projects
+# Business Guidelligence projects
 *.rdl.data
 *.bim.layout
 *.bim_*.settings
@@ -398,3 +398,6 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Ignore appsettings
+appsettings.json
