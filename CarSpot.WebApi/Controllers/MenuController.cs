@@ -28,7 +28,7 @@ public class MenuController : ControllerBase
 
     
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<IActionResult> GetById(Guid id)
     {
         var menu = await _repository.GetByIdAsync(id);
         if (menu == null) return NotFound();
@@ -45,7 +45,7 @@ public class MenuController : ControllerBase
 
     
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateAsync(int id, [FromBody] UpdateMenuRequest request)
+    public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UpdateMenuRequest request)
     {
         var menu = await _repository.GetByIdAsync(id);
         if (menu == null) return NotFound();
@@ -58,7 +58,7 @@ public class MenuController : ControllerBase
 
     
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         var menu = await _repository.GetByIdAsync(id);
         if (menu == null)

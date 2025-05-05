@@ -18,6 +18,8 @@ public class ApplicationDbContext : DbContext
     public DbSet<Model> Models { get; set; }
     public DbSet<Menu> Menus { get; set; }
     public DbSet<EmailSettings> EmailSettings { get; set; }
+    public DbSet<Publication> Publications { get; set; }
+    public DbSet<Color> Colors { get; set; }
 
 
 
@@ -123,8 +125,56 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.SmtpPort).IsRequired();
             entity.Property(e => e.FromEmail).IsRequired().HasMaxLength(100);
             entity.Property(e => e.FromPassword).IsRequired();
-    });
+        });
 
+    
+        
 
+        modelBuilder.Entity<Publication>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+
+            entity.Property(p => p.Currency)
+                .HasMaxLength(3)
+                .IsRequired();
+
+            entity.Property(p => p.Price)
+                .HasColumnType("decimal(18,2)")
+                .IsRequired();
+
+            entity.Property(p => p.Place)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.Property(p => p.Version)
+                .HasMaxLength(100)
+                .IsRequired();
+
+            entity.HasOne(p => p.Make)
+                .WithMany()
+                .HasForeignKey(p => p.MakeId);
+
+            entity.HasOne(p => p.Model)
+                .WithMany()
+                .HasForeignKey(p => p.ModelId);
+
+            entity.HasOne(p => p.Color)
+                .WithMany()
+                .HasForeignKey(p => p.ColorId);
+
+            entity.HasOne(p => p.User)
+                .WithMany()
+                .HasForeignKey(p => p.UserId);
+        });
+
+        modelBuilder.Entity<Color>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Name)
+                .HasMaxLength(50)
+                .IsRequired();
+        });
     }
+
+
 }

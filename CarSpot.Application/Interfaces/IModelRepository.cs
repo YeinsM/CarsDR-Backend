@@ -12,7 +12,7 @@ namespace CarSpot.Application.Interfaces
     {
         Task<IEnumerable<Model>> GetAllAsync();
 
-        Task<Model?> GetByIdAsync(int id);
+        Task<Model?> GetByIdAsync(Guid id);
 
         Task AddAsync(Model model);
 

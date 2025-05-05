@@ -26,7 +26,7 @@ public class UserRepository : IUserRepository
         return await _context.Users.AsNoTracking().ToListAsync();
     }
 
-    public async Task<User?> GetByIdAsync(int id)
+    public async Task<User?> GetByIdAsync(Guid id)
     {
         return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
     }
@@ -68,7 +68,7 @@ public class UserRepository : IUserRepository
         return user;
     }
 
-    public async Task<User> UpdateUserAsync(int id, string firstName, string lastName, string username)
+    public async Task<User> UpdateUserAsync(Guid id, string firstName, string lastName, string username)
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null)

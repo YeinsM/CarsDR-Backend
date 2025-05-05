@@ -23,7 +23,7 @@ public class MakeController : ControllerBase
 
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<Make>> GetById(int id)
+    public async Task<ActionResult<Make>> GetById(Guid id)
     {
         var make = await _makeRepository.GetByIdAsync(id);
         if (make == null) return NotFound();
@@ -40,7 +40,7 @@ public class MakeController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] UpdateMakeRequest updateRequest)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateMakeRequest updateRequest)
     {
         var make = await _makeRepository.GetByIdAsync(id);
         if (make is null)
@@ -56,7 +56,7 @@ public class MakeController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(Guid id)
     {
         var make = await _makeRepository.GetByIdAsync(id);
         if (make == null) return NotFound();

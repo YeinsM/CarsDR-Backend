@@ -28,9 +28,9 @@ namespace CarSpot.Domain.ValueObjects
                 throw new ArgumentException("Password cannot be empty.");
         }
 
-        public bool Verify(string plainText)
+        public bool Verify(string plaGuidext)
         {
-            return BCrypt.Net.BCrypt.Verify(plainText, Value);
+            return BCrypt.Net.BCrypt.Verify(plaGuidext, Value);
         }
     }
 }

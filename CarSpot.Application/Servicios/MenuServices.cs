@@ -15,7 +15,7 @@ namespace CarSpot.Application.Services
             _repository = repository;
         }
 
-        public async Task<Menu?> GetByIdAsync(int id)
+        public async Task<Menu?> GetByIdAsync(Guid id)
             => await _repository.GetByIdAsync(id);
 
         public async Task CreateAsync(Menu menu)
@@ -30,7 +30,7 @@ namespace CarSpot.Application.Services
 
         }
 
-        public async Task<bool> DeleteAsync(int id)
+        public async Task<bool> DeleteAsync(Guid id)
         {
             var menu = await _repository.GetByIdAsync(id);
 

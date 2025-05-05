@@ -18,7 +18,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         }
 
-        public async Task<Menu> GetByIdAsync(int id)
+        public async Task<Menu> GetByIdAsync(Guid id)
         {
             return await _dbContext!.Menus
                 .Include(c => c.Children)
@@ -44,7 +44,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(Guid id)
         {
             var menu = await GetByIdAsync(id);
             if (menu != null)
@@ -54,7 +54,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             }
         }
 
-        public async Task<bool> ExistsAsync(int id)
+        public async Task<bool> ExistsAsync(Guid id)
         {
             return await _dbContext.Menus.AnyAsync(m => m.Id == id);
         }

@@ -5,14 +5,14 @@ namespace CarSpot.Domain.Entities
     public class Vehicle : BaseEntity
     {
         public string VIN { get; private set; } = string.Empty;
-        public int ModelId { get; private set; }
+        public Guid ModelId { get; private set; }
         public Model? Model { get; private set; }
         public int Year { get; private set; }
         public string Color { get; private set; } = string.Empty;
 
 
 
-        public Vehicle(string vin, int year, int modelId, string color)
+        public Vehicle(string vin, int year, Guid modelId, string color)
         {
             if (string.IsNullOrWhiteSpace(vin))
                 throw new ArgumentNullException(nameof(vin), "VIN is required.");

@@ -4,11 +4,11 @@ namespace CarSpot.Domain.Events;
 
 public class UserRegisteredEvent : IDomainEvent
 {
-    public int UserId { get; }
+    public Guid UserId { get; }
     public string Email { get; }
     public string FullName { get; }
 
-    public UserRegisteredEvent(int userId, string email, string fullName)
+    public UserRegisteredEvent(Guid userId, string email, string fullName)
     {
         UserId = userId;
         Email = email;

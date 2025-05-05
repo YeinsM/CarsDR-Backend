@@ -4,9 +4,9 @@ namespace CarSpot.Domain.Events;
 
 public class UserPasswordChangedEvent : IDomainEvent
 {
-    public int UserId { get; }
+    public Guid UserId { get; }
 
-    public UserPasswordChangedEvent(int userId)
+    public UserPasswordChangedEvent(Guid userId)
     {
         UserId = userId;
     }

@@ -1,9 +1,9 @@
 namespace CarSpot.Application.DTOs;
 
 public record VehicleDto(
-    int Id,
+    Guid Id,
     string VIN,
-    int Year,
+    Guid Year,
     string Color,
-    int ModelId
+    Guid ModelId
 );

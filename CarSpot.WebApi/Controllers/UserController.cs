@@ -26,8 +26,8 @@ public class UsersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll() => Ok(await _userRepository.GetAllAsync());
 
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    [HttpGet("{id:Guid}")]
+    public async Task<IActionResult> GetById(Guid id)
     {
         var user = await _userRepository.GetByIdAsync(id);
         return user == null ? NotFound() : Ok(user);
@@ -123,7 +123,7 @@ public class UsersController : ControllerBase
         }
     }
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserRequest request)
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
     {
 
         try
@@ -160,8 +160,8 @@ public class UsersController : ControllerBase
 
     }
 
-    [HttpPatch("{id:int}/change-password")]
-    public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordRequest request)
+    [HttpPatch("{id:Guid}/change-password")]
+    public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangePasswordRequest request)
     {
         try
         {
@@ -183,8 +183,8 @@ public class UsersController : ControllerBase
         }
     }
 
-    [HttpPatch("{id:int}/deactivate")]
-    public async Task<IActionResult> Deactivate(int id)
+    [HttpPatch("{id:Guid}/deactivate")]
+    public async Task<IActionResult> Deactivate(Guid id)
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null) return NotFound();
@@ -193,8 +193,8 @@ public class UsersController : ControllerBase
         return NoContent();
     }
 
-    [HttpPatch("{id:int}/activate")]
-    public async Task<IActionResult> Activate(int id)
+    [HttpPatch("{id:Guid}/activate")]
+    public async Task<IActionResult> Activate(Guid id)
     {
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null) return NotFound();

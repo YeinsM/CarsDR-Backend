@@ -7,6 +7,6 @@ namespace CarSpot.Application.DTOs
         [Required][StringLength(100)] string Label,
         [Required][StringLength(50)] string Icon,
         string? To,
-        int? ParentId
+        Guid? ParentId
     );
 }

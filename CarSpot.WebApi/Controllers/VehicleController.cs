@@ -28,8 +28,8 @@ namespace CarSpot.WebApi.Controllers
             return Ok(await _vehicleRepository.GetAllAsync());
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpGet("{id:Guid}")]
+        public async Task<IActionResult> GetById(Guid id)
         {
             var vehicle = await _vehicleRepository.GetByIdAsync(id);
             return vehicle == null ? NotFound() : Ok(vehicle);
