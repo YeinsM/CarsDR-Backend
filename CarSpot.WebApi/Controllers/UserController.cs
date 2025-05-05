@@ -17,8 +17,8 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
     [HttpGet]
     public async Task<IActionResult> GetAll() => Ok(await _userRepositoryG.GetAllAsync());
 
-    [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    [HttpGet("{id:Guid}")]
+    public async Task<IActionResult> GetById(Guid id)
     {
         var user = await _userRepositoryG.GetByIdAsync(id);
         return user == null ? NotFound() : Ok(user);
@@ -30,7 +30,7 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
         if (await _userRepository.IsEmailRegisteredAsync(request.Email))
             return BadRequest("Email already registered.");
 
-        var hashedPassword = HashedPassword.From(request.Password);
+        var hashedPassword = HashedPassword.FromHashed(request.Password);
         var user = new User(request.FirstName, request.LastName, request.Email, hashedPassword, request.Username);
 
         await _userRepository.RegisterUserAsync(user.FirstName, user.LastName, user.Email, user.Password, user.Username);
@@ -41,7 +41,7 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
         var user = await _userRepository.GetByEmailAsync(request.Email);
-        if (user == null || !user.Password.Matches(request.Password))
+        if (user == null || !user.Password.Verify(request.Password))
             return Unauthorized("Invalid credentials.");
 
         return Ok("Login successful.");
@@ -52,13 +52,18 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
     {
         try
         {
+
             if (request == null)
                 return BadRequest(new { Status = 400, Error = "Bad Request", Message = "Request body is required" });
 
-            if (string.IsNullOrEmpty(request.Email))
+
+            if (string.IsNullOrWhiteSpace(request.FirstName))
+                return BadRequest(new { Status = 400, Error = "Validation Error", Message = "FirstName is required" });
+
+            if (string.IsNullOrWhiteSpace(request.Email))
                 return BadRequest(new { Status = 400, Error = "Validation Error", Message = "Email is required" });
 
-            var hashedPassword = HashedPassword.From(request.Password); // Fix: Convert string password to HashedPassword
+            var hashedPassword = HashedPassword.FromHashed(request.Password); // Fix: Convert string password to HashedPassword
 
             var user = new User(
                 firstName: request.FirstName,
@@ -79,18 +84,29 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
                 UserId = user.Id
             });
         }
-        catch (DbUpdateException)
+        catch (DbUpdateException ex)
         {
-            return StatusCode(500, new { Status = 500, Error = "Database Error", Message = "Error saving user data" });
+            return StatusCode(500, new
+            {
+                Status = 500,
+                Error = "Database Error",
+                Message = "Error saving user data",
+                Details = ex.InnerException?.Message
+            });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            return StatusCode(500, new { Status = 500, Error = "Server Error", Message = "An unexpected error occurred" });
+            return StatusCode(500, new
+            {
+                Status = 500,
+                Error = "Server Error",
+                Message = "An unexpected error occurred",
+                Details = ex.Message
+            });
         }
     }
-
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserRequest request)
+    public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
     {
 
         try
@@ -127,8 +143,8 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
 
     }
 
-    [HttpPatch("{id:int}/change-password")]
-    public async Task<IActionResult> ChangePassword(int id, [FromBody] ChangePasswordRequest request)
+    [HttpPatch("{id:Guid}/change-password")]
+    public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangePasswordRequest request)
     {
         try
         {
@@ -150,8 +166,8 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
         }
     }
 
-    [HttpPatch("{id:int}/deactivate")]
-    public async Task<IActionResult> Deactivate(int id)
+    [HttpPatch("{id:Guid}/deactivate")]
+    public async Task<IActionResult> Deactivate(Guid id)
     {
         var user = await _userRepositoryG.GetByIdAsync(id);
         if (user == null) return NotFound();
@@ -160,8 +176,8 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
         return NoContent();
     }
 
-    [HttpPatch("{id:int}/activate")]
-    public async Task<IActionResult> Activate(int id)
+    [HttpPatch("{id:Guid}/activate")]
+    public async Task<IActionResult> Activate(Guid id)
     {
         var user = await _userRepositoryG.GetByIdAsync(id);
         if (user == null) return NotFound();

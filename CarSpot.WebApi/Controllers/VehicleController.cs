@@ -16,8 +16,8 @@ namespace CarSpot.WebApi.Controllers
             return Ok(vehicles);
         }
 
-        [HttpGet("{id:int}")]
-        public async Task<IActionResult> GetById(int id)
+        [HttpGet("{id:Guid}")]
+        public async Task<IActionResult> GetById(Guid id)
         {
             var vehicle = await _vehicleRepository.GetByIdAsync(id);
             return vehicle == null ? NotFound() : Ok(vehicle);
@@ -32,8 +32,8 @@ namespace CarSpot.WebApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
         }
 
-        [HttpPut("{id:int}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateVehicleRequest request)
+        [HttpPut("{id:Guid}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateVehicleRequest request)
         {
             var vehicle = await _vehicleRepository.GetByIdAsync(id);
             if (vehicle == null)
@@ -45,8 +45,8 @@ namespace CarSpot.WebApi.Controllers
             return NoContent();
         }
 
-        [HttpDelete("{id:int}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("{id:Guid}")]
+        public async Task<IActionResult> Delete(Guid id)
         {
             var vehicle = await _vehicleRepository.GetByIdAsync(id);
             if (vehicle == null)

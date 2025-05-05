@@ -1,7 +1,7 @@
 namespace CarSpot.Application.DTOs;
 
 public record UserDto(
-int Id,
+Guid Id,
 string Email,
 string Username,
 bool IsActive,

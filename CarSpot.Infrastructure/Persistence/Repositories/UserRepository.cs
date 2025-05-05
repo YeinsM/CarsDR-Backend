@@ -12,9 +12,10 @@ public class UserRepository : IRepository<User>, IUserRepository
     private readonly ApplicationDbContext _context;
     private readonly IEmailService _emailService;
 
-    public UserRepository(ApplicationDbContext context)
+    public UserRepository(ApplicationDbContext context, IEmailService emailService)
     {
         _context = context;
+        _emailService = emailService;
     }
 
     public async Task<IEnumerable<User>> GetAllAsync()
@@ -22,7 +23,7 @@ public class UserRepository : IRepository<User>, IUserRepository
         return await _context.Users.AsNoTracking().ToListAsync();
     }
 
-    public async Task<User?> GetByIdAsync(int id)
+    public async Task<User?> GetByIdAsync(Guid id)
     {
         return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
     }
@@ -37,19 +38,19 @@ public class UserRepository : IRepository<User>, IUserRepository
         return await _context.Users.AnyAsync(u => u.Email == email);
     }
 
-    public async Task<User> ValidateCredentialsAsync(string email, HashedPassword password)
-    {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+    public async Task<User?> ValidateCredentialsAsync(string email, HashedPassword password)
+{
+    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
-        if (user is null)
+    if (user is null)
         return null;
 
-    
-        if (!user.Password.Matches(password.Value))
+    if (!user.Password.Verify(password.Value))
         return null;
 
-        return user;
-    }
+    return user;
+}
+
 
 
     public async Task<User> RegisterUserAsync(string firstName, string lastName, string email, HashedPassword password, string username)
@@ -58,15 +59,13 @@ public class UserRepository : IRepository<User>, IUserRepository
         var user = new User(firstName, lastName, email, password, username);
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
-
-        var emailSettings = await _context.EmailSettings.FirstOrDefaultAsync(e => e.nickName == "CarSpot");
-
-        _emailService.SendEmail(user.Email, emailSettings.FromEmail, "Bienvenido al Sistema");
-
+        var bodyMessage = _emailService.Body(user);
+        var emailSettings = await _context.EmailSettings.FirstOrDefaultAsync(e => e.NickName == "CarSpot");
+        await _emailService.SendEmailAsync(user.Email, "Bienvenido al sistema", bodyMessage, emailSettings!.NickName!);
         return user;
     }
 
-    public async Task<User> UpdateUserAsync(int id, string firstName, string lastName, string username)
+    public async Task<User> UpdateUserAsync(Guid id, string firstName, string lastName, string username)
     {
         var user = await _context.Users.FindAsync(id);
         if (user == null)

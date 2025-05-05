@@ -15,7 +15,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<Make?> GetByIdAsync(int id)
+        public async Task<Make?> GetByIdAsync(Guid id)
         {
             return await context.Makes
                 .Include(m => m.Models)

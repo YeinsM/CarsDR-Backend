@@ -19,7 +19,7 @@ namespace CarSpot.WebApi.Controllers
 
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Make>> GetById(int id)
+        public async Task<ActionResult<Make>> GetById(Guid id)
         {
             var make = await _makeRepository.GetByIdAsync(id);
             if (make == null) return NotFound();
@@ -35,8 +35,9 @@ namespace CarSpot.WebApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id = make.Id }, make);
         }
 
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateMakeRequest updateRequest)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateMakeRequest updateRequest)
         {
             var make = await _makeRepository.GetByIdAsync(id);
             if (make is null)
@@ -52,7 +53,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             var make = await _makeRepository.GetByIdAsync(id);
             if (make == null) return NotFound();

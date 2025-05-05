@@ -5,10 +5,11 @@ namespace CarSpot.Domain.Entities
 {
     public class EmailSettings : BaseEntity
     {
-        public string SmtpServer { get; private set; }
-        public int SmtpPort { get; private set; }
-        public string FromEmail { get; private set; }
-        public string FromPassword { get; private set; }
+        public string SmtpServer { get; set; }
+        public int SmtpPort { get; set; }
+        public string FromEmail { get; set; }
+        public string FromPassword { get; set; }
+        public string NickName { get; set; }
 
         public EmailSettings(string smtpServer, int smtpPort, string fromEmail, string fromPassword)
         {

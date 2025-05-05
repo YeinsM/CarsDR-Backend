@@ -2,7 +2,10 @@ using Microsoft.EntityFrameworkCore;
 using CarSpot.Infrastructure.Persistence.Context;
 using CarSpot.Infrastructure.Persistence.Repositories;
 using CarSpot.Application.Interfaces;
+using CarSpot.Application.Services;
 using CarSpot.Domain.Entities;
+
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,10 +16,26 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IRepository<User>, UserRepository>();
 builder.Services.AddScoped<IRepository<Vehicle>, VehicleRepository>();
-builder.Services.AddScoped<IRepository<Make>, MakeRepository>();
 builder.Services.AddScoped<IRepository<Model>, ModelRepository>();
+builder.Services.AddScoped<IRepository<Make>, MakeRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IMenuRepository, MenuRepository>();
+builder.Services.AddScoped<IMenuService, MenuService>();
+builder.Services.AddScoped<IEmailSettingsRepository, EmailSettingsRepository>();
+builder.Services.AddScoped<IColorRepository, ColorRepository>();
+builder.Services.AddScoped<IPublicationRepository, PublicationRepository>();
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+
+
+
+
+builder.Services.Configure<EmailSettings>(
+    builder.Configuration.GetSection("EmailSettings"));
+
+builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 
 
@@ -40,11 +59,11 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsProduction())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+
+
+app.UseSwagger();
+app.UseSwaggerUI();
+
 
 app.UseHttpsRedirection();
 
