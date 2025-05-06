@@ -31,9 +31,10 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
             return BadRequest("Email already registered.");
 
         var hashedPassword = HashedPassword.FromHashed(request.Password);
-        var user = new User(request.FirstName, request.LastName, request.Email, hashedPassword, request.Username);
+        var user = new User(request.FirstName, request.LastName, request.Email, hashedPassword, request.Username, request.RoleId);
 
-        await _userRepository.RegisterUserAsync(user.FirstName, user.LastName, user.Email, user.Password, user.Username);
+        await _userRepository.RegisterUserAsync(user.FirstName, user.LastName, user.Email, user.Password, user.Username, user.RoleId);
+        await _userRepository.SaveChangesAsync();
         return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
     }
 
@@ -70,10 +71,11 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
                 lastName: request.LastName,
                 email: request.Email,
                 password: hashedPassword,
-                username: request.Username
+                username: request.Username,
+                roleId: request.RoleId
             );
 
-            await _userRepository.RegisterUserAsync(user.FirstName, user.LastName, user.Email, user.Password, user.Username);
+            await _userRepository.RegisterUserAsync(user.FirstName, user.LastName, user.Email, user.Password, user.Username, user.RoleId);
             await _userRepository.SaveChangesAsync();
 
             return Ok(new
@@ -156,7 +158,7 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
             request.NewPassword,
             request.ConfirmNewPassword);
 
-            await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username);
+            await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username, user.RoleId);
             return NoContent();
         }
         catch (ArgumentException ex)
@@ -171,7 +173,7 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
         var user = await _userRepositoryG.GetByIdAsync(id);
         if (user == null) return NotFound();
         user.Deactivate();
-        await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username);
+        await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username, user.RoleId);
         return NoContent();
     }
 
@@ -181,7 +183,7 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
         var user = await _userRepositoryG.GetByIdAsync(id);
         if (user == null) return NotFound();
         user.Activate();
-        await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username);
+        await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username, user.RoleId);
         return NoContent();
 
     }

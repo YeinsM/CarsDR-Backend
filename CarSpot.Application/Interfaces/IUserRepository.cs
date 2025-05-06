@@ -13,7 +13,7 @@ namespace CarSpot.Application.Interfaces
     Task<User?> GetByEmailAsync(string email);
     Task<bool> IsEmailRegisteredAsync(string email);
     Task<User?> ValidateCredentialsAsync(string email, HashedPassword password);
-    Task<User> RegisterUserAsync(string firstName, string lastName, string email, HashedPassword password, string username);
-    Task<User> UpdateUserAsync(Guid id, string firstName, string lastName, string username);
+    Task<User> RegisterUserAsync(string firstName, string lastName, string email, HashedPassword password, string username, Guid roleId);
+    Task<User> UpdateUserAsync(Guid id, string firstName, string lastName, string username, Guid roleId);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

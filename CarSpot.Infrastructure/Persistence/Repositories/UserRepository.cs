@@ -25,8 +25,13 @@ public class UserRepository : IRepository<User>, IUserRepository
 
     public async Task<User?> GetByIdAsync(Guid id)
     {
-        return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
+        return await _context.Users
+        .Include(u => u.Role)
+        .Include(u => u.Vehicles)
+        .Include(u => u.Comments)
+        .FirstOrDefaultAsync(u => u.Id == id);
     }
+
 
     public async Task<User?> GetByEmailAsync(string email)
     {
@@ -53,10 +58,10 @@ public class UserRepository : IRepository<User>, IUserRepository
 
 
 
-    public async Task<User> RegisterUserAsync(string firstName, string lastName, string email, HashedPassword password, string username)
+    public async Task<User> RegisterUserAsync(string firstName, string lastName, string email, HashedPassword password, string username, Guid roleId)
     {
         
-        var user = new User(firstName, lastName, email, password, username);
+        var user = new User(firstName, lastName, email, password, username, roleId);
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
         var bodyMessage = _emailService.Body(user);
