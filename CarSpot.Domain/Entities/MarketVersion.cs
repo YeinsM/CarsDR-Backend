@@ -1,0 +1,1 @@
+public class MarketVersion { Guid Id; string Name; }

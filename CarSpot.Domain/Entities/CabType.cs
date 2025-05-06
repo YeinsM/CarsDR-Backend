@@ -1,0 +1,1 @@
+public class CabType { Guid Id; string Name; }

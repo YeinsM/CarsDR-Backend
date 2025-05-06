@@ -1,0 +1,1 @@
+public class CylinderOption { Guid Id; int Value; }

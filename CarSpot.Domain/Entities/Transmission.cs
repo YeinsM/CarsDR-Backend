@@ -1,0 +1,1 @@
+public class Transmission { Guid Id; string Name; }

@@ -1,0 +1,1 @@
+public class Condition { Guid Id; string Name; }

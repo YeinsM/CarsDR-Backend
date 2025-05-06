@@ -20,7 +20,13 @@ namespace CarSpot.Domain.Entities
         public string FullName => $"{FirstName} {LastName}";
 
 
-        public User(string firstName, string lastName, string email, HashedPassword password, string username)
+        public string? Phone { get; set; }
+        public Guid RoleId { get; set; }
+        public Role Role { get; set; }
+        public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
+        public User(string firstName, string lastName, string email, HashedPassword password, string username, Guid roleId)
         {
             if (string.IsNullOrWhiteSpace(firstName))
                 throw new ArgumentNullException(nameof(firstName), "First name is required.");
@@ -32,21 +38,22 @@ namespace CarSpot.Domain.Entities
                 throw new ArgumentNullException(nameof(username), "Username is required.");
             if (password is null)
                 throw new ArgumentNullException(nameof(password), "Password is required.");
+            if (roleId == Guid.Empty)
+                throw new ArgumentNullException(nameof(roleId), "Role ID is required.");
 
             FirstName = firstName;
             LastName = lastName;
             Email = email;
             Password = password;
             Username = username;
+            RoleId = roleId;
+            CreatedAt = DateTime.UtcNow;
         }
-
 
         public void Register()
         {
-
             AddDomainEvent(new UserRegisteredEvent(Id, Email, FullName));
         }
-
 
         public void UpdateBasicInfo(string firstName, string lastName, string username)
         {
@@ -62,7 +69,6 @@ namespace CarSpot.Domain.Entities
             Username = username;
         }
 
-
         public void UpdateEmail(string newEmail)
         {
             if (string.IsNullOrWhiteSpace(newEmail))
@@ -70,7 +76,6 @@ namespace CarSpot.Domain.Entities
 
             Email = newEmail;
         }
-
 
         public void ChangePassword(string currentPassword, string newPassword, string confirmPassword)
         {
@@ -83,7 +88,6 @@ namespace CarSpot.Domain.Entities
             AddDomainEvent(new UserPasswordChangedEvent(Id));
         }
 
-
         public void SetResetPassword(string newPassword, string confirmNewPassword)
         {
             if (newPassword != confirmNewPassword)
@@ -93,7 +97,6 @@ namespace CarSpot.Domain.Entities
             ResetPassword = newPassword;
         }
 
-
         public void ConfirmResetPassword()
         {
             if (string.IsNullOrWhiteSpace(ResetPassword))
@@ -102,9 +105,6 @@ namespace CarSpot.Domain.Entities
             Password = HashedPassword.FromHashed(ResetPassword);
             ResetPassword = null;
         }
-
-       
-
-
     }
 }
+

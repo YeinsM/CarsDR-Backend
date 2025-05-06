@@ -1,0 +1,1 @@
+public class Drivetrain { Guid Id; string Name; }

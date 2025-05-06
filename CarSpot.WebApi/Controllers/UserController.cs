@@ -47,7 +47,7 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
         return Ok("Login successful.");
     }
 
-    [HttpPost("register")]
+    [HttpPost("auth/register")]
     public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
     {
         try
@@ -63,17 +63,16 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
             if (string.IsNullOrWhiteSpace(request.Email))
                 return BadRequest(new { Status = 400, Error = "Validation Error", Message = "Email is required" });
 
-            var hashedPassword = HashedPassword.FromHashed(request.Password); // Fix: Convert string password to HashedPassword
+            var hashedPassword = HashedPassword.FromHashed(request.Password);
 
             var user = new User(
                 firstName: request.FirstName,
                 lastName: request.LastName,
                 email: request.Email,
-                password: hashedPassword, // Fix: Use hashedPassword instead of raw string
+                password: hashedPassword,
                 username: request.Username
             );
 
-            // Fix: Replace AddAsync with RegisterUserAsync
             await _userRepository.RegisterUserAsync(user.FirstName, user.LastName, user.Email, user.Password, user.Username);
             await _userRepository.SaveChangesAsync();
 
