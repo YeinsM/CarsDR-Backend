@@ -1,48 +1,53 @@
-using CarSpot.Infrastructure.Persistence.Context;
+using CarSpot.Application.Common.Interfaces;
+using CarSpot.Domain.Entities;
+using CarSpot.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
-public class PublicationRepository : IPublicationRepository
+namespace CarSpot.Infrastructure.Repositories
 {
-    private readonly ApplicationDbContext _context;
-
-    public PublicationRepository(ApplicationDbContext context)
+    public class PublicationRepository : IPublicationRepository
     {
-        _context = context;
-    }
+        private readonly ApplicationDbContext _context;
 
-    public async Task<List<Publication>> GetAllAsync()
-    {
-        return await _context.Publications
-            .Include(p => p.Make)
-            .Include(p => p.Model)
-            .Include(p => p.Color)
-            .ToListAsync();
-    }
+        public PublicationRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
 
-    public async Task<Publication?> GetByIdAsync(Guid id)
-    {
-        return await _context.Publications
-            .Include(p => p.Make)
-            .Include(p => p.Model)
-            .Include(p => p.Color)
-            .FirstOrDefaultAsync(p => p.Id == id);
-    }
+        public async Task<IEnumerable<Publication>> GetAllAsync()
+        {
+            return await _context.Publications
+                .Include(p => p.User)
+                .Include(p => p.Make)
+                .Include(p => p.Model)
+                .Include(p => p.Color)
+                .ToListAsync();
+        }
 
-    public async Task AddAsync(Publication publication)
-    {
-        await _context.Publications.AddAsync(publication);
-        await _context.SaveChangesAsync();
-    }
+        public async Task<Publication?> GetByIdAsync(Guid id)
+        {
+            return await _context.Publications
+                .Include(p => p.User)
+                .Include(p => p.Make)
+                .Include(p => p.Model)
+                .Include(p => p.Color)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
 
-    public async Task UpdateAsync(Publication publication)
-    {
-        _context.Publications.Update(publication);
-        await _context.SaveChangesAsync();
-    }
+        public async Task AddAsync(Publication publication)
+        {
+            await _context.Publications.AddAsync(publication);
+            await _context.SaveChangesAsync();
+        }
 
-    public async Task DeleteAsync(Publication publication)
-    {
-        _context.Publications.Remove(publication);
-        await _context.SaveChangesAsync();
+        public async Task DeleteAsync(Guid id)
+        {
+            var pub = await _context.Publications.FindAsync(id);
+            if (pub != null)
+            {
+                _context.Publications.Remove(pub);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

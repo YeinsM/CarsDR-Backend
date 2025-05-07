@@ -20,6 +20,11 @@ public class ApplicationDbContext : DbContext
     public DbSet<EmailSettings> EmailSettings { get; set; }
     public DbSet<Publication> Publications { get; set; }
     public DbSet<Color> Colors { get; set; }
+    public DbSet<Comment> Comments { get; set; }
+    public DbSet<VehicleImage> VehicleImages { get; set; }
+    public DbSet<Publication> Publications { get; set; }
+
+
 
 
 
@@ -174,7 +179,61 @@ public class ApplicationDbContext : DbContext
                 .HasMaxLength(50)
                 .IsRequired();
         });
+
+         modelBuilder.Entity<Comment>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+
+                entity.Property(c => c.Content)
+                    .IsRequired()
+                    .HasMaxLength(1000);
+
+                entity.Property(c => c.CreatedAt)
+                    .IsRequired();
+
+                entity.HasOne(c => c.User)
+                    .WithMany(u => u.Comments)
+                    .HasForeignKey(c => c.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(c => c.Vehicle)
+                    .WithMany(v => v.Comments)
+                    .HasForeignKey(c => c.VehicleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<VehicleImage>(entity =>
+            {
+                entity.HasKey(v => v.Id);
+
+                entity.Property(v => v.ImageUrl)
+                .IsRequired()
+                .HasMaxLength(1000);
+
+                entity.HasOne(v => v.Vehicle)
+                .WithMany(v => v.Images)
+                .HasForeignKey(v => v.VehicleId)
+                .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Publication>(entity =>
+            {
+                entity.HasKey(p => p.Id);
+
+                var converter = new ValueConverter<List<string>, string>(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions)null) ?? new List<string>());
+
+                entity.Property(p => p.Images)
+                .HasConversion(converter);
+
+                entity.Property(p => p.Price).HasColumnType("decimal(18,2)");
+                entity.Property(p => p.Currency).HasMaxLength(10);
+                entity.Property(p => p.Place).HasMaxLength(200);
+                entity.Property(p => p.Version).HasMaxLength(100);
+            });
     }
-
-
 }
+
+
+

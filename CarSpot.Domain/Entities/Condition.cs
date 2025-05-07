@@ -1,1 +1,3 @@
-public class Condition { Guid Id; string Name; }
+using CarSpot.Domain.Common;
+
+public class Condition : BaseAuxiliar{}

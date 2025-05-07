@@ -1,3 +1,5 @@
+using CarSpot.Domain.Entities;
+
 public class Comment
 {
 public Guid Id { get; set; }

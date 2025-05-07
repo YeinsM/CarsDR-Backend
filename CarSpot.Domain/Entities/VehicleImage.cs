@@ -1,3 +1,5 @@
+using CarSpot.Domain.Entities;
+
 public class VehicleImage
 {
 public Guid Id { get; set; }

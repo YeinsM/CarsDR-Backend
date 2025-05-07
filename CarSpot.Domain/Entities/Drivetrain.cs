@@ -1,1 +1,3 @@
-public class Drivetrain { Guid Id; string Name; }
+using CarSpot.Domain.Common;
+
+public class Drivetrain : BaseAuxiliar {}

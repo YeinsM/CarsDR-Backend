@@ -1,64 +1,57 @@
-using Microsoft.AspNetCore.Mvc;
 using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces;
-using CarSpot.Application.DTOs;
-using CarSpot.Application.DTOs.MakeDtos;
+using Microsoft.AspNetCore.Mvc;
 
-namespace CarSpot.WebApi.Controllers
+namespace CarSpot.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class MakeController(IRepository<Make> _makeRepository) : ControllerBase
+    public class MakesController : ControllerBase
     {
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Make>>> GetAll()
+        private readonly IAuxiliarRepository<Make> _repository;
+
+        public MakesController(IAuxiliarRepository<Make> repository)
         {
-            var makes = await _makeRepository.GetAllAsync();
-            return Ok(makes);
+            _repository = repository;
         }
 
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
+        {
+            var items = await _repository.GetAllAsync();
+            return Ok(items);
+        }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Make>> GetById(Guid id)
+        public async Task<IActionResult> GetById(Guid id)
         {
-            var make = await _makeRepository.GetByIdAsync(id);
-            if (make == null) return NotFound();
-
-            return Ok(make);
+            var item = await _repository.GetByIdAsync(id);
+            return item is null ? NotFound() : Ok(item);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(CreateMakeRequest request)
+        public async Task<IActionResult> Create([FromBody] string name)
         {
-            var make = new Make(request.Name);
-            await _makeRepository.AddAsync(make);
+            var make = new Make(name);
+            await _repository.AddAsync(make);
             return CreatedAtAction(nameof(GetById), new { id = make.Id }, make);
         }
 
-
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateMakeRequest updateRequest)
+        public async Task<IActionResult> Update(Guid id, [FromBody] string name)
         {
-            var make = await _makeRepository.GetByIdAsync(id);
-            if (make is null)
-            {
-                return NotFound();
-            }
+            var existing = await _repository.GetByIdAsync(id);
+            if (existing is null) return NotFound();
 
-
-            make.Update(updateRequest.Name);
-
-            await _makeRepository.UpdateAsync(make);
+            existing.Update(name);
+            await _repository.UpdateAsync(existing);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var make = await _makeRepository.GetByIdAsync(id);
-            if (make == null) return NotFound();
-
-            await _makeRepository.DeleteAsync(make);
+            await _repository.DeleteAsync(id);
             return NoContent();
         }
     }

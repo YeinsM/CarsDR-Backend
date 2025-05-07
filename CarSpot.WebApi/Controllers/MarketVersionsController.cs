@@ -6,11 +6,11 @@ namespace CarSpot.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ColorsController : ControllerBase
+    public class MarketVersionsController : ControllerBase
     {
-        private readonly IAuxiliarRepository<Color> _repository;
+        private readonly IAuxiliarRepository<MarketVersion> _repository;
 
-        public ColorsController(IAuxiliarRepository<Color> repository)
+        public MarketVersionsController(IAuxiliarRepository<MarketVersion> repository)
         {
             _repository = repository;
         }
@@ -30,14 +30,14 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Color color)
+        public async Task<IActionResult> Create(MarketVersion marketVersion)
         {
-            await _repository.AddAsync(color);
-            return CreatedAtAction(nameof(GetById), new { id = color.Id }, color);
+            await _repository.AddAsync(marketVersion);
+            return CreatedAtAction(nameof(GetById), new { id = marketVersion.Id }, marketVersion);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, Color updated)
+        public async Task<IActionResult> Update(Guid id, MarketVersion updated)
         {
             if (id != updated.Id) return BadRequest();
             await _repository.UpdateAsync(updated);

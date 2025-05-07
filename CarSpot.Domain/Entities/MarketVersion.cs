@@ -1,1 +1,3 @@
-public class MarketVersion { Guid Id; string Name; }
+using CarSpot.Domain.Common;
+
+public class MarketVersion : BaseAuxiliar {}

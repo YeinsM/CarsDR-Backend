@@ -1,66 +1,67 @@
 using CarSpot.Domain.Entities;
-using Microsoft.AspNetCore.Mvc;
-using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
+using Microsoft.AspNetCore.Mvc;
+using CarSpot.Domain.Common;
 
-
-
-namespace CarSpot.WebApi.Controllers
+namespace CarSpot.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ModelController(IRepository<Model> _modelRepository) : ControllerBase
+    public class ModelsController : ControllerBase
     {
+        private readonly IAuxiliarRepository<Model> _repository;
+        private readonly IAuxiliarRepository<Make> _makeRepository; 
+
+        public ModelsController(IAuxiliarRepository<Model> repository, IAuxiliarRepository<Make> makeRepository)
+        {
+            _repository = repository;
+            _makeRepository = makeRepository;
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var models = await _modelRepository.GetAllAsync();
-            return Ok(models);
+            var items = await _repository.GetAllAsync();
+            return Ok(items);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var model = await _modelRepository.GetByIdAsync(id);
-            if (model == null)
-                return NotFound("Model not found.");
-
-            var dto = new ModelDto(model.Id, model.Name, model.MakeId);
-            return Ok(dto);
+            var item = await _repository.GetByIdAsync(id);
+            return item is null ? NotFound() : Ok(item);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateModelRequest request)
+        public async Task<IActionResult> Create([FromBody] Model model)
         {
-            var model = new Model(request.Name, request.MakeId);
-            await _modelRepository.AddAsync(model);
+            
+            var make = await _makeRepository.GetByIdAsync(model.MakeId);
+            if (make is null)
+                return BadRequest($"Make with ID {model.MakeId} does not exist.");
+
+            await _repository.AddAsync(model);
             return CreatedAtAction(nameof(GetById), new { id = model.Id }, model);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateModelRequest updateRequest)
+        public async Task<IActionResult> Update(Guid id, [FromBody] Model updated)
         {
-            var model = await _modelRepository.GetByIdAsync(id);
-            if (model is null)
-            {
-                return NotFound();
-            }
+            if (id != updated.Id) return BadRequest();
 
-            model.Update(updateRequest.Name, updateRequest.MakeId);
+            
+            var make = await _makeRepository.GetByIdAsync(updated.MakeId);
+            if (make is null)
+                return BadRequest($"Make with ID {updated.MakeId} does not exist.");
 
-            await _modelRepository.UpdateAsync(model);
+            await _repository.UpdateAsync(updated);
             return NoContent();
         }
-
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var model = await _modelRepository.GetByIdAsync(id);
-            if (model == null)
-                return NotFound("Model not found.");
-
-            await _modelRepository.DeleteAsync(model);
+            await _repository.DeleteAsync(id);
             return NoContent();
         }
     }

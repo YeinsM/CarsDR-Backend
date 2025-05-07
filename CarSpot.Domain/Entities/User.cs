@@ -105,6 +105,12 @@ namespace CarSpot.Domain.Entities
             Password = HashedPassword.FromHashed(ResetPassword);
             ResetPassword = null;
         }
+
+         public void UpdatePhone(string? phone)
+        {
+            Phone = phone;
+        }
+
     }
 }
 

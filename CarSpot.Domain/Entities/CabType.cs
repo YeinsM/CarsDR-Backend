@@ -1,1 +1,3 @@
-public class CabType { Guid Id; string Name; }
+using CarSpot.Domain.Common;
+
+public class CabType : BaseAuxiliar {}

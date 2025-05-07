@@ -1,1 +1,3 @@
-public class CylinderOption { Guid Id; int Value; }
+using CarSpot.Domain.Common;
+
+public class CylinderOption : BaseAuxiliar {}

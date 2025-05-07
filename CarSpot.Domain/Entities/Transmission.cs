@@ -1,1 +1,3 @@
-public class Transmission { Guid Id; string Name; }
+using CarSpot.Domain.Common;
+
+public class Transmission : BaseAuxiliar {}

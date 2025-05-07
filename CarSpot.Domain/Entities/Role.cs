@@ -1,9 +1,9 @@
+using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 
-public class Role
+public class Role : BaseAuxiliar
 {
-public Guid Id { get; set; }
-public string Name { get; set; }
+
 public string? Description { get; set; }
 public ICollection<User> Users { get; set; }
 }
