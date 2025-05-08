@@ -21,8 +21,14 @@ namespace CarSpot.Domain.Entities
 
 
         public string? Phone { get; set; }
+        public string? CellPhone { get; set; }
+        public string? Country { get; set; }
+        public string? City { get; set; }
+        public string? Address { get; set; }        
         public Guid RoleId { get; set; }
         public Role Role { get; set; }
+        
+        public int RazónSocial{ get; set; }
         public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 

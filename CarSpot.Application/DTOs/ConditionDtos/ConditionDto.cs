@@ -1,0 +1,1 @@
+public record ConditionDto(Guid Id, string Name);

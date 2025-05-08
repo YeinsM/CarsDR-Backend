@@ -1,0 +1,1 @@
+public record MarketVersionDto(Guid Id, string Name);

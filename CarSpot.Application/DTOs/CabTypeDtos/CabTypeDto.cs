@@ -1,0 +1,1 @@
+public record CabTypeDto(Guid Id, string Name);
