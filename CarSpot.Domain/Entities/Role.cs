@@ -5,5 +5,5 @@ public class Role : BaseAuxiliar
 {
 
 public string? Description { get; set; }
-public ICollection<User> Users { get; set; }
+public ICollection<User>? Users { get; set; }
 }

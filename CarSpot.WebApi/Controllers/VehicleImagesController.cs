@@ -8,9 +8,9 @@ namespace CarSpot.API.Controllers
     [Route("api/[controller]")]
     public class VehicleImagesController : ControllerBase
     {
-        private readonly IVehicleImageRepository _repository;
+        private readonly IAuxiliarRepository<VehicleImage> _repository;
 
-        public VehicleImagesController(IVehicleImageRepository repository)
+        public VehicleImagesController(IAuxiliarRepository<VehicleImage> repository)
         {
             _repository = repository;
         }
@@ -32,7 +32,7 @@ namespace CarSpot.API.Controllers
         [HttpGet("vehicle/{vehicleId}")]
         public async Task<IActionResult> GetByVehicleId(Guid vehicleId)
         {
-            var images = await _repository.GetByVehicleIdAsync(vehicleId);
+            var images = await _repository.GetByIdAsync(vehicleId);
             return Ok(images);
         }
 
@@ -40,7 +40,7 @@ namespace CarSpot.API.Controllers
         public async Task<IActionResult> Create([FromBody] VehicleImage image)
         {
             image.Id = Guid.NewGuid();
-            await _repository.AddAsync(image);
+            await _repository.Add(image);
             return CreatedAtAction(nameof(GetById), new { id = image.Id }, image);
         }
 

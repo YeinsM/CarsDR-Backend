@@ -9,7 +9,7 @@ namespace CarSpot.Domain.Entities
         public int SmtpPort { get; set; }
         public string FromEmail { get; set; }
         public string FromPassword { get; set; }
-        public string NickName { get; set; }
+        public string? NickName { get; set; }
 
         public EmailSettings(string smtpServer, int smtpPort, string fromEmail, string fromPassword)
         {

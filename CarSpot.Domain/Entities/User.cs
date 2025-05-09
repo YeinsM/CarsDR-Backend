@@ -16,7 +16,7 @@ namespace CarSpot.Domain.Entities
         public string? CellPhone { get; set; }
         public string? Address { get; set; }
         public Guid RoleId { get; set; }
-        public Role Role { get; set; }
+        public Role? Role { get; set; }
         public Guid BusinessId { get; set; }
         public string? BusinessName { get; set; }
 

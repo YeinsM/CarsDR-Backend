@@ -20,10 +20,16 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
 
         public async Task<Menu> GetByIdAsync(Guid id)
         {
-            return await _dbContext!.Menus
+            var menu = await _dbContext!.Menus
                 .Include(c => c.Children)
                 .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (menu == null)
+                throw new KeyNotFoundException($"Menu with ID {id} not found.");
+
+            return menu;
         }
+
 
         public async Task<IEnumerable<Menu>> GetAllAsync()
         {

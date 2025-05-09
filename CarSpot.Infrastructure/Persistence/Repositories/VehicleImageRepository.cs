@@ -47,8 +47,8 @@ namespace CarSpot.Infrastructure.Repositories
 
         public async Task<VehicleImage> UpdateAsync(VehicleImage vehicleImage)
         {
-            _context.VehicleImages.Update(vehicleImage);
-            _context.SaveChanges();
+             _context.VehicleImages.Update(vehicleImage);
+            await _context.SaveChangesAsync();
             return vehicleImage;
         }
 

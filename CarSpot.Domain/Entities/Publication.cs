@@ -10,18 +10,18 @@ public class Publication : BaseAuxiliar
     public Guid ColorId { get; private set; }
     public DateTime CreatedAt {get; set;}
     
-    public decimal Price { get; private set; }
-    public string Currency { get; private set; } = "USD";
-    public string Place { get; private set; }
-    public string Version { get; private set; }
+    public required decimal Price { get; set; }
+    public required string Currency { get; set; } = "USD";
+    public required string Place { get; set; }
+    public required string Version { get; set; }
 
-    public List<string> Images { get; private set; } = new();
+    public List<string>? Images { get; private set; } = new();
 
     
-    public User User { get; private set; }
-    public Make Make { get; private set; }
-    public Model Model { get; private set; }
-    public Color Color { get; private set; }
+    public required User User { get; set; }
+    public required Make Make { get; set; }
+    public required Model Model { get; set; }
+    public required Color Color { get; set; }
 
     
     public Publication(Guid userId, Guid makeId, Guid modelId, Guid colorId,

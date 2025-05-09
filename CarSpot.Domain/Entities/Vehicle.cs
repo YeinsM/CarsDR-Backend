@@ -1,18 +1,20 @@
+using System.ComponentModel.DataAnnotations;
 using CarSpot.Domain.Common;
 
 namespace CarSpot.Domain.Entities
 {
     public class Vehicle : BaseEntity
     {
-        public string VIN { get; set; }
-        public Guid UserId { get; set; }
-        public User User { get; set; }
+       
+        public  required string VIN { get; set; }
+        public  required Guid UserId { get; set; }
+        public  required User User { get; set; }
         
-        public Guid MakeId { get; set; }
-        public Make Make { get; set; }
+        public  required Guid MakeId { get; set; }
+        public  required Make Make { get; set; }
 
-        public Guid ModelId { get; set; }
-        public Model Model { get; set; }
+        public  required Guid ModelId { get; set; }
+        public  required Model Model { get; set; }
 
         public Guid? VersionId { get; set; }
         public Version? Version { get; set; }
@@ -32,8 +34,8 @@ namespace CarSpot.Domain.Entities
         public Guid? CabTypeId { get; set; }
         public CabType? CabType { get; set; }
 
-        public Guid ConditionId { get; set; }
-        public Condition Condition { get; set; }
+        public  required Guid ConditionId { get; set; }
+        public  required Condition Condition { get; set; }
 
         public Guid? ColorId { get; set; }
         public Color? Color { get; set; }
@@ -54,11 +56,12 @@ namespace CarSpot.Domain.Entities
 
     
 
-        public ICollection<VehicleImage> Images { get; set; }
-        public ICollection<Comment> Comments { get; set; }
+        public ICollection<VehicleImage>? Images { get; set; }
+        public ICollection<Comment>? Comments { get; set; }
 
         
         public Vehicle(
+            string VIN,
             Guid userId, 
             Guid makeId, 
             Guid modelId, 
@@ -77,7 +80,7 @@ namespace CarSpot.Domain.Entities
 
             if (price <= 0)
                 throw new ArgumentOutOfRangeException(nameof(price), "Price must be a positive number.");
-
+            
             UserId = userId;
             MakeId = makeId;
             ModelId = modelId;
@@ -113,12 +116,17 @@ namespace CarSpot.Domain.Entities
         
         public void AddImage(VehicleImage image)
         {
+            if (Images == null)
+            Images = new List<VehicleImage>();
+
             Images.Add(image);
         }
 
         
         public void AddComment(Comment comment)
         {
+            if (Comments == null)
+            Comments = new List<Comment>();
             Comments.Add(comment);
         }
 
