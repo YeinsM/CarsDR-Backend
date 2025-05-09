@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 using CarSpot.Infrastructure.Persistence.Context;
 using CarSpot.Infrastructure.Persistence.Repositories;
 using CarSpot.Application.Interfaces;
@@ -87,6 +88,11 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
+app.UseExceptionMiddleware();
+
+app.UseHttpsRedirection();
+
+app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();

@@ -18,10 +18,10 @@ public class Publication : BaseAuxiliar
     public List<string>? Images { get; private set; } = new();
 
     
-    public required User User { get; set; }
-    public required Make Make { get; set; }
-    public required Model Model { get; set; }
-    public required Color Color { get; set; }
+    public User User { get; set; }  = null!;
+    public Make Make { get; set; }  = null!;
+    public Model Model { get; set; }  = null!;
+    public Color Color { get; set; }  = null!;
 
     
     public Publication(Guid userId, Guid makeId, Guid modelId, Guid colorId,
