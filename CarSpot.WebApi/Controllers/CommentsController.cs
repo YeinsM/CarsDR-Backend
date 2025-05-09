@@ -1,5 +1,5 @@
 using CarSpot.Domain.Entities;
-using CarSpot.Application.Common.Interfaces;
+using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.API.Controllers
@@ -8,9 +8,9 @@ namespace CarSpot.API.Controllers
     [Route("api/[controller]")]
     public class CommentsController : ControllerBase
     {
-        private readonly ICommentRepository _commentRepository;
+        private readonly IAuxiliarRepository<Comment> _commentRepository;
 
-        public CommentsController(ICommentRepository commentRepository)
+        public CommentsController(IAuxiliarRepository<Comment> commentRepository)
         {
             _commentRepository = commentRepository;
         }
@@ -33,7 +33,7 @@ namespace CarSpot.API.Controllers
         public async Task<IActionResult> Create([FromBody] Comment comment)
         {
             comment.CreatedAt = DateTime.UtcNow;
-            await _commentRepository.AddAsync(comment);
+            await _commentRepository.Add(comment);
             return CreatedAtAction(nameof(GetById), new { id = comment.Id }, comment);
         }
 

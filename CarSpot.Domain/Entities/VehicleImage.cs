@@ -1,6 +1,7 @@
+using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 
-public class VehicleImage
+public class VehicleImage : BaseAuxiliar
 {
 public Guid Id { get; set; }
 public Guid VehicleId { get; set; }

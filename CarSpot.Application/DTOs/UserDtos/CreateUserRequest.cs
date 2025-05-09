@@ -1,12 +1,15 @@
-namespace CarSpot.Application.DTOs;
-
 public record CreateUserRequest(
-string Username, 
-string FirstName, 
-string LastName, 
-string Email, 
-string Password, 
-Guid RoleId, 
-string? Phone
-);
 
+    string FirstName,
+    string LastName,
+    string Username,
+    string Email,
+    string Password,
+    Guid RoleId,
+    string? Phone,
+    string? Extension,
+    string? CellPhone,
+    string? Address,
+    Guid BusinessId,
+    string? BusinessName
+);

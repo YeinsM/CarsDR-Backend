@@ -1,62 +1,86 @@
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
+using CarSpot.Domain.Entities;
+using CarSpot.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using CarSpot.Domain.ValueObjects;
-using CarSpot.Domain.Entities;
-
-
 
 namespace CarSpot.WebApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class UsersController(IUserRepository _userRepository, IConfiguration _configuration, IRepository<User> _userRepositoryG) : ControllerBase
+public class UsersController : ControllerBase
 {
+    private readonly IUserRepository _userRepository;
+
+    private readonly IEmailService _emailService;
+
+    private readonly IEmailSettingsRepository _emailSettingsRepository;
+
+    private readonly IConfiguration _configuration;
+
+    public UsersController(IUserRepository userRepository, IEmailService emailService, IConfiguration configuration, IEmailSettingsRepository emailSettingsRepository)
+    {
+        _userRepository = userRepository;
+        _emailService = emailService;
+        _configuration = configuration;
+        _emailSettingsRepository = emailSettingsRepository;
+    }
+
+
     [HttpGet]
-    public async Task<IActionResult> GetAll() => Ok(await _userRepositoryG.GetAllAsync());
+    public async Task<IActionResult> GetAll()
+    {
+        var users = await _userRepository.GetAllAsync();
+
+        var response = users.Select(u => new UserDto(
+            u.Id,
+            u.Email,
+            u.Username,
+            u.Phone,
+            u.RoleId,
+            u.IsActive,
+            u.CreatedAt,
+            u.UpdatedAt,
+            u.BusinessId,
+            u.BusinessName
+        ));
+
+        return Ok(response);
+    }
+
+
 
     [HttpGet("{id:Guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var user = await _userRepositoryG.GetByIdAsync(id);
-        return user == null ? NotFound() : Ok(user);
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null)
+            return NotFound(new { Status = 404, Message = "User not found" });
+
+        return Ok(new UserDto(
+            user.Id,
+            user.Email,
+            user.Username,
+            user.Phone,
+            user.RoleId,
+            user.IsActive,
+            user.CreatedAt,
+            user.UpdatedAt,
+            user.BusinessId,
+            user.BusinessName
+        ));
     }
+
 
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
-    {
-        if (await _userRepository.IsEmailRegisteredAsync(request.Email))
-            return BadRequest("Email already registered.");
-
-        var hashedPassword = HashedPassword.FromHashed(request.Password);
-        var user = new User(request.FirstName, request.LastName, request.Email, hashedPassword, request.Username, request.RoleId);
-
-        await _userRepository.RegisterUserAsync(user.FirstName, user.LastName, user.Email, user.Password, user.Username, user.RoleId);
-        await _userRepository.SaveChangesAsync();
-        return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
-    }
-
-    [HttpPost("login")]
-    public async Task<IActionResult> Login([FromBody] LoginRequest request)
-    {
-        var user = await _userRepository.GetByEmailAsync(request.Email);
-        if (user == null || !user.Password.Verify(request.Password))
-            return Unauthorized("Invalid credentials.");
-
-        return Ok("Login successful.");
-    }
-
-    [HttpPost("auth/register")]
     public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
     {
         try
         {
-
             if (request == null)
                 return BadRequest(new { Status = 400, Error = "Bad Request", Message = "Request body is required" });
-
 
             if (string.IsNullOrWhiteSpace(request.FirstName))
                 return BadRequest(new { Status = 400, Error = "Validation Error", Message = "FirstName is required" });
@@ -64,129 +88,113 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
             if (string.IsNullOrWhiteSpace(request.Email))
                 return BadRequest(new { Status = 400, Error = "Validation Error", Message = "Email is required" });
 
+            if (await _userRepository.IsEmailRegisteredAsync(request.Email))
+                return BadRequest(new { Status = 400, Message = "Email already registered" });
+
             var hashedPassword = HashedPassword.FromHashed(request.Password);
 
             var user = new User(
-                firstName: request.FirstName,
-                lastName: request.LastName,
-                email: request.Email,
-                password: hashedPassword,
-                username: request.Username,
-                roleId: request.RoleId
+                request.FirstName,
+                request.LastName,
+                request.Email,
+                hashedPassword,
+                request.Username,
+                request.RoleId
+
             );
 
-            await _userRepository.RegisterUserAsync(user.FirstName, user.LastName, user.Email, user.Password, user.Username, user.RoleId);
+            await _userRepository.RegisterUserAsync(user);
             await _userRepository.SaveChangesAsync();
 
-            return Ok(new
-            {
-                Status = 200,
-                Message = "User registered successfully",
-                UserId = user.Id
-            });
+            var bodyMessage = _emailService.Body(user);
+            var emailSettings = await _emailSettingsRepository.GetSettingsAsync();
+            await _emailService.SendEmailAsync(user.Email, "Welcome to CarSpot", bodyMessage, emailSettings?.NickName);
+
+            return Ok(new { Status = 200, Message = "User registered successfully", UserId = user.Id });
         }
         catch (DbUpdateException ex)
         {
-            return StatusCode(500, new
-            {
-                Status = 500,
-                Error = "Database Error",
-                Message = "Error saving user data",
-                Details = ex.InnerException?.Message
-            });
+            return StatusCode(500, new { Status = 500, Error = "Database Error", Message = "Error saving user data", Details = ex.InnerException?.Message });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new
-            {
-                Status = 500,
-                Error = "Server Error",
-                Message = "An unexpected error occurred",
-                Details = ex.Message
-            });
+            return StatusCode(500, new { Status = 500, Error = "Server Error", Message = "An unexpected error occurred", Details = ex.Message });
         }
     }
+
+
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginRequest request)
+    {
+        var user = await _userRepository.GetByEmailAsync(request.Email);
+        if (user == null || !user.Password.Verify(request.Password))
+            return Unauthorized(new { Status = 401, Message = "Invalid credentials" });
+
+        return Ok(new { Status = 200, Message = "Login successful" });
+    }
+
+
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
     {
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null)
+            return NotFound(new { Status = 404, Message = "User not found" });
 
-        try
-        {
-            var user = await _userRepositoryG.GetByIdAsync(id);
-            if (user == null)
-                return NotFound(new
-                {
-                    Status = 404,
-                    Error = "Not Found",
-                    Message = $"User with id {id} not found"
-                });
+        user.UpdateBasicInfo(
+            request.FirstName,
+            request.LastName,
+            request.Username
 
-            user.UpdateBasicInfo(
-                firstName: request.FirstName,
-                lastName: request.LastName,
-                username: request.Username);
+        );
 
-            return Ok(new
-            {
-                Status = 200,
-                Message = "User updated successfully",
-                User = new { user.Id, user.Username }
-            });
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound(new { Status = 404, Message = $"User with id {id} not found" });
-        }
-        catch (DbUpdateException)
-        {
-            return StatusCode(500, new { Status = 500, Message = "Database error" });
-        }
-
+        return Ok(new { Status = 200, Message = "User updated successfully", User = new { user.Id, user.Username } });
     }
+
 
     [HttpPatch("{id:Guid}/change-password")]
     public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangePasswordRequest request)
     {
         try
         {
-            var user = await _userRepositoryG.GetByIdAsync(id);
-            if (user == null) return NotFound();
+            var user = await _userRepository.GetByIdAsync(id);
+            if (user == null) return NotFound(new { Status = 404, Message = "User not found" });
 
+            user.ChangePassword(request.CurrentPassword, request.NewPassword, request.ConfirmNewPassword);
 
-            user.ChangePassword(
-            request.CurrentPassword,
-            request.NewPassword,
-            request.ConfirmNewPassword);
-
-            await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username, user.RoleId);
+            await _userRepository.UpdateAsync(id);
             return NoContent();
         }
         catch (ArgumentException ex)
         {
-            return BadRequest(ex.Message);
+            return BadRequest(new { Status = 400, Message = ex.Message });
         }
     }
+
 
     [HttpPatch("{id:Guid}/deactivate")]
     public async Task<IActionResult> Deactivate(Guid id)
     {
-        var user = await _userRepositoryG.GetByIdAsync(id);
-        if (user == null) return NotFound();
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null) return NotFound(new { Status = 404, Message = "User not found" });
+
         user.Deactivate();
-        await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username, user.RoleId);
+        await _userRepository.UpdateAsync(id);
         return NoContent();
     }
+
 
     [HttpPatch("{id:Guid}/activate")]
     public async Task<IActionResult> Activate(Guid id)
     {
-        var user = await _userRepositoryG.GetByIdAsync(id);
-        if (user == null) return NotFound();
-        user.Activate();
-        await _userRepository.UpdateUserAsync(user.Id, user.FirstName, user.LastName, user.Username, user.RoleId);
-        return NoContent();
+        var user = await _userRepository.GetByIdAsync(id);
+        if (user == null) return NotFound(new { Status = 404, Message = "User not found" });
 
+        user.Activate();
+        await _userRepository.UpdateAsync(id);
+        return NoContent();
     }
+
 
     [HttpGet("test-connection")]
     public async Task<IActionResult> TestConnection()
@@ -203,21 +211,19 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
         }
     }
 
+
     [HttpPost("send-test-email")]
     public async Task<IActionResult> SendTestEmail()
     {
         try
         {
-            // Email credentials
             var smtpServer = "smtp.zoho.com";
             var smtpPort = 587;
             var fromEmail = "notifications@techbrains.com.do";
             var fromPassword = "Techbrains25@";
-
-            // Email details
             var toEmail = "kellycasares13@gmail.com";
-            var subject = "Test Email desde CarSpot";
-            var body = "Esto es una prueba desde la aplicacion, tenemos email mija.";
+            var subject = "Test Email from CarSpot";
+            var body = "This is a test email from the app, email is working.";
 
             using var smtpClient = new System.Net.Mail.SmtpClient(smtpServer, smtpPort)
             {
@@ -234,14 +240,13 @@ public class UsersController(IUserRepository _userRepository, IConfiguration _co
             };
 
             mailMessage.To.Add(toEmail);
-
             await smtpClient.SendMailAsync(mailMessage);
 
             return Ok(new { Status = 200, Message = "Test email sent successfully!" });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { Status = 500, Error = "Email Error", Message = ex.Message });
+            return StatusCode(500, new { Status = 500, Error = "Email Error", Message = "Failed to send test email", Details = ex.Message });
         }
     }
 }

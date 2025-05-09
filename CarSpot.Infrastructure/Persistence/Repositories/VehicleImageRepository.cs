@@ -1,11 +1,14 @@
 using CarSpot.Domain.Entities;
-using CarSpot.Application.Common.Interfaces;
+using CarSpot.Domain.Common;
+using CarSpot.Application.Interfaces;
+using CarSpot.Infrastructure.Persistence.Context;
 using CarSpot.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace CarSpot.Infrastructure.Repositories
 {
-    public class VehicleImageRepository : IVehicleImageRepository
+    public class VehicleImageRepository : IAuxiliarRepository<VehicleImage>
     {
         private readonly ApplicationDbContext _context;
 
@@ -35,20 +38,31 @@ namespace CarSpot.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task AddAsync(VehicleImage image)
+        public async Task<VehicleImage> Add(VehicleImage vehicleImage)
         {
-            await _context.VehicleImages.AddAsync(image);
+            _context.VehicleImages.Add(vehicleImage);
             await _context.SaveChangesAsync();
+            return vehicleImage;
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task<VehicleImage> UpdateAsync(VehicleImage vehicleImage)
+        {
+            _context.VehicleImages.Update(vehicleImage);
+            _context.SaveChanges();
+            return vehicleImage;
+        }
+
+
+        public async Task<VehicleImage> DeleteAsync(Guid id)
         {
             var image = await _context.VehicleImages.FindAsync(id);
-            if (image != null)
-            {
-                _context.VehicleImages.Remove(image);
-                await _context.SaveChangesAsync();
-            }
+            if (image == null)
+                throw new KeyNotFoundException($"VehicleImage with ID {id} not found");
+
+            _context.VehicleImages.Remove(image);
+            await _context.SaveChangesAsync();
+            return image;
         }
+
     }
 }

@@ -2,12 +2,13 @@ using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-public class Publication : BaseEntity
+public class Publication : BaseAuxiliar
 {
     public Guid UserId { get; private set; }
     public Guid MakeId { get; private set; }
     public Guid ModelId { get; private set; }
     public Guid ColorId { get; private set; }
+    public DateTime CreatedAt {get; set;}
     
     public decimal Price { get; private set; }
     public string Currency { get; private set; } = "USD";

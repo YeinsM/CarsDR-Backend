@@ -40,7 +40,7 @@ namespace CarSpot.API.Controllers
             if (make is null)
                 return BadRequest($"Make with ID {model.MakeId} does not exist.");
 
-            await _repository.AddAsync(model);
+            await _repository.Add(model);
             return CreatedAtAction(nameof(GetById), new { id = model.Id }, model);
         }
 

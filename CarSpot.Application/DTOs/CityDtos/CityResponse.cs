@@ -1,0 +1,1 @@
+public record CityResponse(Guid Id, string Name, Guid CountryId);

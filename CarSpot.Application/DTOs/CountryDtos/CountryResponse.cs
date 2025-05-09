@@ -1,0 +1,1 @@
+public record CountryResponse(Guid Id, string Name, string Abbreviation);

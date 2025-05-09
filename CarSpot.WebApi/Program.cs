@@ -15,28 +15,29 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<IGenericRepository<User>, GenericRepository<User>>();
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IGenericRepository<Vehicle>, VehicleRepository>();
+builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IMenuRepository, MenuRepository>();
 builder.Services.AddScoped<IMenuService, MenuService>();
 builder.Services.AddScoped<IEmailSettingsRepository, EmailSettingsRepository>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-services.AddScoped<IAuxiliarRepository<Transmission>, AuxiliarRepository<Transmission>>();
-services.AddScoped<IAuxiliarRepository<Color>, AuxiliarRepository<Color>>();
-services.AddScoped<IAuxiliarRepository<CabType>, AuxiliarRepository<CabType>>();
-services.AddScoped<IAuxiliarRepository<Condition>, AuxiliarRepository<Condition>>();
-services.AddScoped<IAuxiliarRepository<CylinderOption>, AuxiliarRepository<CylinderOption>>();
-services.AddScoped<IAuxiliarRepository<Drivetrain>, AuxiliarRepository<Drivetrain>>();
-services.AddScoped<IAuxiliarRepository<Make>, AuxiliarRepository<Make>>();
-services.AddScoped<IAuxiliarRepository<MarketVersion>, AuxiliarRepository<MarketVersion>>();
-services.AddScoped<IAuxiliarRepository<Model>, AuxiliarRepository<Model>>();
-services.AddScoped<IAuxiliarRepository<Role>, AuxiliarRepository<Role>>();
-services.AddScoped<IAuxiliarRepository<Version>, AuxiliarRepository<Version>>();
-services.AddScoped<ICommentRepository, CommentRepository>();
-builder.Services.AddScoped<IVehicleImageRepository, VehicleImageRepository>();
-builder.Services.AddScoped<IPublicationRepository, PublicationRepository>();
+builder.Services.AddScoped<IAuxiliarRepository<Transmission>, AuxiliarRepository<Transmission>>();
+builder.Services.AddScoped<IAuxiliarRepository<Color>, AuxiliarRepository<Color>>();
+builder.Services.AddScoped<IAuxiliarRepository<CabType>, AuxiliarRepository<CabType>>();
+builder.Services.AddScoped<IAuxiliarRepository<Condition>, AuxiliarRepository<Condition>>();
+builder.Services.AddScoped<IAuxiliarRepository<CylinderOption>, AuxiliarRepository<CylinderOption>>();
+builder.Services.AddScoped<IAuxiliarRepository<Drivetrain>, AuxiliarRepository<Drivetrain>>();
+builder.Services.AddScoped<IAuxiliarRepository<Make>, AuxiliarRepository<Make>>();
+builder.Services.AddScoped<IAuxiliarRepository<MarketVersion>, AuxiliarRepository<MarketVersion>>();
+builder.Services.AddScoped<IAuxiliarRepository<Model>, AuxiliarRepository<Model>>();
+builder.Services.AddScoped<IAuxiliarRepository<Role>, AuxiliarRepository<Role>>();
+builder.Services.AddScoped<IAuxiliarRepository<Version>, AuxiliarRepository<Version>>();
+
+
+builder.Services.AddScoped<IAuxiliarRepository<Country>, AuxiliarRepository<Country>>();
+
 
 
 

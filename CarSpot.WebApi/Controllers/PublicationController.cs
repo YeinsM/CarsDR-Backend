@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using AutoMapper;
+
 
 
 
@@ -11,19 +11,18 @@ using AutoMapper;
 [Route("api/[controller]")]
 public class PublicationsController : ControllerBase
 {
-    private readonly IPublicationRepository _publicationRepository;
-    private readonly IMapper _mapper;
+   private readonly IAuxiliarRepository<Publication> _repository;
+   
 
-    public PublicationsController(IPublicationRepository publicationRepository, IMapper mapper)
+    public PublicationsController(IAuxiliarRepository<Publication> repository)
     {
-        _publicationRepository = publicationRepository;
-        _mapper = mapper;
+        _repository = repository;
     }
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var publications = await _publicationRepository.GetAllAsync();
+        var publications = await _repository.GetAllAsync();
         var response = publications.Select(p => new PublicationResponse
         {
             Id = p.Id,
@@ -44,7 +43,7 @@ public class PublicationsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var publication = await _publicationRepository.GetByIdAsync(id);
+        var publication = await _repository.GetByIdAsync(id);
         if (publication is null) return NotFound();
 
         var response = new PublicationResponse
@@ -79,14 +78,14 @@ public class PublicationsController : ControllerBase
             request.Images
         );
 
-        await _publicationRepository.AddAsync(publication);
+        await _repository.Add(publication);
         return CreatedAtAction(nameof(GetById), new { id = publication.Id }, publication.Id);
     }
 
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, CreatePublicationRequest request)
     {
-        var publication = await _publicationRepository.GetByIdAsync(id);
+        var publication = await _repository.GetByIdAsync(id);
         if (publication is null) return NotFound();
 
       
@@ -105,17 +104,17 @@ public class PublicationsController : ControllerBase
         );
 
         typeof(Publication).GetProperty("Id")!.SetValue(publication, id);
-        await _publicationRepository.UpdateAsync(publication);
+        await _repository.UpdateAsync(publication);
         return NoContent();
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var publication = await _publicationRepository.GetByIdAsync(id);
+        var publication = await _repository.GetByIdAsync(id);
         if (publication is null) return NotFound();
 
-        await _publicationRepository.DeleteAsync(publication);
+        await _repository.DeleteAsync(id);
         return NoContent();
     }
 }

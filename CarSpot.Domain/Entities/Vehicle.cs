@@ -4,35 +4,127 @@ namespace CarSpot.Domain.Entities
 {
     public class Vehicle : BaseEntity
     {
-        public string VIN { get; private set; } = string.Empty;
-        public Guid ModelId { get; private set; }
-        public Model? Model { get; private set; }
-        public int Year { get; private set; }
-        public string Color { get; private set; } = string.Empty;
-        public ICollection<VehicleImage> Images { get; set; } = new List<VehicleImage>();
+        public string VIN { get; set; }
+        public Guid UserId { get; set; }
+        public User User { get; set; }
+        
+        public Guid MakeId { get; set; }
+        public Make Make { get; set; }
 
+        public Guid ModelId { get; set; }
+        public Model Model { get; set; }
 
+        public Guid? VersionId { get; set; }
+        public Version? Version { get; set; }
 
+        public Guid? MarketVersionId { get; set; }
+        public MarketVersion? MarketVersion { get; set; }
 
-        public Vehicle(string vin, int year, Guid modelId, string color)
+        public Guid? TransmissionId { get; set; }
+        public Transmission? Transmission { get; set; }
+
+        public Guid? DrivetrainId { get; set; }
+        public Drivetrain? Drivetrain { get; set; }
+
+        public Guid? CylinderOptionId { get; set; }
+        public CylinderOption? CylinderOption { get; set; }
+
+        public Guid? CabTypeId { get; set; }
+        public CabType? CabType { get; set; }
+
+        public Guid ConditionId { get; set; }
+        public Condition Condition { get; set; }
+
+        public Guid? ColorId { get; set; }
+        public Color? Color { get; set; }
+
+        public int Year { get; set; }
+
+        public int? Mileage { get; set; }
+
+        public decimal Price { get; set; }
+
+        public string? Title { get; set; }
+
+        public bool IsFeatured { get; set; }
+
+        public DateTime? FeaturedUntil { get; set; }
+
+        public int ViewCount { get; set; }
+
+    
+
+        public ICollection<VehicleImage> Images { get; set; }
+        public ICollection<Comment> Comments { get; set; }
+
+        
+        public Vehicle(
+            Guid userId, 
+            Guid makeId, 
+            Guid modelId, 
+            int year, 
+            decimal price, 
+            Guid conditionId, 
+            string? title = null,
+            int? mileage = null,
+            bool isFeatured = false,
+            DateTime? featuredUntil = null,
+            int viewCount = 0,
+            DateTime? createdAt = null)
         {
-            if (string.IsNullOrWhiteSpace(vin))
-                throw new ArgumentNullException(nameof(vin), "VIN is required.");
-
             if (year < 1900 || year > DateTime.UtcNow.Year + 1)
                 throw new ArgumentOutOfRangeException(nameof(year), "Year is invalid.");
 
-            if (string.IsNullOrWhiteSpace(color))
-                throw new ArgumentNullException(nameof(color), "Color is required.");
+            if (price <= 0)
+                throw new ArgumentOutOfRangeException(nameof(price), "Price must be a positive number.");
 
-            VIN = vin;
-            Year = year;
+            UserId = userId;
+            MakeId = makeId;
             ModelId = modelId;
-            Color = color;
+            Year = year;
+            Price = price;
+            ConditionId = conditionId;
+            Title = title;
+            Mileage = mileage;
+            IsFeatured = isFeatured;
+            FeaturedUntil = featuredUntil;
+            ViewCount = viewCount;
+            CreatedAt = createdAt ?? DateTime.UtcNow;
+
+            Images = new List<VehicleImage>();
+            Comments = new List<Comment>();
         }
 
-        private Vehicle() { }
-
-    }
         
+        public void UpdateVehicle(
+            string? title,
+            int? mileage,
+            decimal price,
+            bool isFeatured,
+            DateTime? featuredUntil)
+        {
+            Title = title;
+            Mileage = mileage;
+            Price = price;
+            IsFeatured = isFeatured;
+            FeaturedUntil = featuredUntil;
+        }
+
+        
+        public void AddImage(VehicleImage image)
+        {
+            Images.Add(image);
+        }
+
+        
+        public void AddComment(Comment comment)
+        {
+            Comments.Add(comment);
+        }
+
+          public Vehicle() { }
+    }
+
+  
+
 }

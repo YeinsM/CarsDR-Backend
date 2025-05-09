@@ -32,7 +32,7 @@ namespace CarSpot.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Condition condition)
         {
-            await _repository.AddAsync(condition);
+            await _repository.Add(condition);
             return CreatedAtAction(nameof(GetById), new { id = condition.Id }, condition);
         }
 

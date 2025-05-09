@@ -1,0 +1,1 @@
+public record UpdateVersionRequest(string Name, Guid? ModelId);

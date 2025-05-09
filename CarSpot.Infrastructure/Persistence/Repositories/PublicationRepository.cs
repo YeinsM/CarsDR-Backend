@@ -1,11 +1,13 @@
-using CarSpot.Application.Common.Interfaces;
+using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
 using CarSpot.Infrastructure.Persistence;
+using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Repositories
 {
-    public class PublicationRepository : IPublicationRepository
+    public class PublicationRepository : IAuxiliarRepository<Publication>
+
     {
         private readonly ApplicationDbContext _context;
 
@@ -34,20 +36,29 @@ namespace CarSpot.Infrastructure.Repositories
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task AddAsync(Publication publication)
+        public async Task<Publication> Add(Publication publication)
         {
-            await _context.Publications.AddAsync(publication);
+            _context.Publications.Add(publication);
             await _context.SaveChangesAsync();
+            return publication;
         }
 
-        public async Task DeleteAsync(Guid id)
+        public async Task<Publication> UpdateAsync(Publication publication)
         {
-            var pub = await _context.Publications.FindAsync(id);
-            if (pub != null)
-            {
-                _context.Publications.Remove(pub);
-                await _context.SaveChangesAsync();
-            }
+            _context.Publications.Update(publication);
+            await _context.SaveChangesAsync();
+            return publication;
+        }
+
+        public async Task<Publication> DeleteAsync(Guid id)
+        {
+            var publication = await _context.Publications.FindAsync(id);
+            if (publication == null)
+                return null!;
+
+            _context.Publications.Remove(publication);
+            await _context.SaveChangesAsync();
+            return publication;
         }
     }
 }

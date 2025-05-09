@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
-    public class GenericRepository<T> : IRepository<T> where T : BaseEntity
+    public class GenericRepository<T> : IGenericRepository<T> where T : BaseEntity
     {
         protected readonly DbContext _context;
         protected readonly DbSet<T> _dbSet;
 
-        public Repository(DbContext context)
+        public GenericRepository(DbContext context)
         {
             _context = context;
             _dbSet = context.Set<T>();

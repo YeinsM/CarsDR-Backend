@@ -32,7 +32,7 @@ namespace CarSpot.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(MarketVersion marketVersion)
         {
-            await _repository.AddAsync(marketVersion);
+            await _repository.Add(marketVersion);
             return CreatedAtAction(nameof(GetById), new { id = marketVersion.Id }, marketVersion);
         }
 

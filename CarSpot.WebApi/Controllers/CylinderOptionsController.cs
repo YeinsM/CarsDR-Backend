@@ -32,7 +32,7 @@ namespace CarSpot.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CylinderOption cylinderOption)
         {
-            await _repository.AddAsync(cylinderOption);
+            await _repository.Add(cylinderOption);
             return CreatedAtAction(nameof(GetById), new { id = cylinderOption.Id }, cylinderOption);
         }
 

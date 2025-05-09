@@ -32,7 +32,7 @@ namespace CarSpot.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CabType cabType)
         {
-            await _repository.AddAsync(cabType);
+            await _repository.Add(cabType);
             return CreatedAtAction(nameof(GetById), new { id = cabType.Id }, cabType);
         }
 
@@ -45,7 +45,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> DeleteAsync(Guid id)
         {
             await _repository.DeleteAsync(id);
             return NoContent();

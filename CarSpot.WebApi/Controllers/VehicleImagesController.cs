@@ -1,4 +1,4 @@
-using CarSpot.Application.Common.Interfaces;
+using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 

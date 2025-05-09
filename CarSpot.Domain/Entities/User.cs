@@ -11,6 +11,17 @@ namespace CarSpot.Domain.Entities
         public string LastName { get; private set; }
         public string Username { get; private set; }
         public string Email { get; private set; }
+        public string? Phone { get; set; }
+        public string? Extension { get; set; }
+        public string? CellPhone { get; set; }
+        public string? Address { get; set; }
+        public Guid RoleId { get; set; }
+        public Role Role { get; set; }
+        public Guid BusinessId { get; set; }
+        public string? BusinessName { get; set; }
+
+        public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
         public HashedPassword Password { get; private set; }
 
         [NotMapped]
@@ -20,17 +31,7 @@ namespace CarSpot.Domain.Entities
         public string FullName => $"{FirstName} {LastName}";
 
 
-        public string? Phone { get; set; }
-        public string? CellPhone { get; set; }
-        public string? Country { get; set; }
-        public string? City { get; set; }
-        public string? Address { get; set; }        
-        public Guid RoleId { get; set; }
-        public Role Role { get; set; }
-        
-        public int RazónSocial{ get; set; }
-        public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
-        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
 
         public User(string firstName, string lastName, string email, HashedPassword password, string username, Guid roleId)
         {
@@ -112,10 +113,21 @@ namespace CarSpot.Domain.Entities
             ResetPassword = null;
         }
 
-         public void UpdatePhone(string? phone)
+        public void UpdateContactInfo(string? phone, string? extension, string? cellPhone, string? address)
         {
             Phone = phone;
+            Extension = extension;
+            CellPhone = cellPhone;
+            Address = address;
+           
         }
+
+        public void UpdateBusinessInfo(Guid businessId, string? businessName)
+        {
+            BusinessId = businessId;
+            BusinessName = businessName;
+        }
+
 
     }
 }

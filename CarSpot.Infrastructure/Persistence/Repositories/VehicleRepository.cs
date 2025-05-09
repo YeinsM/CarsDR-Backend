@@ -1,17 +1,28 @@
 using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
-using Microsoft.EntityFrameworkCore;
 using CarSpot.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
-    public class VehicleRepository(ApplicationDbContext _context) : IRepository<Vehicle>
+    public class VehicleRepository(ApplicationDbContext _context) : IVehicleRepository
     {
         public async Task<IEnumerable<Vehicle>> GetAllAsync()
         {
             return await _context.Vehicles
                 .Include(v => v.Model)
-                .ThenInclude(m => m.Make)
+                .Include(v => v.Make)
+                .Include(v => v.User)
+                .Include(v => v.Version)
+                .Include(v => v.MarketVersion)
+                .Include(v => v.Transmission)
+                .Include(v => v.Drivetrain)
+                .Include(v => v.CylinderOption)
+                .Include(v => v.CabType)
+                .Include(v => v.Condition)
+                .Include(v => v.Color)
+                .Include(v => v.Images)
+                .Include(v => v.Comments)
                 .AsNoTracking()
                 .ToListAsync();
         }
@@ -20,7 +31,18 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
         {
             return await _context.Vehicles
                 .Include(v => v.Model)
-                .ThenInclude(m => m.Make)
+                .Include(v => v.Make)
+                .Include(v => v.User)
+                .Include(v => v.Version)
+                .Include(v => v.MarketVersion)
+                .Include(v => v.Transmission)
+                .Include(v => v.Drivetrain)
+                .Include(v => v.CylinderOption)
+                .Include(v => v.CabType)
+                .Include(v => v.Condition)
+                .Include(v => v.Color)
+                .Include(v => v.Images)
+                .Include(v => v.Comments)
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
 
@@ -43,4 +65,3 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
         }
     }
 }
-

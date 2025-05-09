@@ -1,5 +1,5 @@
 using CarSpot.Domain.Entities;
-using CarSpot.Application.Common.Interfaces;
+using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.API.Controllers
@@ -32,7 +32,7 @@ namespace CarSpot.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Role role)
         {
-            await _repository.AddAsync(role);
+            await _repository.Add(role);
             return CreatedAtAction(nameof(GetById), new { id = role.Id }, role);
         }
 

@@ -1,0 +1,1 @@
+public record CreateCountryRequest(string Name, string Abbreviation);

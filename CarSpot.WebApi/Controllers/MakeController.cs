@@ -33,7 +33,7 @@ namespace CarSpot.API.Controllers
         public async Task<IActionResult> Create([FromBody] string name)
         {
             var make = new Make(name);
-            await _repository.AddAsync(make);
+            await _repository.Add(make);
             return CreatedAtAction(nameof(GetById), new { id = make.Id }, make);
         }
 

@@ -1,11 +1,12 @@
 using CarSpot.Domain.Entities;
-using CarSpot.Application.Common.Interfaces;
+using CarSpot.Application.Interfaces;
 using CarSpot.Infrastructure.Persistence;
+using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Repositories
 {
-    public class CommentRepository : ICommentRepository
+    public class CommentRepository : IAuxiliarRepository<Comment>
     {
         private readonly ApplicationDbContext _context;
 
@@ -30,26 +31,29 @@ namespace CarSpot.Infrastructure.Repositories
                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task AddAsync(Comment comment)
+        public async Task<Comment> Add(Comment comment)
         {
-            await _context.Comments.AddAsync(comment);
+            _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
+            return comment;
         }
 
-        public async Task UpdateAsync(Comment comment)
+        public async Task<Comment> UpdateAsync(Comment comment)
         {
             _context.Comments.Update(comment);
             await _context.SaveChangesAsync();
+            return comment;
         }
 
-        public async Task DeleteAsync(Guid id)
+       public async Task<Comment> DeleteAsync(Guid id)
         {
             var comment = await _context.Comments.FindAsync(id);
-            if (comment != null)
-            {
-                _context.Comments.Remove(comment);
-                await _context.SaveChangesAsync();
-            }
+            if (comment == null)
+                return null!;
+
+            _context.Comments.Remove(comment);
+            await _context.SaveChangesAsync();
+            return comment;
         }
     }
 }

@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using CarSpot.Domain.ValueObjects;
+using System.Text.Json;
+
 
 namespace CarSpot.Infrastructure.Persistence.Context;
 public class ApplicationDbContext : DbContext
@@ -22,7 +24,10 @@ public class ApplicationDbContext : DbContext
     public DbSet<Color> Colors { get; set; }
     public DbSet<Comment> Comments { get; set; }
     public DbSet<VehicleImage> VehicleImages { get; set; }
-    public DbSet<Publication> Publications { get; set; }
+  
+    public DbSet<Country> Countries { get; set; }
+    
+
 
 
 

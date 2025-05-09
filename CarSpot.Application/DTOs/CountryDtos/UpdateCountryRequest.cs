@@ -1,0 +1,1 @@
+public record UpdateCountryRequest(Guid Id, string Name, string Abbreviation);

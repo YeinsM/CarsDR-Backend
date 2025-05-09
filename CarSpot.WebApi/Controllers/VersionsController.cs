@@ -42,7 +42,7 @@ namespace CarSpot.API.Controllers
                     return BadRequest($"Model with ID {version.ModelId} does not exist.");
             }
 
-            await _repository.AddAsync(version);
+            await _repository.Add(version);
             return CreatedAtAction(nameof(GetById), new { id = version.Id }, version);
         }
 

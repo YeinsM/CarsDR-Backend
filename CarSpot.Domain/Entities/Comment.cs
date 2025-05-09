@@ -1,8 +1,9 @@
+using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 
-public class Comment
+public class Comment : BaseAuxiliar
 {
-public Guid Id { get; set; }
+
 public Guid VehicleId { get; set; }
 public Guid UserId { get; set; }
 public string Content { get; set; }
