@@ -4,11 +4,13 @@ public record UserDto(
     Guid Id,
     string Email,
     string Username,
-    string? Phone,
+    string Phone,
     Guid RoleId,
     bool IsActive,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
-    Guid BusinessId
- 
+    Guid? BusinessId,
+    List<VehicleDto> Vehicles,
+    List<CommentResponse> Comments
 );
+

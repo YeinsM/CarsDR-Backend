@@ -43,7 +43,9 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .Include(v => v.Color)
                 .Include(v => v.Images)
                 .Include(v => v.Comments)
-                .FirstOrDefaultAsync(v => v.Id == id);
+                .Include(u => u.Comments)
+                .FirstOrDefaultAsync(u => u.Id == id);
+                
         }
 
         public async Task AddAsync(Vehicle vehicle)

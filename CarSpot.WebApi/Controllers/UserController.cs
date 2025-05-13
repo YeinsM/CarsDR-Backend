@@ -4,12 +4,12 @@ using CarSpot.Domain.Entities;
 using CarSpot.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Threading.Tasks;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
-
+using System.Net.Mail;
+using System.Threading.Tasks;
 
 namespace CarSpot.WebApi.Controllers;
 
@@ -18,21 +18,21 @@ namespace CarSpot.WebApi.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserRepository _userRepository;
-
     private readonly IEmailService _emailService;
-
     private readonly IEmailSettingsRepository _emailSettingsRepository;
-
     private readonly IConfiguration _configuration;
 
-    public UsersController(IUserRepository userRepository, IEmailService emailService, IConfiguration configuration, IEmailSettingsRepository emailSettingsRepository)
+    public UsersController(
+        IUserRepository userRepository,
+        IEmailService emailService,
+        IConfiguration configuration,
+        IEmailSettingsRepository emailSettingsRepository)
     {
         _userRepository = userRepository;
         _emailService = emailService;
         _configuration = configuration;
         _emailSettingsRepository = emailSettingsRepository;
     }
-
 
     [HttpGet]
     public async Task<IActionResult> GetAll()
@@ -48,13 +48,13 @@ public class UsersController : ControllerBase
             u.IsActive,
             u.CreatedAt,
             u.UpdatedAt,
-            u.BusinessId
-            
+            u.BusinessId,
+            u.Vehicles.Select(v => new VehicleDto(v.Id, v.VIN, v.Year, v.Color?.ToString(), v.ModelId)).ToList(),
+            u.Comments.Select(c => new CommentResponse(c.Id, c.VehicleId, c.UserId, c.Content, c.CreatedAt)).ToList()
         ));
 
         return Ok(response);
     }
-
 
 
     [HttpGet("{id:Guid}")]
@@ -64,7 +64,7 @@ public class UsersController : ControllerBase
         if (user == null)
             return NotFound(new { Status = 404, Message = "User not found" });
 
-        return Ok(new UserDto(
+        var userDto = new UserDto(
             user.Id,
             user.Email,
             user.Username,
@@ -73,10 +73,14 @@ public class UsersController : ControllerBase
             user.IsActive,
             user.CreatedAt,
             user.UpdatedAt,
-            user.BusinessId
-        
-        ));
+            user.BusinessId,
+            user.Vehicles.Select(v => new VehicleDto(v.Id, v.VIN, v.Year, v.Color?.ToString(), v.ModelId)).ToList(),
+            user.Comments.Select(c => new CommentResponse(c.Id, c.VehicleId, c.UserId, c.Content, c.CreatedAt)).ToList()
+        );
+
+        return Ok(userDto);
     }
+
 
 
     [HttpPost]
@@ -85,19 +89,18 @@ public class UsersController : ControllerBase
         try
         {
             if (request == null)
-                return BadRequest(new { Status = 400, Error = "Bad Request", Message = "Request body is required" });
+                return BadRequest(new { Status = 400, Message = "Request body is required" });
 
             if (string.IsNullOrWhiteSpace(request.FirstName))
-                return BadRequest(new { Status = 400, Error = "Validation Error", Message = "FirstName is required" });
+                return BadRequest(new { Status = 400, Message = "FirstName is required" });
 
             if (string.IsNullOrWhiteSpace(request.Email))
-                return BadRequest(new { Status = 400, Error = "Validation Error", Message = "Email is required" });
+                return BadRequest(new { Status = 400, Message = "Email is required" });
 
             if (await _userRepository.IsEmailRegisteredAsync(request.Email))
                 return BadRequest(new { Status = 400, Message = "Email already registered" });
 
             var hashedPassword = HashedPassword.Create(request.Password);
-
 
             var user = new User(
                 request.FirstName,
@@ -106,7 +109,6 @@ public class UsersController : ControllerBase
                 hashedPassword,
                 request.Username,
                 request.RoleId
-
             );
 
             await _userRepository.RegisterUserAsync(user);
@@ -114,20 +116,37 @@ public class UsersController : ControllerBase
 
             var bodyMessage = _emailService.Body(user);
             var emailSettings = await _emailSettingsRepository.GetSettingsAsync();
-            await _emailService.SendEmailAsync(user.Email, "Welcome to CarSpot", bodyMessage, emailSettings?.NickName);
+
+            await _emailService.SendEmailAsync(
+                user.Email,
+                "Welcome to CarSpot",
+                bodyMessage,
+                emailSettings?.NickName
+            );
 
             return Ok(new { Status = 200, Message = "User registered successfully", UserId = user.Id });
         }
         catch (DbUpdateException ex)
         {
-            return StatusCode(500, new { Status = 500, Error = "Database Error", Message = "Error saving user data", Details = ex.InnerException?.Message });
+            return StatusCode(500, new
+            {
+                Status = 500,
+                Error = "Database Error",
+                Message = "Error saving user data",
+                Details = ex.InnerException?.Message ?? ex.Message
+            });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { Status = 500, Error = "Server Error", Message = "An unexpected error occurred", Details = ex.Message });
+            return StatusCode(500, new
+            {
+                Status = 500,
+                Error = "Server Error",
+                Message = "An unexpected error occurred",
+                Details = ex.Message
+            });
         }
     }
-
 
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
@@ -138,7 +157,6 @@ public class UsersController : ControllerBase
 
         return Ok(new { Status = 200, Message = "Login successful" });
     }
-
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
@@ -151,12 +169,12 @@ public class UsersController : ControllerBase
             request.FirstName,
             request.LastName,
             request.Username
-
         );
+
+        await _userRepository.UpdateAsync(id);
 
         return Ok(new { Status = 200, Message = "User updated successfully", User = new { user.Id, user.Username } });
     }
-
 
     [HttpPatch("{id:Guid}/change-password")]
     public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangePasswordRequest request)
@@ -164,7 +182,8 @@ public class UsersController : ControllerBase
         try
         {
             var user = await _userRepository.GetByIdAsync(id);
-            if (user == null) return NotFound(new { Status = 404, Message = "User not found" });
+            if (user == null)
+                return NotFound(new { Status = 404, Message = "User not found" });
 
             user.ChangePassword(request.CurrentPassword, request.NewPassword, request.ConfirmNewPassword);
 
@@ -177,30 +196,29 @@ public class UsersController : ControllerBase
         }
     }
 
-
     [HttpPatch("{id:Guid}/deactivate")]
     public async Task<IActionResult> Deactivate(Guid id)
     {
         var user = await _userRepository.GetByIdAsync(id);
-        if (user == null) return NotFound(new { Status = 404, Message = "User not found" });
+        if (user == null)
+            return NotFound(new { Status = 404, Message = "User not found" });
 
         user.Deactivate();
         await _userRepository.UpdateAsync(id);
         return NoContent();
     }
 
-
     [HttpPatch("{id:Guid}/activate")]
     public async Task<IActionResult> Activate(Guid id)
     {
         var user = await _userRepository.GetByIdAsync(id);
-        if (user == null) return NotFound(new { Status = 404, Message = "User not found" });
+        if (user == null)
+            return NotFound(new { Status = 404, Message = "User not found" });
 
         user.Activate();
         await _userRepository.UpdateAsync(id);
         return NoContent();
     }
-
 
     [HttpGet("test-connection")]
     public async Task<IActionResult> TestConnection()
@@ -217,36 +235,22 @@ public class UsersController : ControllerBase
         }
     }
 
-
     [HttpPost("send-test-email")]
     public async Task<IActionResult> SendTestEmail()
     {
         try
         {
-            var smtpServer = "smtp.zoho.com";
-            var smtpPort = 587;
-            var fromEmail = "notifications@techbrains.com.do";
-            var fromPassword = "Techbrains25@";
+            var emailSettings = await _emailSettingsRepository.GetSettingsAsync();
+            if (emailSettings == null)
+            {
+                return NotFound(new { Status = 404, Message = "Email settings not found in the database" });
+            }
+
             var toEmail = "kellycasares13@gmail.com";
             var subject = "Test Email from CarSpot";
             var body = "This is a test email from the app, email is working.";
 
-            using var smtpClient = new System.Net.Mail.SmtpClient(smtpServer, smtpPort)
-            {
-                Credentials = new System.Net.NetworkCredential(fromEmail, fromPassword),
-                EnableSsl = true
-            };
-
-            var mailMessage = new System.Net.Mail.MailMessage
-            {
-                From = new System.Net.Mail.MailAddress(fromEmail),
-                Subject = subject,
-                Body = body,
-                IsBodyHtml = false
-            };
-
-            mailMessage.To.Add(toEmail);
-            await smtpClient.SendMailAsync(mailMessage);
+            await _emailService.SendEmailAsync(toEmail, subject, body, emailSettings.NickName);
 
             return Ok(new { Status = 200, Message = "Test email sent successfully!" });
         }
@@ -255,4 +259,5 @@ public class UsersController : ControllerBase
             return StatusCode(500, new { Status = 500, Error = "Email Error", Message = "Failed to send test email", Details = ex.Message });
         }
     }
+
 }

@@ -47,8 +47,6 @@ builder.Services.AddScoped<IAuxiliarRepository<MarketVersion>, AuxiliarRepositor
 builder.Services.AddScoped<IAuxiliarRepository<Model>, AuxiliarRepository<Model>>();
 builder.Services.AddScoped<IAuxiliarRepository<Role>, AuxiliarRepository<Role>>();
 builder.Services.AddScoped<IAuxiliarRepository<Version>, AuxiliarRepository<Version>>();
-
-
 builder.Services.AddScoped<IAuxiliarRepository<Country>, AuxiliarRepository<Country>>();
 
 
