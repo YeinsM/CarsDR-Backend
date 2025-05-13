@@ -11,7 +11,7 @@ public class EmailService : IEmailService
         _emailSettingsRepository = emailSettingsRepository;
     }
 
-    public async Task SendEmailAsync(string to, string subject, string body, string nickName)
+    public async Task SendEmailAsync(string to, string subject, string body, string? nickName)
     {
         var emailSettings = await _emailSettingsRepository.GetSettingsByNickNameAsync(nickName);
 

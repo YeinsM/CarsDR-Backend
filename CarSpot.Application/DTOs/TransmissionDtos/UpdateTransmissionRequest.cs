@@ -1,0 +1,1 @@
+public record UpdateTransmissionRequest(string Name);

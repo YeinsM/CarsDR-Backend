@@ -4,22 +4,38 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using CarSpot.Domain.ValueObjects;
+using System.Text.Json;
+
 
 namespace CarSpot.Infrastructure.Persistence.Context;
 public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : base(options)
-    { }
+    {
+        
+        Publications = Set<Publication>();
+        VehicleImages = Set<VehicleImage>();
+        
+    }
+     
 
-    public DbSet<User> Users { get; set; }
-    public DbSet<Vehicle> Vehicles { get; set; }
-    public DbSet<Make> Makes { get; set; }
-    public DbSet<Model> Models { get; set; }
-    public DbSet<Menu> Menus { get; set; }
-    public DbSet<EmailSettings> EmailSettings { get; set; }
+    public required DbSet<User> Users { get; set; }
+    public required DbSet<Vehicle> Vehicles { get; set; }
+    public required DbSet<Make> Makes { get; set; }
+    public required DbSet<Model> Models { get; set; }
+    public required DbSet<Menu> Menus { get; set; }
+    public required DbSet<EmailSettings> EmailSettings { get; set; }
     public DbSet<Publication> Publications { get; set; }
-    public DbSet<Color> Colors { get; set; }
+    public required DbSet<Color> Colors { get; set; }
+    public DbSet<Comment>? Comments { get; set; }
+    public DbSet<VehicleImage> VehicleImages { get; set; } = null!;
+
+    public DbSet<Country>? Countries { get; set; }
+
+
+
+
 
 
 
@@ -86,8 +102,8 @@ public class ApplicationDbContext : DbContext
         {
             entity.HasKey(v => v.Id);
             entity.Property(v => v.VIN)
-                  .HasMaxLength(50)
-                  .IsRequired();
+                  .IsRequired()
+                  .HasMaxLength(50);
             entity.Property(v => v.Year)
                   .IsRequired();
             entity.Property(v => v.Color)
@@ -119,16 +135,16 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<EmailSettings>(entity =>
          {
-            entity.ToTable("EmailSettings");
+             entity.ToTable("EmailSettings");
 
-            entity.Property(e => e.SmtpServer).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.SmtpPort).IsRequired();
-            entity.Property(e => e.FromEmail).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.FromPassword).IsRequired();
-        });
+             entity.Property(e => e.SmtpServer).IsRequired().HasMaxLength(100);
+             entity.Property(e => e.SmtpPort).IsRequired();
+             entity.Property(e => e.FromEmail).IsRequired().HasMaxLength(100);
+             entity.Property(e => e.FromPassword).IsRequired();
+         });
 
-    
-        
+
+
 
         modelBuilder.Entity<Publication>(entity =>
         {
@@ -174,7 +190,64 @@ public class ApplicationDbContext : DbContext
                 .HasMaxLength(50)
                 .IsRequired();
         });
+
+        modelBuilder.Entity<Comment>(entity =>
+           {
+               entity.HasKey(c => c.Id);
+
+               entity.Property(c => c.Content)
+                   .IsRequired()
+                   .HasMaxLength(1000);
+
+               entity.Property(c => c.CreatedAt)
+                   .IsRequired();
+
+               entity.HasOne(c => c.User)
+                   .WithMany(u => u.Comments)
+                   .HasForeignKey(c => c.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+               entity.HasOne(c => c.Vehicle)
+                   .WithMany(v => v.Comments)
+                   .HasForeignKey(c => c.VehicleId)
+                   .OnDelete(DeleteBehavior.Cascade);
+           });
+
+        modelBuilder.Entity<VehicleImage>(entity =>
+        {
+            entity.HasKey(v => v.Id);
+
+            entity.Property(v => v.ImageUrl)
+            .IsRequired()
+            .HasMaxLength(1000);
+
+            entity.HasOne(v => v.Vehicle)
+            .WithMany(v => v.Images)
+            .HasForeignKey(v => v.VehicleId)
+            .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<Publication>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+
+            var options = new JsonSerializerOptions();
+
+            var converter = new ValueConverter<List<string>?, string>(
+            v => JsonSerializer.Serialize(v, options),
+            v => JsonSerializer.Deserialize<List<string>>(v, options) ?? new List<string>());
+
+            entity.Property(p => p.Images)
+            .HasConversion(converter)
+            .IsRequired();
+
+            entity.Property(p => p.Price).HasColumnType("decimal(18,2)");
+            entity.Property(p => p.Currency).HasMaxLength(10);
+            entity.Property(p => p.Place).HasMaxLength(200);
+            entity.Property(p => p.Version).HasMaxLength(100);
+        });
     }
-
-
 }
+
+
+

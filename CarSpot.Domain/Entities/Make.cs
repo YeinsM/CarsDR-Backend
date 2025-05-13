@@ -1,12 +1,10 @@
 using CarSpot.Domain.Common;
 using System.Text.Json.Serialization;
 
-
 namespace CarSpot.Domain.Entities
 {
-    public class Make : BaseEntity
+    public class Make : BaseAuxiliar
     {
-        public string Name { get; private set; } = null!;
         [JsonIgnore]
         public ICollection<Model> Models { get; private set; } = new List<Model>();
 
@@ -20,6 +18,9 @@ namespace CarSpot.Domain.Entities
 
         public void Update(string name)
         {
+            if (string.IsNullOrWhiteSpace(name))
+                throw new ArgumentNullException(nameof(name), "Name cannot be empty.");
+
             Name = name;
         }
     }

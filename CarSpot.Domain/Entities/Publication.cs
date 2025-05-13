@@ -2,25 +2,26 @@ using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-public class Publication : BaseEntity
+public class Publication : BaseAuxiliar
 {
-    public Guid UserId { get; private set; }
+            public Guid UserId { get; private set; }
     public Guid MakeId { get; private set; }
     public Guid ModelId { get; private set; }
     public Guid ColorId { get; private set; }
+    public DateTime CreatedAt {get; set;}
     
-    public decimal Price { get; private set; }
-    public string Currency { get; private set; } = "USD";
-    public string Place { get; private set; }
-    public string Version { get; private set; }
+    public decimal Price { get; set; }
+    public string Currency { get; set; } = "USD";
+    public string Place { get; set; }
+    public string Version { get; set; }
 
-    public List<string> Images { get; private set; } = new();
+    public List<string>? Images { get; private set; } = new();
 
     
-    public User User { get; private set; }
-    public Make Make { get; private set; }
-    public Model Model { get; private set; }
-    public Color Color { get; private set; }
+    public User User { get; set; }  = null!;
+    public Make Make { get; set; }  = null!;
+    public Model Model { get; set; }  = null!;
+    public Color Color { get; set; }  = null!;
 
     
     public Publication(Guid userId, Guid makeId, Guid modelId, Guid colorId,

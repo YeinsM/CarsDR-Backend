@@ -1,0 +1,1 @@
+public record TransmissionDto(Guid Id, string Name);

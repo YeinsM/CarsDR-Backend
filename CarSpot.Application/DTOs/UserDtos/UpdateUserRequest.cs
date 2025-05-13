@@ -1,4 +1,14 @@
-namespace CarSpot.Application.DTOs;
+public record UpdateUserRequest(
 
-public record UpdateUserRequest(string Username, string FirstName, string LastName);
+    string FirstName,
+    string LastName,
+    string Username,
 
+    string? Phone,
+    string? Extension,
+    string? CellPhone,
+    string? Address,
+
+    Guid BusinessId
+    
+);

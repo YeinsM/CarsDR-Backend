@@ -1,72 +1,56 @@
+using System;
+using System.Threading.Tasks;
+using CarSpot.Domain.Entities;
+using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
-
-[ApiController]
-[Route("api/[controller]")]
-public class ColorController : ControllerBase
+namespace CarSpot.API.Controllers
 {
-    private readonly IColorRepository _colorRepository;
-
-    public ColorController(IColorRepository colorRepository)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ColorsController : ControllerBase
     {
-        _colorRepository = colorRepository;
-    }
+        private readonly IAuxiliarRepository<Color> _repository;
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var colors = await _colorRepository.GetAllAsync();
-        var response = colors.Select(c => new ColorResponse
+        public ColorsController(IAuxiliarRepository<Color> repository)
         {
-            Id = c.Id,
-            Name = c.Name
-        });
+            _repository = repository;
+        }
 
-        return Ok(response);
-    }
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(Guid id)
-    {
-        var color = await _colorRepository.GetByIdAsync(id);
-        if (color is null) return NotFound();
-
-        return Ok(new ColorResponse
+        [HttpGet]
+        public async Task<IActionResult> GetAll()
         {
-            Id = color.Id,
-            Name = color.Name
-        });
-    }
+            var items = await _repository.GetAllAsync();
+            return Ok(items);
+        }
 
-    [HttpPost]
-    public async Task<IActionResult> Create(CreateColorRequest request)
-    {
-        var color = new Color(request.Name);
-        await _colorRepository.AddAsync(color);
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            var item = await _repository.GetByIdAsync(id);
+            return item is null ? NotFound() : Ok(item);
+        }
 
-        return CreatedAtAction(nameof(GetById), new { id = color.Id }, color.Id);
-    }
+        [HttpPost]
+        public async Task<IActionResult> Create(Color color)
+        {
+            await _repository.Add(color);
+            return CreatedAtAction(nameof(GetById), new { id = color.Id }, color);
+        }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, UpdateColorRequest request)
-    {
-        var color = await _colorRepository.GetByIdAsync(id);
-        if (color is null) return NotFound();
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, Color updated)
+        {
+            if (id != updated.Id) return BadRequest();
+            await _repository.UpdateAsync(updated);
+            return NoContent();
+        }
 
-        typeof(Color).GetProperty("Name")?.SetValue(color, request.Name);
-        await _colorRepository.UpdateAsync(color);
-
-        return NoContent();
-    }
-
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        var color = await _colorRepository.GetByIdAsync(id);
-        if (color is null) return NotFound();
-
-        await _colorRepository.DeleteAsync(color);
-        return NoContent();
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            await _repository.DeleteAsync(id);
+            return NoContent();
+        }
     }
 }

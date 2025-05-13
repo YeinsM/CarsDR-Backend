@@ -1,0 +1,1 @@
+public record DrivetrainDto(Guid Id, string Name);

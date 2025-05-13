@@ -1,0 +1,1 @@
+public record UpdateCityRequest(Guid Id, string Name, Guid CountryId);

@@ -1,13 +1,12 @@
 using CarSpot.Application.Interfaces;
-using CarSpot.Infrastructure.Persistence.Context;
-using Microsoft.EntityFrameworkCore;
 using CarSpot.Domain.Entities;
 using CarSpot.Domain.ValueObjects;
-
-
+using CarSpot.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories;
-public class UserRepository : IRepository<User>, IUserRepository
+
+public class UserRepository : IUserRepository
 {
     private readonly ApplicationDbContext _context;
     private readonly IEmailService _emailService;
@@ -20,12 +19,17 @@ public class UserRepository : IRepository<User>, IUserRepository
 
     public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await _context.Users.AsNoTracking().ToListAsync();
+        return await _context.Users.ToListAsync();
     }
+
 
     public async Task<User?> GetByIdAsync(Guid id)
     {
-        return await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == id);
+        return await _context.Users
+            .Include(u => u.Role)
+            .Include(u => u.Vehicles)
+            .Include(u => u.Comments)
+            .FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<User?> GetByEmailAsync(string email)
@@ -39,29 +43,28 @@ public class UserRepository : IRepository<User>, IUserRepository
     }
 
     public async Task<User?> ValidateCredentialsAsync(string email, HashedPassword password)
-{
-    var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
-
-    if (user is null)
-        return null;
-
-    if (!user.Password.Verify(password.Value))
-        return null;
-
-    return user;
-}
-
-
-
-    public async Task<User> RegisterUserAsync(string firstName, string lastName, string email, HashedPassword password, string username)
     {
-        
-        var user = new User(firstName, lastName, email, password, username);
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+
+        if (user is null || !user.Password.Verify(password.Value))
+            return null;
+
+        return user;
+    }
+
+    public async Task<User> RegisterUserAsync(User user)
+    {
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
+
         var bodyMessage = _emailService.Body(user);
         var emailSettings = await _context.EmailSettings.FirstOrDefaultAsync(e => e.NickName == "CarSpot");
-        await _emailService.SendEmailAsync(user.Email, "Bienvenido al sistema", bodyMessage, emailSettings!.NickName!);
+
+        if (emailSettings is not null)
+        {
+            await _emailService.SendEmailAsync(user.Email, "Bienvenido al sistema", bodyMessage, emailSettings.NickName!);
+        }
+
         return user;
     }
 
@@ -73,26 +76,29 @@ public class UserRepository : IRepository<User>, IUserRepository
 
         user.UpdateBasicInfo(firstName, lastName, username);
         await _context.SaveChangesAsync();
+
         return user;
     }
+
+    public async Task<User> UpdateAsync(Guid id)
+    {
+        var user = await _context.Users.FindAsync(id);
+
+        if (user == null)
+            throw new KeyNotFoundException($"User with ID {id} not found.");
+
+        
+        user.UpdatedAt = DateTime.UtcNow;
+        
+
+        await _context.SaveChangesAsync();
+
+        return user;
+    }
+
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         return await _context.SaveChangesAsync(cancellationToken);
-    }
-
-    Task IRepository<User>.AddAsync(User entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task IRepository<User>.UpdateAsync(User entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    Task IRepository<User>.DeleteAsync(User entity)
-    {
-        throw new NotImplementedException();
     }
 }

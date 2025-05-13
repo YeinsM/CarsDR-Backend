@@ -1,9 +1,22 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 using CarSpot.Infrastructure.Persistence.Context;
 using CarSpot.Infrastructure.Persistence.Repositories;
 using CarSpot.Application.Interfaces;
 using CarSpot.Application.Services;
 using CarSpot.Domain.Entities;
+using System;
+using System.Threading.Tasks;
+using CarSpot.Infrastructure.Middleware;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+
+
+
+
+
 
 
 
@@ -15,17 +28,42 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IRepository<Vehicle>, VehicleRepository>();
-builder.Services.AddScoped<IRepository<Model>, ModelRepository>();
-builder.Services.AddScoped<IRepository<Make>, MakeRepository>();
+builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IMenuRepository, MenuRepository>();
 builder.Services.AddScoped<IMenuService, MenuService>();
 builder.Services.AddScoped<IEmailSettingsRepository, EmailSettingsRepository>();
-builder.Services.AddScoped<IColorRepository, ColorRepository>();
-builder.Services.AddScoped<IPublicationRepository, PublicationRepository>();
 builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+builder.Services.AddScoped<IAuxiliarRepository<Transmission>, AuxiliarRepository<Transmission>>();
+builder.Services.AddScoped<IAuxiliarRepository<Color>, AuxiliarRepository<Color>>();
+builder.Services.AddScoped<IAuxiliarRepository<CabType>, AuxiliarRepository<CabType>>();
+builder.Services.AddScoped<IAuxiliarRepository<Condition>, AuxiliarRepository<Condition>>();
+builder.Services.AddScoped<IAuxiliarRepository<CylinderOption>, AuxiliarRepository<CylinderOption>>();
+builder.Services.AddScoped<IAuxiliarRepository<Drivetrain>, AuxiliarRepository<Drivetrain>>();
+builder.Services.AddScoped<IAuxiliarRepository<Make>, AuxiliarRepository<Make>>();
+builder.Services.AddScoped<IAuxiliarRepository<MarketVersion>, AuxiliarRepository<MarketVersion>>();
+builder.Services.AddScoped<IAuxiliarRepository<Model>, AuxiliarRepository<Model>>();
+builder.Services.AddScoped<IAuxiliarRepository<Role>, AuxiliarRepository<Role>>();
+builder.Services.AddScoped<IAuxiliarRepository<Version>, AuxiliarRepository<Version>>();
+builder.Services.AddScoped<IAuxiliarRepository<Country>, AuxiliarRepository<Country>>();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -34,7 +72,7 @@ builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
 
-builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 
 
@@ -59,6 +97,11 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+
+
+
+app.UseMiddleware<ExceptionMiddleware>();
+
 
 
 app.UseSwagger();

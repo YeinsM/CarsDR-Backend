@@ -42,7 +42,7 @@ public class EmailSettingsRepository : IEmailSettingsRepository
     }
 
 
-    public async Task<EmailSettings?> GetSettingsByNickNameAsync(string nickName)
+    public async Task<EmailSettings?> GetSettingsByNickNameAsync(string? nickName)
     {
         return await _context.EmailSettings.FirstOrDefaultAsync(e => e.NickName == nickName);
     }

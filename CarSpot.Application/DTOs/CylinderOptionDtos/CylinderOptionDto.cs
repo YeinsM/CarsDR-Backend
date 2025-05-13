@@ -1,0 +1,1 @@
+public record CylinderOptionDto(Guid Id, string Name);

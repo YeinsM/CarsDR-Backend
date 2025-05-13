@@ -26,7 +26,7 @@ namespace CarSpot.Application.Services
 
         public async Task Update(Menu menu)
         {
-            _repository.Update(menu);
+            await _repository.Update(menu);
 
         }
 

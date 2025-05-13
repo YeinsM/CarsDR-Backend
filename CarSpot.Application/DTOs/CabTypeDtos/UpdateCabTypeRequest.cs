@@ -1,0 +1,1 @@
+public record UpdateCabTypeRequest(string Name);

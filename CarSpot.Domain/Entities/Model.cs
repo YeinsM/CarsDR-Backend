@@ -4,13 +4,18 @@ using System.Text.Json.Serialization;
 namespace CarSpot.Domain.Entities
 
 {
-    public class Model : BaseEntity
+    public class Model : BaseAuxiliar
     {
-        public string Name { get; private set; } = null!;
+        
         public Guid MakeId { get; private set; }
         public Make? Make { get; private set; }
         [JsonIgnore]
         public ICollection<Vehicle> Vehicles { get; private set; } = new List<Vehicle>();
+        public ICollection<Version> Versions {get; private set;} = new List<Version>();
+
+        public Model()
+        {
+        }
 
         public Model(string name, Guid makeId)
         {
