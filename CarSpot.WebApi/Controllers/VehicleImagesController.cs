@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -5,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CarSpot.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/[controller]")] 
     public class VehicleImagesController : ControllerBase
     {
         private readonly IAuxiliarRepository<VehicleImage> _repository;

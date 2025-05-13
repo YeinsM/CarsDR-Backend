@@ -3,13 +3,39 @@ using CarSpot.Application.DTOs.Vehicle;
 using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class VehicleController(IVehicleRepository _vehicleRepository) : ControllerBase
+
+    public class VehicleController : ControllerBase
     {
+        private readonly IAuxiliarRepository<Make> _makeRepository;
+        private readonly IAuxiliarRepository<Model> _modelRepository;
+        private readonly IAuxiliarRepository<Condition> _conditionRepository;
+        private readonly IVehicleRepository _vehicleRepository;
+        private readonly IUserRepository _userRepository;
+
+        public VehicleController(
+            IVehicleRepository vehicleRepository,
+            IUserRepository userRepository,
+            IAuxiliarRepository<Make> makeRepository,
+            IAuxiliarRepository<Model> modelRepository,
+            IAuxiliarRepository<Condition> conditionRepository)
+        {
+            _vehicleRepository = vehicleRepository;
+            _userRepository = userRepository;
+            _makeRepository = makeRepository;
+            _modelRepository = modelRepository;
+            _conditionRepository = conditionRepository;
+        }
+
+
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -27,20 +53,33 @@ namespace CarSpot.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateVehicleRequest request)
         {
+            var user = await _userRepository.GetByIdAsync(request.UserId);
+            var make = await _makeRepository.GetByIdAsync(request.MakeId);
+            var model = await _modelRepository.GetByIdAsync(request.ModelId);
+            var condition = await _conditionRepository.GetByIdAsync(request.ConditionId);
+
+
+            if (user is null || make is null || model is null || condition is null)
+                return BadRequest("One or more required entities (User, Make, Model, Condition) were not found.");
+
             var vehicle = new Vehicle
             {
                 Id = Guid.NewGuid(),
                 VIN = request.VIN,
                 UserId = request.UserId,
+                User = user,
                 MakeId = request.MakeId,
+                Make = make,
                 ModelId = request.ModelId,
+                Model = model,
+                ConditionId = request.ConditionId,
+                Condition = condition,
                 VersionId = request.VersionId,
                 MarketVersionId = request.MarketVersionId,
                 TransmissionId = request.TransmissionId,
                 DrivetrainId = request.DrivetrainId,
                 CylinderOptionId = request.CylinderOptionId,
                 CabTypeId = request.CabTypeId,
-                ConditionId = request.ConditionId,
                 ColorId = request.ColorId,
                 Year = request.Year,
                 Mileage = request.Mileage,
@@ -57,6 +96,8 @@ namespace CarSpot.WebApi.Controllers
             await _vehicleRepository.AddAsync(vehicle);
             return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
         }
+
+
 
         [HttpPut("{id:Guid}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateVehicleRequest request)

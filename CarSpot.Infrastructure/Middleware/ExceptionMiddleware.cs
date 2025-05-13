@@ -1,41 +1,48 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Logging;
-
-
+using CarSpot.Application.Interfaces;
 
 namespace CarSpot.Infrastructure.Middleware
 {
     public class ExceptionMiddleware : IExceptionMiddleware
     {
-        private readonly ILogger<ExceptionHandlerMiddleware> _logger;
+        private readonly RequestDelegate _next;
+        private readonly ILogger<ExceptionMiddleware> _logger;
 
-        public ExceptionHandlerMiddleware(ILogger<ExceptionHandlerMiddleware> logger) { _logger = logger; }
+        public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
+        {
+            _next = next;
+            _logger = logger;
+        }
 
-        public async Task InvokeAsync(HttpContext context, RequestDelegate next)
+        public async Task InvokeAsync(HttpContext context)
         {
             try
             {
-                await next(context);
+                await _next(context);
             }
             catch (Exception e)
             {
-                //_logger.LogError(e.Message);
+                _logger.LogError(e, "An unhandled exception occurred.");
+
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
                 context.Response.ContentType = "application/json";
 
-                ProblemDetails problem = new()
+                var problem = new ProblemDetails
                 {
-                    Status = (int)HttpStatusCode.InternalServerError,
-                    Type = "Server error",
-                    Detail = $"Ha ocurrido error interno en el servidor: {e.Message}",
+                    Status = context.Response.StatusCode,
+                    Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
+                    Title = "Internal Server Error",
+                    Detail = "An unexpected error occurred on the server."
                 };
 
-                string json = JsonSerializer.Serialize(problem);
+                var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
+                var json = JsonSerializer.Serialize(problem, options);
 
                 await context.Response.WriteAsync(json);
             }

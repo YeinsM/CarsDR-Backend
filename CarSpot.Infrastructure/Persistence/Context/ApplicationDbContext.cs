@@ -12,18 +12,24 @@ public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : base(options)
-    { }
+    {
+        
+        Publications = Set<Publication>();
+        VehicleImages = Set<VehicleImage>();
+        
+    }
+     
 
     public required DbSet<User> Users { get; set; }
-    public required DbSet<Vehicle>? Vehicles { get; set; }
+    public required DbSet<Vehicle> Vehicles { get; set; }
     public required DbSet<Make> Makes { get; set; }
     public required DbSet<Model> Models { get; set; }
     public required DbSet<Menu> Menus { get; set; }
     public required DbSet<EmailSettings> EmailSettings { get; set; }
-    public DbSet<Publication>? Publications { get; set; }
+    public DbSet<Publication> Publications { get; set; }
     public required DbSet<Color> Colors { get; set; }
     public DbSet<Comment>? Comments { get; set; }
-    public DbSet<VehicleImage>? VehicleImages { get; set; }
+    public DbSet<VehicleImage> VehicleImages { get; set; } = null!;
 
     public DbSet<Country>? Countries { get; set; }
 
@@ -226,14 +232,14 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(p => p.Id);
 
             var options = new JsonSerializerOptions();
-            var converter = new ValueConverter<List<string>, string>(
-                v => JsonSerializer.Serialize(v, options),
-                v => JsonSerializer.Deserialize<List<string>>(v, options) ?? new List<string>());
 
-
+            var converter = new ValueConverter<List<string>?, string>(
+            v => JsonSerializer.Serialize(v, options),
+            v => JsonSerializer.Deserialize<List<string>>(v, options) ?? new List<string>());
 
             entity.Property(p => p.Images)
-            .HasConversion(converter);
+            .HasConversion(converter)
+            .IsRequired();
 
             entity.Property(p => p.Price).HasColumnType("decimal(18,2)");
             entity.Property(p => p.Currency).HasMaxLength(10);

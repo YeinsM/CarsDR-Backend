@@ -4,16 +4,16 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 public class Publication : BaseAuxiliar
 {
-    public Guid UserId { get; private set; }
+            public Guid UserId { get; private set; }
     public Guid MakeId { get; private set; }
     public Guid ModelId { get; private set; }
     public Guid ColorId { get; private set; }
     public DateTime CreatedAt {get; set;}
     
-    public required decimal Price { get; set; }
-    public required string Currency { get; set; } = "USD";
-    public required string Place { get; set; }
-    public required string Version { get; set; }
+    public decimal Price { get; set; }
+    public string Currency { get; set; } = "USD";
+    public string Place { get; set; }
+    public string Version { get; set; }
 
     public List<string>? Images { get; private set; } = new();
 

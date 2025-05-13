@@ -1,3 +1,6 @@
+using System;
+using System.Threading.Tasks;
+
 using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +19,8 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async 
+        Task<IActionResult> GetAll()
         {
             var items = await _repository.GetAllAsync();
             return Ok(items);

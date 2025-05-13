@@ -5,6 +5,11 @@ using CarSpot.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Threading.Tasks;
+using System.Linq;
+using Microsoft.Extensions.Configuration;
+
 
 namespace CarSpot.WebApi.Controllers;
 
@@ -43,8 +48,8 @@ public class UsersController : ControllerBase
             u.IsActive,
             u.CreatedAt,
             u.UpdatedAt,
-            u.BusinessId,
-            u.BusinessName
+            u.BusinessId
+            
         ));
 
         return Ok(response);
@@ -68,8 +73,8 @@ public class UsersController : ControllerBase
             user.IsActive,
             user.CreatedAt,
             user.UpdatedAt,
-            user.BusinessId,
-            user.BusinessName
+            user.BusinessId
+        
         ));
     }
 
@@ -91,7 +96,8 @@ public class UsersController : ControllerBase
             if (await _userRepository.IsEmailRegisteredAsync(request.Email))
                 return BadRequest(new { Status = 400, Message = "Email already registered" });
 
-            var hashedPassword = HashedPassword.FromHashed(request.Password);
+            var hashedPassword = HashedPassword.Create(request.Password);
+
 
             var user = new User(
                 request.FirstName,

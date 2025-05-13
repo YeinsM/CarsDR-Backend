@@ -9,6 +9,6 @@ public record UserDto(
     bool IsActive,
     DateTime CreatedAt,
     DateTime? UpdatedAt,
-    Guid BusinessId,
-    string? BusinessName
+    Guid BusinessId
+ 
 );

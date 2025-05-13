@@ -5,6 +5,18 @@ using CarSpot.Infrastructure.Persistence.Repositories;
 using CarSpot.Application.Interfaces;
 using CarSpot.Application.Services;
 using CarSpot.Domain.Entities;
+using System;
+using System.Threading.Tasks;
+using CarSpot.Infrastructure.Middleware;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+
+
+
+
+
 
 
 
@@ -62,7 +74,7 @@ builder.Services.AddScoped<IAuxiliarRepository<Country>, AuxiliarRepository<Coun
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
 
-builder.Services.AddScoped<IEmailService, EmailService>();
+
 
 
 
@@ -88,11 +100,11 @@ var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 
-app.UseExceptionMiddleware();
 
-app.UseHttpsRedirection();
 
 app.UseMiddleware<ExceptionMiddleware>();
+
+
 
 app.UseSwagger();
 app.UseSwaggerUI();

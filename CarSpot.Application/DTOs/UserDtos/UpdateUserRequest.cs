@@ -9,6 +9,6 @@ public record UpdateUserRequest(
     string? CellPhone,
     string? Address,
 
-    Guid BusinessId,
-    string? BusinessName
+    Guid BusinessId
+    
 );

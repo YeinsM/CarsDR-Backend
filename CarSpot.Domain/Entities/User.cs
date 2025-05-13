@@ -18,7 +18,7 @@ namespace CarSpot.Domain.Entities
         public Guid RoleId { get; set; }
         public Role? Role { get; set; }
         public Guid BusinessId { get; set; }
-        public string? BusinessName { get; set; }
+        
 
         public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
@@ -122,11 +122,7 @@ namespace CarSpot.Domain.Entities
            
         }
 
-        public void UpdateBusinessInfo(Guid businessId, string? businessName)
-        {
-            BusinessId = businessId;
-            BusinessName = businessName;
-        }
+       
 
 
     }
