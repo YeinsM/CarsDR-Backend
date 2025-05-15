@@ -13,13 +13,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 
-
-
-
-
-
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -49,33 +42,8 @@ builder.Services.AddScoped<IAuxiliarRepository<Role>, AuxiliarRepository<Role>>(
 builder.Services.AddScoped<IAuxiliarRepository<Version>, AuxiliarRepository<Version>>();
 builder.Services.AddScoped<IAuxiliarRepository<Country>, AuxiliarRepository<Country>>();
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 builder.Services.Configure<EmailSettings>(
     builder.Configuration.GetSection("EmailSettings"));
-
-
-
-
-
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
@@ -93,20 +61,13 @@ builder.Services.AddCors(options =>
         });
 });
 
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-
-
-
-app.UseMiddleware<ExceptionMiddleware>();
-
-
+// app.UseMiddleware<ExceptionMiddleware>();
 
 app.UseSwagger();
 app.UseSwaggerUI();
-
 
 app.UseHttpsRedirection();
 
