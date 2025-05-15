@@ -13,12 +13,9 @@ public class ApplicationDbContext : DbContext
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
     : base(options)
     {
-        
-        Publications = Set<Publication>();
-        VehicleImages = Set<VehicleImage>();
-        
+
     }
-     
+   
 
     public required DbSet<User> Users { get; set; }
     public required DbSet<Vehicle> Vehicles { get; set; }
@@ -26,7 +23,7 @@ public class ApplicationDbContext : DbContext
     public required DbSet<Model> Models { get; set; }
     public required DbSet<Menu> Menus { get; set; }
     public required DbSet<EmailSettings> EmailSettings { get; set; }
-    public DbSet<Publication> Publications { get; set; }
+    public DbSet<Listing> Listings { get; set; }
     public required DbSet<Color> Colors { get; set; }
     public DbSet<Comment>? Comments { get; set; }
     public DbSet<VehicleImage> VehicleImages { get; set; } = null!;
@@ -146,7 +143,7 @@ public class ApplicationDbContext : DbContext
 
 
 
-        modelBuilder.Entity<Publication>(entity =>
+        modelBuilder.Entity<Listing>(entity =>
         {
             entity.HasKey(p => p.Id);
 
@@ -157,26 +154,6 @@ public class ApplicationDbContext : DbContext
             entity.Property(p => p.Price)
                 .HasColumnType("decimal(18,2)")
                 .IsRequired();
-
-            entity.Property(p => p.Place)
-                .HasMaxLength(100)
-                .IsRequired();
-
-            entity.Property(p => p.Version)
-                .HasMaxLength(100)
-                .IsRequired();
-
-            entity.HasOne(p => p.Make)
-                .WithMany()
-                .HasForeignKey(p => p.MakeId);
-
-            entity.HasOne(p => p.Model)
-                .WithMany()
-                .HasForeignKey(p => p.ModelId);
-
-            entity.HasOne(p => p.Color)
-                .WithMany()
-                .HasForeignKey(p => p.ColorId);
 
             entity.HasOne(p => p.User)
                 .WithMany()
@@ -227,7 +204,7 @@ public class ApplicationDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
         });
 
-        modelBuilder.Entity<Publication>(entity =>
+        modelBuilder.Entity<Listing>(entity =>
         {
             entity.HasKey(p => p.Id);
 
@@ -243,8 +220,7 @@ public class ApplicationDbContext : DbContext
 
             entity.Property(p => p.Price).HasColumnType("decimal(18,2)");
             entity.Property(p => p.Currency).HasMaxLength(10);
-            entity.Property(p => p.Place).HasMaxLength(200);
-            entity.Property(p => p.Version).HasMaxLength(100);
+    
         });
     }
 }

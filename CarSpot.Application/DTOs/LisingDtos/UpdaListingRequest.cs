@@ -1,4 +1,4 @@
-public record UpdatePublicationRequest
+public record UpdateListingRequest
 (
     Guid MakeId,
     Guid ModelId,
