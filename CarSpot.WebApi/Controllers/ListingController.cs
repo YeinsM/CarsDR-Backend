@@ -1,23 +1,16 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces;
-using System.Linq;
-
-
-
-
-
-
-
+using CarSpot.Application.DTOs;
 
 [ApiController]
 [Route("api/[controller]")]
 public class ListingsController : ControllerBase
 {
-   private readonly IListingRepository _repository;
-   
+    private readonly IListingRepository _repository;
 
     public ListingsController(IListingRepository repository)
     {
@@ -27,14 +20,32 @@ public class ListingsController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var Listings = await _repository.GetAllAsync();
-        var response = Listings.Select(l => new ListingResponse
+        var listings = await _repository.GetAllAsync();
+
+        var response = listings.Select(l => new
         {
-            Id = l.Id,
-            Price = l.Price,
-            Currency = l.User.select()
-           Images = l.Images.Select(img => img.ImageUrl).ToList(),
-            CreatedAt = l.CreatedAt
+            l.Id,
+            l.Title,
+            l.Description,
+            l.Price,
+            l.ListingPrice,
+            Currency = new { l.Currency.Id, l.Currency.Name },
+            Status = new { l.ListingStatus.Id, l.ListingStatus.Name },
+            User = new { l.User.Id, l.User.Email },
+            Vehicle = new
+            {
+                l.Vehicle.Id,
+                l.Vehicle.Model.Name,
+                Make = l.Vehicle.Model.Make.Name,
+                l.Vehicle.Year,
+                l.Vehicle.Mileage
+            },
+            Images = l.Images.Select(img => img.ImageUrl).ToList(),
+            l.CreatedAt,
+            l.ExpiresAt,
+            l.IsFeatured,
+            l.FeaturedUntil,
+            l.ViewCount
         });
 
         return Ok(response);
@@ -43,21 +54,34 @@ public class ListingsController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var Listing = await _repository.GetByIdAsync(id);
-        if (Listing is null) return NotFound();
+        var listing = await _repository.GetByIdAsync(id);
+        if (listing is null)
+            return NotFound();
 
-        var response = new ListingResponse
+        var response = new
         {
-            Id = Listing.Id,
-            Make = Listing.Make.Name,
-            Model = Listing.Model.Name,
-            Color = Listing.Color.Name,
-            Price = Listing.Price,
-            Currency = Listing.Currency,
-            Place = Listing.Place,
-            Version = Listing.Version,
-            Images = Listing.Images,
-            CreatedAt = Listing.CreatedAt
+            listing.Id,
+            listing.Title,
+            listing.Description,
+            listing.Price,
+            listing.ListingPrice,
+            Currency = new { listing.Currency.Id, listing.Currency.Name },
+            Status = new { listing.ListingStatus.Id, listing.ListingStatus.Name },
+            User = new { listing.User.Id, listing.User.Email },
+            Vehicle = new
+            {
+                listing.Vehicle.Id,
+                listing.Vehicle.Model.Name,
+                Make = listing.Vehicle.Model.Make.Name,
+                listing.Vehicle.Year,
+                listing.Vehicle.Mileage
+            },
+            Images = listing.Images.Select(img => img.ImageUrl).ToList(),
+            listing.CreatedAt,
+            listing.ExpiresAt,
+            listing.IsFeatured,
+            listing.FeaturedUntil,
+            listing.ViewCount
         };
 
         return Ok(response);
@@ -66,53 +90,46 @@ public class ListingsController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateListingRequest request)
     {
-        var Listing = new Listing(
+        var listing = new Listing(
             request.UserId,
-            request.MakeId,
-            request.ModelId,
-            request.ColorId,
+            request.VehicleId,
+            request.Title,
+            request.Description,
             request.Price,
-            request.Currency,
-            request.Place,
-            request.Version,
-            request.Images
+            request.CurrencyId,
+            request.ListingStatusId
         );
 
-        await _repository.Add(Listing);
-        return CreatedAtAction(nameof(GetById), new { id = Listing.Id }, Listing.Id);
+        await _repository.Add(listing);
+        return CreatedAtAction(nameof(GetById), new { id = listing.Id }, listing.Id);
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, CreateListingRequest request)
+    public async Task<IActionResult> Update(Guid id, UpdateListingRequest request)
     {
-        var Listing = await _repository.GetByIdAsync(id);
-        if (Listing is null) return NotFound();
+        var listing = await _repository.GetByIdAsync(id);
+        if (listing is null) return NotFound();
 
-      
+        listing.VehicleId = request.VehicleId;
+        listing.Title = request.Title;
+        listing.Description = request.Description;
+        listing.Price = request.Price;
+        listing.CurrencyId = request.CurrencyId;
+        listing.ListingStatusId = request.ListingStatusId;
+        listing.IsFeatured = request.IsFeatured;
+        listing.FeaturedUntil = request.FeaturedUntil;
+        listing.ExpiresAt = request.ExpiresAt;
 
-
-        Listing = new Listing(
-            request.UserId,
-            request.MakeId,
-            request.ModelId,
-            request.ColorId,
-            request.Price,
-            request.Currency,
-            request.Place,
-            request.Version,
-            request.Images
-        );
-
-        typeof(Listing).GetProperty("Id")!.SetValue(Listing, id);
-        await _repository.UpdateAsync(Listing);
+        await _repository.UpdateAsync(listing);
         return NoContent();
     }
+
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        var Listing = await _repository.GetByIdAsync(id);
-        if (Listing is null) return NotFound();
+        var listing = await _repository.GetByIdAsync(id);
+        if (listing is null) return NotFound();
 
         await _repository.DeleteAsync(id);
         return NoContent();
