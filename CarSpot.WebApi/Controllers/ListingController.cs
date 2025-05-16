@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces;
 using CarSpot.Application.DTOs;
+using System.Collections.Generic;
+
 
 [ApiController]
 [Route("api/[controller]")]
@@ -21,108 +23,83 @@ public class ListingsController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var listings = await _repository.GetAllAsync();
-
-        var response = listings.Select(l => new
-        {
-            l.Id,
-            l.Title,
-            l.Description,
-            l.Price,
-            l.ListingPrice,
-            Currency = new { l.Currency.Id, l.Currency.Name },
-            Status = new { l.ListingStatus.Id, l.ListingStatus.Name },
-            User = new { l.User.Id, l.User.Email },
-            Vehicle = new
-            {
-                l.Vehicle.Id,
-                l.Vehicle.Model.Name,
-                Make = l.Vehicle.Model.Make.Name,
-                l.Vehicle.Year,
-                l.Vehicle.Mileage
-            },
-            Images = l.Images.Select(img => img.ImageUrl).ToList(),
-            l.CreatedAt,
-            l.ExpiresAt,
-            l.IsFeatured,
-            l.FeaturedUntil,
-            l.ViewCount
-        });
-
-        return Ok(response);
+        return Ok(listings);
     }
+
 
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var listing = await _repository.GetByIdAsync(id);
-        if (listing is null)
+        if (listing == null)
             return NotFound();
 
-        var response = new
-        {
-            listing.Id,
-            listing.Title,
-            listing.Description,
-            listing.Price,
-            listing.ListingPrice,
-            Currency = new { listing.Currency.Id, listing.Currency.Name },
-            Status = new { listing.ListingStatus.Id, listing.ListingStatus.Name },
-            User = new { listing.User.Id, listing.User.Email },
-            Vehicle = new
-            {
-                listing.Vehicle.Id,
-                listing.Vehicle.Model.Name,
-                Make = listing.Vehicle.Model.Make.Name,
-                listing.Vehicle.Year,
-                listing.Vehicle.Mileage
-            },
-            Images = listing.Images.Select(img => img.ImageUrl).ToList(),
-            listing.CreatedAt,
-            listing.ExpiresAt,
-            listing.IsFeatured,
-            listing.FeaturedUntil,
-            listing.ViewCount
-        };
-
-        return Ok(response);
+        return Ok(listing);
     }
+
 
     [HttpPost]
-    public async Task<IActionResult> Create(CreateListingRequest request)
+    public IActionResult Create([FromBody] CreateListingRequest request)
     {
-        var listing = new Listing(
-            request.UserId,
-            request.VehicleId,
-            request.Title,
-            request.Description,
-            request.Price,
-            request.CurrencyId,
-            request.ListingStatusId
-        );
+        if (request == null)
+            return BadRequest("Request cannot be null");
 
-        await _repository.Add(listing);
-        return CreatedAtAction(nameof(GetById), new { id = listing.Id }, listing.Id);
+        var listing = new Listing
+        {
+            UserId = request.UserId,
+            VehicleId = request.VehicleId,
+            Title = request.Title,
+            Description = request.Description,
+            Price = request.Price,
+            ListingPrice = request.ListingPrice,
+            CurrencyId = request.CurrencyId,
+            ListingStatusId = request.ListingStatusId,
+            ExpiresAt = request.ExpiresAt,
+            IsFeatured = request.IsFeatured,
+            FeaturedUntil = request.FeaturedUntil,
+            ViewCount = 0,
+
+            Images = request.Images?.Select(url => new VehicleImage { ImageUrl = url }).ToList() ?? new List<VehicleImage>()
+        };
+
+        _repository.Add(listing);
+
+        return Ok(new { Message = "Listing created successfully", ListingId = listing.Id });
     }
+
+
+
+
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(Guid id, UpdateListingRequest request)
+    public async Task<IActionResult> UpdateListing(Guid id, [FromBody] UpdateListingRequest request)
     {
-        var listing = await _repository.GetByIdAsync(id);
-        if (listing is null) return NotFound();
+        var existingListing = await _repository.GetByIdAsync(id);
+        if (existingListing == null)
+            return NotFound();
 
-        listing.VehicleId = request.VehicleId;
-        listing.Title = request.Title;
-        listing.Description = request.Description;
-        listing.Price = request.Price;
-        listing.CurrencyId = request.CurrencyId;
-        listing.ListingStatusId = request.ListingStatusId;
-        listing.IsFeatured = request.IsFeatured;
-        listing.FeaturedUntil = request.FeaturedUntil;
-        listing.ExpiresAt = request.ExpiresAt;
 
-        await _repository.UpdateAsync(listing);
+        existingListing.Title = request.Title;
+        existingListing.Description = request.Description;
+        existingListing.Price = request.Price;
+        existingListing.ListingPrice = request.ListingPrice;
+        existingListing.CurrencyId = request.CurrencyId;
+        existingListing.ListingStatusId = request.ListingStatusId;
+        existingListing.ExpiresAt = request.ExpiresAt;
+        existingListing.IsFeatured = request.IsFeatured;
+        existingListing.FeaturedUntil = request.FeaturedUntil;
+
+
+        existingListing.Images.Clear();
+        foreach (var url in request.Images)
+        {
+            existingListing.Images.Add(new VehicleImage { ImageUrl = url });
+        }
+
+        await _repository.UpdateAsync(existingListing);
         return NoContent();
     }
+
 
 
     [HttpDelete("{id}")]

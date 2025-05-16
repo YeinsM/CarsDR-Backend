@@ -5,8 +5,16 @@ namespace CarSpot.Application.DTOs
         Guid VehicleId,
         string Title,
         string Description,
+        decimal? ListingPrice,
         decimal Price,
         Guid CurrencyId,
-        int ListingStatusId
+        int ListingStatusId,
+        DateTime? ExpiresAt,
+        bool IsFeatured,
+        DateTime? FeaturedUntil,
+        int ViewCount,
+         List<string> Images
+        
+
     );
 }
