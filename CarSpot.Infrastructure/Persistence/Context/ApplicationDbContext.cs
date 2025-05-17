@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using CarSpot.Domain.ValueObjects;
 using System.Text.Json;
+using System.ComponentModel.DataAnnotations.Schema;
 
 
 namespace CarSpot.Infrastructure.Persistence.Context;
@@ -29,7 +30,19 @@ public class ApplicationDbContext : DbContext
     public DbSet<VehicleImage> VehicleImages { get; set; } = null!;
 
     public DbSet<Country>? Countries { get; set; }
-    public DbSet<ListingStatus> ListingStatuses { get; set; }= null!;
+    public DbSet<Currency> Currencies { get; set; } = null!;
+
+    public DbSet<ListingStatus> ListingStatuses { get; set; } = null!;
+    public DbSet<VehicleVersion> VehicleVersions { get; set; } = null!;
+    public DbSet<Role>? Roles { get; set; }
+
+
+
+
+
+
+
+
 
 
 
@@ -104,9 +117,6 @@ public class ApplicationDbContext : DbContext
                   .HasMaxLength(50);
             entity.Property(v => v.Year)
                   .IsRequired();
-            entity.Property(v => v.Color)
-                  .HasMaxLength(50)
-                  .IsRequired();
             entity.HasOne(v => v.Model)
                   .WithMany(m => m.Vehicles)
                   .HasForeignKey(v => v.ModelId);
@@ -124,7 +134,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(m => m.ParentId).IsRequired(false);
 
 
-            entity.HasMany<Menu>(m => m.Children)
+            entity.HasMany(m => m.Children)
                .WithOne()
                .HasForeignKey(m => m.ParentId)
                .OnDelete(DeleteBehavior.Restrict);
@@ -140,26 +150,6 @@ public class ApplicationDbContext : DbContext
              entity.Property(e => e.FromEmail).IsRequired().HasMaxLength(100);
              entity.Property(e => e.FromPassword).IsRequired();
          });
-
-
-
-
-        modelBuilder.Entity<Listing>(entity =>
-        {
-            entity.HasKey(p => p.Id);
-
-            entity.Property(p => p.Currency)
-                .HasMaxLength(3)
-                .IsRequired();
-
-            entity.Property(p => p.Price)
-                .HasColumnType("decimal(18,2)")
-                .IsRequired();
-
-            entity.HasOne(p => p.User)
-                .WithMany()
-                .HasForeignKey(p => p.UserId);
-        });
 
         modelBuilder.Entity<Color>(entity =>
         {
@@ -207,19 +197,47 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<Listing>(entity =>
         {
-        entity.HasKey(p => p.Id);
+            entity.HasKey(p => p.Id);
 
-        entity.Property(p => p.Price)
-            .HasColumnType("decimal(18,2)");
+            entity.Property(p => p.Price)
+                .HasColumnType("decimal(18,2)");
 
-        entity.Property(p => p.Currency)
-            .HasMaxLength(10);
+            entity.HasOne(l => l.Currency)
+            .WithMany()
+            .HasForeignKey(l => l.CurrencyId);
 
-        entity.HasMany(p => p.Images)
-            .WithOne(img => img.Listing)
-            .HasForeignKey(img => img.ListingId)
-            .OnDelete(DeleteBehavior.Cascade);
+            entity.HasMany(p => p.Images)
+                .WithOne(img => img.Listing)
+                .HasForeignKey(img => img.ListingId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
+
+        modelBuilder.Entity<ListingStatus>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(100);
+        });
+
+        modelBuilder.Entity<Currency>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Code).IsRequired().HasMaxLength(10);
+            entity.Property(e => e.Symbol).IsRequired().HasMaxLength(10);
+        });
+
+        modelBuilder.Entity<VehicleVersion>(entity =>
+        {
+            entity.ToTable("Versions");
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.Name)
+                .HasMaxLength(50)
+                .IsRequired();
+        });
+
+
 
     }
 }

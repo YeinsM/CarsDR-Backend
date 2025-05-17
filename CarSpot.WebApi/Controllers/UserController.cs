@@ -106,6 +106,10 @@ public class UsersController : ControllerBase
                 request.FirstName,
                 request.LastName,
                 request.Email,
+                request.Phone,
+                request.Extension,
+                request.CellPhone,
+                request.Address,
                 hashedPassword,
                 request.Username,
                 request.RoleId
@@ -114,7 +118,7 @@ public class UsersController : ControllerBase
             await _userRepository.RegisterUserAsync(user);
             await _userRepository.SaveChangesAsync();
 
-            var bodyMessage = _emailService.Body(user);
+            /*var bodyMessage = _emailService.Body(user);
             var emailSettings = await _emailSettingsRepository.GetSettingsAsync();
 
             await _emailService.SendEmailAsync(
@@ -122,7 +126,7 @@ public class UsersController : ControllerBase
                 "Welcome to CarSpot",
                 bodyMessage,
                 emailSettings?.NickName
-            );
+            );*/
 
             return Ok(new { Status = 200, Message = "User registered successfully", UserId = user.Id });
         }

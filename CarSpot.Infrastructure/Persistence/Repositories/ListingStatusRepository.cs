@@ -5,8 +5,9 @@ using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using CarSpot.Infrastructure.Persistence.Repositories;
 
-namespace CarSpot.Infrastructure.Repositories
+namespace CarSpot.Infrastructure.Persistence.Repositories
 {
     public class ListingStatusRepository : IListingStatusRepository
     {

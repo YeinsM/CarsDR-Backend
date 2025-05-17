@@ -1,1 +1,0 @@
-public record CreateVersionRequest(string Name, Guid? ModelId);

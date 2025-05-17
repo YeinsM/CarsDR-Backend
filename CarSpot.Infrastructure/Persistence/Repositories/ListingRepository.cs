@@ -4,7 +4,7 @@ using CarSpot.Infrastructure.Persistence;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
-namespace CarSpot.Infrastructure.Repositories
+namespace CarSpot.Infrastructure.Persistence.Repositories
 {
     public class ListingRepository : IListingRepository
 

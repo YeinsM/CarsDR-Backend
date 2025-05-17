@@ -33,7 +33,7 @@ namespace CarSpot.Domain.Entities
 
 
 
-        public User(string firstName, string lastName, string email, HashedPassword password, string username, Guid roleId)
+        public User(string firstName, string lastName, string email, string? phone, string? extension, string? cellPhone, string? address, HashedPassword password, string username, Guid roleId)
         {
             if (string.IsNullOrWhiteSpace(firstName))
                 throw new ArgumentNullException(nameof(firstName), "First name is required.");
@@ -41,6 +41,8 @@ namespace CarSpot.Domain.Entities
                 throw new ArgumentNullException(nameof(lastName), "Last name is required.");
             if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentNullException(nameof(email), "Email is required.");
+            if (string.IsNullOrWhiteSpace(phone))
+                throw new ArgumentNullException(nameof(phone), "Username is required.");
             if (string.IsNullOrWhiteSpace(username))
                 throw new ArgumentNullException(nameof(username), "Username is required.");
             if (password is null)
@@ -51,6 +53,10 @@ namespace CarSpot.Domain.Entities
             FirstName = firstName;
             LastName = lastName;
             Email = email;
+            Phone = phone;
+            Extension = extension;
+            CellPhone = cellPhone;
+            Address = address;
             Password = password;
             Username = username;
             RoleId = roleId;

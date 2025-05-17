@@ -58,7 +58,7 @@ public class UserRepository : IUserRepository
         await _context.SaveChangesAsync();
 
         var bodyMessage = _emailService.Body(user);
-        var emailSettings = await _context.EmailSettings.FirstOrDefaultAsync(e => e.NickName == "CarSpot");
+        var emailSettings = await _context.EmailSettings.FirstOrDefaultAsync(e => e.NickName == "Notifications");
 
         if (emailSettings is not null)
         {

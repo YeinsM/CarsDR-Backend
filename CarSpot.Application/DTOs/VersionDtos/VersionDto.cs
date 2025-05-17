@@ -1,1 +1,0 @@
-public record VersionDto(Guid Id, string Name, Guid? ModelId);

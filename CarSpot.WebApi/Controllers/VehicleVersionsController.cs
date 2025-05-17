@@ -8,12 +8,14 @@ namespace CarSpot.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class VersionsController : ControllerBase
+    public class VehicleVersionsController : ControllerBase
     {
-        private readonly IAuxiliarRepository<Version> _repository;
+        private readonly IAuxiliarRepository<VehicleVersion> _repository;
         private readonly IAuxiliarRepository<Model> _modelRepository;
 
-        public VersionsController(IAuxiliarRepository<Version> repository, IAuxiliarRepository<Model> modelRepository)
+        public VehicleVersionsController(
+            IAuxiliarRepository<VehicleVersion> repository,
+            IAuxiliarRepository<Model> modelRepository)
         {
             _repository = repository;
             _modelRepository = modelRepository;
@@ -34,29 +36,29 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Version version)
+        public async Task<IActionResult> Create([FromBody] VehicleVersion vehicleVersion)
         {
             
-            if (version.ModelId.HasValue)
+            if (vehicleVersion.ModelId != Guid.Empty)
             {
-                var model = await _modelRepository.GetByIdAsync(version.ModelId.Value);
+                var model = await _modelRepository.GetByIdAsync(vehicleVersion.ModelId);
                 if (model is null)
-                    return BadRequest($"Model with ID {version.ModelId} does not exist.");
+                    return BadRequest($"Model with ID {vehicleVersion.ModelId} does not exist.");
             }
 
-            await _repository.Add(version);
-            return CreatedAtAction(nameof(GetById), new { id = version.Id }, version);
+            await _repository.Add(vehicleVersion);
+            return CreatedAtAction(nameof(GetById), new { id = vehicleVersion.Id }, vehicleVersion);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] Version updated)
+        public async Task<IActionResult> Update(Guid id, [FromBody] VehicleVersion updated)
         {
-            if (id != updated.Id) return BadRequest();
+            if (id != updated.Id)
+                return BadRequest("The ID in the URL does not match the ID in the payload.");
 
-            
-            if (updated.ModelId.HasValue)
+            if (updated.ModelId != Guid.Empty)
             {
-                var model = await _modelRepository.GetByIdAsync(updated.ModelId.Value);
+                var model = await _modelRepository.GetByIdAsync(updated.ModelId);
                 if (model is null)
                     return BadRequest($"Model with ID {updated.ModelId} does not exist.");
             }
