@@ -1,17 +1,14 @@
 using CarSpot.Application.DTOs;
-using CarSpot.Application.DTOs.Vehicle;
 using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
-using System.Linq;
 
 namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-
     public class VehicleController : ControllerBase
     {
         private readonly IAuxiliarRepository<Make> _makeRepository;
@@ -33,8 +30,6 @@ namespace CarSpot.WebApi.Controllers
             _modelRepository = modelRepository;
             _conditionRepository = conditionRepository;
         }
-
-
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -58,46 +53,45 @@ namespace CarSpot.WebApi.Controllers
             var model = await _modelRepository.GetByIdAsync(request.ModelId);
             var condition = await _conditionRepository.GetByIdAsync(request.ConditionId);
 
-
             if (user is null || make is null || model is null || condition is null)
                 return BadRequest("One or more required entities (User, Make, Model, Condition) were not found.");
 
-            var vehicle = new Vehicle
-            {
-                Id = Guid.NewGuid(),
-                VIN = request.VIN,
-                UserId = request.UserId,
-                User = user,
-                MakeId = request.MakeId,
-                Make = make,
-                ModelId = request.ModelId,
-                Model = model,
-                ConditionId = request.ConditionId,
-                Condition = condition,
-                VersionId = request.VersionId,
-                MarketVersionId = request.MarketVersionId,
-                TransmissionId = request.TransmissionId,
-                DrivetrainId = request.DrivetrainId,
-                CylinderOptionId = request.CylinderOptionId,
-                CabTypeId = request.CabTypeId,
-                ColorId = request.ColorId,
-                Year = request.Year,
-                Mileage = request.Mileage,
-                Price = request.Price,
-                Title = request.Title,
-                IsFeatured = request.IsFeatured,
-                FeaturedUntil = request.FeaturedUntil,
-                CreatedAt = DateTime.UtcNow,
-                ViewCount = 0,
-                Images = [],
-                Comments = []
-            };
+            var vehicle = new Vehicle(
+                request.VIN,
+                request.UserId,
+                request.MakeId,
+                request.ModelId,
+                request.VehicleVersionId,
+                request.MarketVersionId,
+                request.TransmissionId,
+                request.DrivetrainId,
+                request.CylinderOptionId,
+                request.CabTypeId,
+                request.ConditionId,
+                request.ColorId,
+                request.Year,
+                request.Mileage,
+                request.Price,
+                request.Title,
+                request.IsFeatured,
+                request.FeaturedUntil,
+                0,
+                DateTime.UtcNow
+            );
+
+            
+            vehicle.User = user;
+            vehicle.Make = make;
+            vehicle.Model = model;
+            vehicle.Condition = condition;
+
+            
+            vehicle.Images = [];
+            vehicle.Comments = [];
 
             await _vehicleRepository.AddAsync(vehicle);
             return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
         }
-
-
 
         [HttpPut("{id:Guid}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateVehicleRequest request)
@@ -108,7 +102,7 @@ namespace CarSpot.WebApi.Controllers
 
             vehicle.MakeId = request.MakeId;
             vehicle.ModelId = request.ModelId;
-            vehicle.VersionId = request.VersionId;
+            vehicle.VehicleVersionId = request.VehicleVersionId;
             vehicle.MarketVersionId = request.MarketVersionId;
             vehicle.TransmissionId = request.TransmissionId;
             vehicle.DrivetrainId = request.DrivetrainId;

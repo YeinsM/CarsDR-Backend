@@ -1,127 +1,118 @@
-using System.ComponentModel.DataAnnotations;
 using CarSpot.Domain.Common;
 
 namespace CarSpot.Domain.Entities
 {
     public class Vehicle : BaseEntity
     {
-        public Vehicle() { }
-        public required string VIN { get; set; }
+        public string VIN { get; set; } = null!;
+
         public Guid UserId { get; set; }
-        public required User User { get; set; }
-        
+        public User User { get; set; } = null!;
+
         public Guid MakeId { get; set; }
-        public required Make Make { get; set; }
+        public Make Make { get; set; } = null!;
 
         public Guid ModelId { get; set; }
-        public required Model Model { get; set; }
+        public Model Model { get; set; } = null!;
 
-        public Guid? VersionId { get; set; }
-        public Version? Version { get; set; }
+        public Guid VehicleVersionId { get; set; }
+        public VehicleVersion VehicleVersion { get; set; } = null!;
 
-        public Guid? MarketVersionId { get; set; }
-        public MarketVersion? MarketVersion { get; set; }
+        public Guid MarketVersionId { get; set; }
+        public MarketVersion MarketVersion { get; set; } = null!;
 
-        public Guid? TransmissionId { get; set; }
-        public Transmission? Transmission { get; set; }
+        public Guid TransmissionId { get; set; }
+        public Transmission Transmission { get; set; } = null!;
 
-        public Guid? DrivetrainId { get; set; }
-        public Drivetrain? Drivetrain { get; set; }
+        public Guid DrivetrainId { get; set; }
+        public Drivetrain Drivetrain { get; set; } = null!;
 
-        public Guid? CylinderOptionId { get; set; }
-        public CylinderOption? CylinderOption { get; set; }
+        public Guid CylinderOptionId { get; set; }
+        public CylinderOption CylinderOption { get; set; } = null!;
 
-        public Guid? CabTypeId { get; set; }
-        public CabType? CabType { get; set; }
+        public Guid CabTypeId { get; set; }
+        public CabType CabType { get; set; } = null!;
 
         public Guid ConditionId { get; set; }
-        public required Condition Condition { get; set; }
+        public Condition Condition { get; set; } = null!;
 
-        public Guid? ColorId { get; set; }
-        public Color? Color { get; set; }
+        public Guid ColorId { get; set; }
+        public Color Color { get; set; } = null!;
 
         public int Year { get; set; }
-
-        public int? Mileage { get; set; }
-
+        public int Mileage { get; set; }
         public decimal Price { get; set; }
 
-        public string? Title { get; set; }
-
+        public string Title { get; set; } = string.Empty;
         public bool IsFeatured { get; set; }
-
-        public DateTime? FeaturedUntil { get; set; }
-
+        public DateTime FeaturedUntil { get; set; }
         public int ViewCount { get; set; }
 
-        public ICollection<VehicleImage>? Images { get; set; }
-        public ICollection<Comment>? Comments { get; set; }
+        public ICollection<VehicleImage> Images { get; set; } = new List<VehicleImage>();
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 
-        
+        public Vehicle(){}
         public Vehicle(
             string vin,
-            Guid userId, 
-            Guid makeId, 
-            Guid modelId, 
-            int year, 
-            decimal price, 
-            Guid conditionId, 
-            string? title = null,
-            int? mileage = null,
-            bool isFeatured = false,
-            DateTime? featuredUntil = null,
-            int viewCount = 0,
-            DateTime? createdAt = null)
+            Guid userId,
+            Guid makeId,
+            Guid modelId,
+            Guid vehicleVersionId,
+            Guid marketVersionId,
+            Guid transmissionId,
+            Guid drivetrainId,
+            Guid cylinderOptionId,
+            Guid cabTypeId,
+            Guid conditionId,
+            Guid colorId,
+            int year,
+            int mileage,
+            decimal price,
+            string title,
+            bool isFeatured,
+            DateTime featuredUntil,
+            int viewCount,
+            DateTime createdAt
+        )
         {
-            
             if (string.IsNullOrWhiteSpace(vin))
                 throw new ArgumentNullException(nameof(vin), "VIN cannot be null or empty.");
-            
             if (userId == Guid.Empty)
-                throw new ArgumentNullException(nameof(userId), "UserId cannot be empty.");
-
+                throw new ArgumentException("UserId cannot be empty.", nameof(userId));
             if (makeId == Guid.Empty)
-                throw new ArgumentNullException(nameof(makeId), "MakeId cannot be empty.");
-
+                throw new ArgumentException("MakeId cannot be empty.", nameof(makeId));
             if (modelId == Guid.Empty)
-                throw new ArgumentNullException(nameof(modelId), "ModelId cannot be empty.");
-
+                throw new ArgumentException("ModelId cannot be empty.", nameof(modelId));
+            if (vehicleVersionId == Guid.Empty)
+                throw new ArgumentException("VehicleVersionId cannot be empty.", nameof(vehicleVersionId));
             if (year < 1900 || year > DateTime.UtcNow.Year + 1)
                 throw new ArgumentOutOfRangeException(nameof(year), "Year is invalid.");
-
             if (price <= 0)
-                throw new ArgumentOutOfRangeException(nameof(price), "Price must be a positive number.");
+                throw new ArgumentOutOfRangeException(nameof(price), "Price must be positive.");
 
-            if (conditionId == Guid.Empty)
-                throw new ArgumentNullException(nameof(conditionId), "ConditionId cannot be empty.");
-
-        
             VIN = vin;
             UserId = userId;
             MakeId = makeId;
             ModelId = modelId;
-            Year = year;
-            Price = price;
+            VehicleVersionId = vehicleVersionId;
+            MarketVersionId = marketVersionId;
+            TransmissionId = transmissionId;
+            DrivetrainId = drivetrainId;
+            CylinderOptionId = cylinderOptionId;
+            CabTypeId = cabTypeId;
             ConditionId = conditionId;
-            Title = title;
+            ColorId = colorId;
+            Year = year;
             Mileage = mileage;
+            Price = price;
+            Title = title;
             IsFeatured = isFeatured;
             FeaturedUntil = featuredUntil;
             ViewCount = viewCount;
-            CreatedAt = createdAt ?? DateTime.UtcNow;
-
-            
-            Images = new List<VehicleImage>();
-            Comments = new List<Comment>();
+            CreatedAt = createdAt;
         }
 
-        
-        public void UpdateVehicle(
-            string? title,
-            int? mileage,
-            decimal price,
-            bool isFeatured,
-            DateTime? featuredUntil)
+        public void UpdateVehicle(string title, int mileage, decimal price, bool isFeatured, DateTime featuredUntil)
         {
             Title = title;
             Mileage = mileage;
@@ -130,25 +121,14 @@ namespace CarSpot.Domain.Entities
             FeaturedUntil = featuredUntil;
         }
 
-        
         public void AddImage(VehicleImage image)
         {
-            if (Images == null)
-                Images = new List<VehicleImage>();
-
             Images.Add(image);
         }
 
-        
         public void AddComment(Comment comment)
         {
-            if (Comments == null)
-                Comments = new List<Comment>();
-
             Comments.Add(comment);
         }
-
-        
-       
     }
 }

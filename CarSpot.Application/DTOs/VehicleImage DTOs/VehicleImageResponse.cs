@@ -1,2 +1,6 @@
-public record VehicleImageResponse
-(Guid Id, Guid VehicleId, string ImageUrl = null!);
+public record ListingDto(
+    int Id,
+    decimal Price,
+    string Currency,
+    List<string> Images
+);

@@ -11,7 +11,7 @@ namespace CarSpot.Domain.Entities
         public Make? Make { get; private set; }
         [JsonIgnore]
         public ICollection<Vehicle> Vehicles { get; private set; } = new List<Vehicle>();
-        public ICollection<Version> Versions {get; private set;} = new List<Version>();
+        public ICollection<VehicleVersion> VehicleVersions {get; private set;} = new List<VehicleVersion>();
 
         public Model()
         {
