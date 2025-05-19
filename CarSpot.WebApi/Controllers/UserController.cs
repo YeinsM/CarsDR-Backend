@@ -49,8 +49,8 @@ public class UsersController : ControllerBase
             u.CreatedAt,
             u.UpdatedAt,
             u.BusinessId,
-            u.Vehicles.Select(v => new VehicleDto(v.Id, v.VIN, v.Year, v.Color?.ToString(), v.ModelId)).ToList(),
-            u.Comments.Select(c => new CommentResponse(c.Id, c.VehicleId, c.UserId, c.Content, c.CreatedAt)).ToList()
+            [.. u.Vehicles.Select(v => new VehicleDto(v.Id, v.VIN, v.Year, v.Color?.ToString(), v.ModelId))],
+            [.. u.Comments.Select(c => new CommentResponse(c.Id, c.VehicleId, c.UserId, c.Content, c.CreatedAt))]
         ));
 
         return Ok(response);
@@ -74,8 +74,8 @@ public class UsersController : ControllerBase
             user.CreatedAt,
             user.UpdatedAt,
             user.BusinessId,
-            user.Vehicles.Select(v => new VehicleDto(v.Id, v.VIN, v.Year, v.Color?.ToString(), v.ModelId)).ToList(),
-            user.Comments.Select(c => new CommentResponse(c.Id, c.VehicleId, c.UserId, c.Content, c.CreatedAt)).ToList()
+            [.. user.Vehicles.Select(v => new VehicleDto(v.Id, v.VIN, v.Year, v.Color?.ToString(), v.ModelId))],
+            [.. user.Comments.Select(c => new CommentResponse(c.Id, c.VehicleId, c.UserId, c.Content, c.CreatedAt))]
         );
 
         return Ok(userDto);
