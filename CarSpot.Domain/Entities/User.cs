@@ -41,8 +41,7 @@ namespace CarSpot.Domain.Entities
                 throw new ArgumentNullException(nameof(lastName), "Last name is required.");
             if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentNullException(nameof(email), "Email is required.");
-            if (string.IsNullOrWhiteSpace(phone))
-                throw new ArgumentNullException(nameof(phone), "Username is required.");
+           
             if (string.IsNullOrWhiteSpace(username))
                 throw new ArgumentNullException(nameof(username), "Username is required.");
             if (password is null)
