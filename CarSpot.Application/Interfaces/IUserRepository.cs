@@ -16,6 +16,8 @@ namespace CarSpot.Application.Interfaces
         Task<User> RegisterUserAsync(User user);
 
         Task<User> UpdateUserAsync(Guid id, string firstName, string lastName, string username);
+        Task<User?> GetByUsernameAsync(string username);
+
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }

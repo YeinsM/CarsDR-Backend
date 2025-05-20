@@ -40,13 +40,6 @@ public class EmailSettingsController : ControllerBase
         return CreatedAtAction(nameof(Get), new { id = settings.Id }, settings);
     }
 
-    [HttpPost("send")]
-    public async Task<IActionResult> SendEmail([FromQuery] string to, [FromQuery] string subject, [FromQuery] string body, [FromQuery] string nickName)
-    {
-        await _emailService.SendEmailAsync(to, subject, body, nickName);
-        return Ok("Correo enviado");
-    }
-
 
 
     [HttpPut]

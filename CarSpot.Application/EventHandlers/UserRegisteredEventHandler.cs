@@ -14,8 +14,9 @@ public class UserRegisteredEventHandler : IDomainEventHandler<UserRegisteredEven
         await _emailService.SendEmailAsync(
         domainEvent.Email,
         "Welcome to CarSpot!",
-        $"Hi {domainEvent.FullName}, welcome to the app!",
-        "Notification"
+        EmailTemplateType.Welcome,
+        domainEvent.FullName,
+        "Notifications"
         );
     }
 }

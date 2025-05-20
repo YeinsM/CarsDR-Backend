@@ -27,13 +27,22 @@ public class DomainEventsInterceptor : SaveChangesInterceptor
         domainEntities.ForEach(entity => entity.Entity.ClearDomainEvents());
         foreach (var domainEvent in domainEvents)
         {
-            var handlers = _handlerFactory.GetHandlers(domainEvent.GetType());
-            foreach (var handler in handlers)
+            // Use reflection to dynamically call the generic method
+            var getHandlersMethod = _handlerFactory.GetType()
+                .GetMethod("GetHandlers")
+                ?.MakeGenericMethod(domainEvent.GetType());
+
+            if (getHandlersMethod != null)
             {
-                var handleMethod = handler.GetType().GetMethod("HandleAsync");
-                if (handleMethod != null)
+                var handlers = (IEnumerable<object>)getHandlersMethod.Invoke(_handlerFactory, null)!;
+
+                foreach (var handler in handlers)
                 {
-                    await (Task)handleMethod.Invoke(handler, new[] { domainEvent })!;
+                    var handleMethod = handler.GetType().GetMethod("HandleAsync");
+                    if (handleMethod != null)
+                    {
+                        await (Task)handleMethod.Invoke(handler, [domainEvent])!;
+                    }
                 }
             }
         }

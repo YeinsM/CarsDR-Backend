@@ -60,12 +60,15 @@ namespace CarSpot.Domain.Entities
             Username = username;
             RoleId = roleId;
             CreatedAt = DateTime.UtcNow;
+
+            AddDomainEvent(new UserRegisteredEvent(Email, FullName));
+
         }
 
-        public void Register()
-        {
-            AddDomainEvent(new UserRegisteredEvent(Id, Email, FullName));
-        }
+        //public void Register()
+        //{
+           // AddDomainEvent(new UserRegisteredEvent(Email, FullName));
+        //}
 
         public void UpdateBasicInfo(string firstName, string lastName, string username)
         {

@@ -155,12 +155,18 @@ public class UsersController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var user = await _userRepository.GetByEmailAsync(request.Email);
+        var user = await _userRepository.GetByEmailAsync(request.EmailOrUsername);
+
+
+        if (user == null)
+            user = await _userRepository.GetByUsernameAsync(request.EmailOrUsername);
+
         if (user == null || !user.Password.Verify(request.Password))
             return Unauthorized(new { Status = 401, Message = "Invalid credentials" });
 
         return Ok(new { Status = 200, Message = "Login successful" });
     }
+
 
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
@@ -239,29 +245,6 @@ public class UsersController : ControllerBase
         }
     }
 
-    [HttpPost("send-test-email")]
-    public async Task<IActionResult> SendTestEmail()
-    {
-        try
-        {
-            var emailSettings = await _emailSettingsRepository.GetSettingsAsync();
-            if (emailSettings == null)
-            {
-                return NotFound(new { Status = 404, Message = "Email settings not found in the database" });
-            }
 
-            var toEmail = "kellycasares13@gmail.com";
-            var subject = "Test Email from CarSpot";
-            var body = "This is a test email from the app, email is working.";
-
-            await _emailService.SendEmailAsync(toEmail, subject, body, emailSettings.NickName);
-
-            return Ok(new { Status = 200, Message = "Test email sent successfully!" });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { Status = 500, Error = "Email Error", Message = "Failed to send test email", Details = ex.Message });
-        }
-    }
 
 }

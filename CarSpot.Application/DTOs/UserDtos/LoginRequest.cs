@@ -1,2 +1,7 @@
 namespace CarSpot.Application.DTOs;
-public record LoginRequest(string Email, string Password);
+public record LoginRequest
+{
+    public string EmailOrUsername { get; init; }
+    public string Password { get; init; }
+}
+

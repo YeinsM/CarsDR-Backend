@@ -57,7 +57,6 @@ public class UserRepository : IUserRepository
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-         user.Register();
         //var bodyMessage = _emailService.Body(user);
         //var emailSettings = await _context.EmailSettings.FirstOrDefaultAsync(e => e.NickName == "Notifications");
 
@@ -102,4 +101,10 @@ public class UserRepository : IUserRepository
     {
         return await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<User?> GetByUsernameAsync(string username)
+{
+    return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+}
+
 }
