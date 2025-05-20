@@ -57,13 +57,13 @@ public class UserRepository : IUserRepository
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
-        var bodyMessage = _emailService.Body(user);
-        var emailSettings = await _context.EmailSettings.FirstOrDefaultAsync(e => e.NickName == "Notifications");
+        //var bodyMessage = _emailService.Body(user);
+        //var emailSettings = await _context.EmailSettings.FirstOrDefaultAsync(e => e.NickName == "Notifications");
 
-        if (emailSettings is not null)
-        {
-            await _emailService.SendEmailAsync(user.Email, "Bienvenido al sistema", bodyMessage, emailSettings.NickName!);
-        }
+        //if (emailSettings is not null)
+        //{
+            //await _emailService.SendEmailAsync(user.Email, "Bienvenido al sistema", bodyMessage, emailSettings.NickName!);
+       // }
 
         return user;
     }
@@ -101,4 +101,10 @@ public class UserRepository : IUserRepository
     {
         return await _context.SaveChangesAsync(cancellationToken);
     }
+
+    public async Task<User?> GetByUsernameAsync(string username)
+{
+    return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+}
+
 }

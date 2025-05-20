@@ -1,3 +1,4 @@
+using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
@@ -37,13 +38,6 @@ public class EmailSettingsController : ControllerBase
 
         await _repository.AddAsync(settings);
         return CreatedAtAction(nameof(Get), new { id = settings.Id }, settings);
-    }
-
-    [HttpPost("send")]
-    public async Task<IActionResult> SendEmail([FromQuery] string to, [FromQuery] string subject, [FromQuery] string body, [FromQuery] string nickName)
-    {
-        await _emailService.SendEmailAsync(to, subject, body, nickName);
-        return Ok("Correo enviado");
     }
 
 
