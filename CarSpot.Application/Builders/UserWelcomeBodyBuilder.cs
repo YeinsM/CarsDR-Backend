@@ -1,9 +1,9 @@
 using CarSpot.Domain.Entities;
 
-public class UserWelcomeBodyBuilder : IEmailBodyBuilder<User>
+public class UserWelcomeBodyBuilder : IEmailBodyBuilder<WelcomeEmailDto>
 {
-    public string Build(User user)
+    public string Build(WelcomeEmailDto user)
     {
-        return $"<p>Hello! {user.FirstName} {user.LastName},</p><p>Thank you for join to CarSpot.</p>";
+        return $"<p>Hello! {user.FullName},</p><p>Thank you for join to CarSpot.</p>";
     }
 }

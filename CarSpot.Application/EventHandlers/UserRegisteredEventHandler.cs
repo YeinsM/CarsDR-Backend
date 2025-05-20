@@ -15,7 +15,7 @@ public class UserRegisteredEventHandler : IDomainEventHandler<UserRegisteredEven
         domainEvent.Email,
         "Welcome to CarSpot!",
         EmailTemplateType.Welcome,
-        domainEvent.FullName,
+        new WelcomeEmailDto(domainEvent.FullName, domainEvent.Email),
         "Notifications"
         );
     }
