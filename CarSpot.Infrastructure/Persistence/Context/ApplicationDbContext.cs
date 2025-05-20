@@ -11,10 +11,18 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace CarSpot.Infrastructure.Persistence.Context;
 public class ApplicationDbContext : DbContext
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    private readonly DomainEventsInterceptor _domainEventsInterceptor;
+   
+    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, DomainEventsInterceptor domainEventsInterceptor)
     : base(options)
     {
+        _domainEventsInterceptor = domainEventsInterceptor;
 
+    }
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+       optionsBuilder.AddInterceptors(_domainEventsInterceptor);
+       base.OnConfiguring(optionsBuilder);
     }
 
 
@@ -35,6 +43,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<ListingStatus> ListingStatuses { get; set; } = null!;
     public DbSet<VehicleVersion> VehicleVersions { get; set; } = null!;
     public DbSet<Role>? Roles { get; set; }
+
 
 
 

@@ -1,6 +1,9 @@
 using System.Net;
 using System.Net.Mail;
+using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
+
+
 
 public class EmailService : IEmailService
 {

@@ -1,6 +1,8 @@
 using CarSpot.Application. Interfaces; 
-using CarSpot.Application.Services; 
+using CarSpot.Application.Services;
+using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
+using CarSpot.Domain.Events;
 using CarSpot.Infrastructure.Persistence.Repositories; 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions. DependencyInjection;
@@ -37,6 +39,11 @@ namespace CarSpot. Infrastructure.Extensions
             services.AddScoped<IAuxiliarRepository<VehicleVersion>, AuxiliarRepository<VehicleVersion>>();
             services.AddScoped<IAuxiliarRepository<Country>, AuxiliarRepository<Country>>();
 
+            services.AddSingleton<IDomainEventHandlerFactory, DomainEventHandlerFactory>();
+            services.AddScoped<DomainEventsInterceptor>();
+
+            services.AddScoped<IDomainEventHandler<UserRegisteredEvent>, UserRegisteredEventHandler>();
+         
             return services;
         }
     }
