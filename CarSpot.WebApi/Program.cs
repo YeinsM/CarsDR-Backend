@@ -16,28 +16,33 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
 // Security policy allowing connections from any source to the API
 builder.Services.AddCors(options =>
 {
-options.AddPolicy("AllowWebApp",
-policy =>
-{
-policy
-.AllowAnyOrigin()
-.AllowAnyMethod()
-.AllowAnyHeader();
-});
+    options.AddPolicy("AllowWebApp",
+    policy =>
+    {
+        policy
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    .AllowAnyHeader();
+    });
 });
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-app.UseSwagger();
-app.UseSwaggerUI();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
+
 app.UseHttpsRedirection();
+
 app.UseCors("AllowWebApp");
 app.UseAuthorization();
 app.MapControllers();
+
 app.Run();
