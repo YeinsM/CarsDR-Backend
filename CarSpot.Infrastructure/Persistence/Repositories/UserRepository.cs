@@ -42,6 +42,11 @@ public class UserRepository : IUserRepository
         return await _context.Users.AnyAsync(u => u.Email == email);
     }
 
+    public async Task<bool> IsUserRegisteredAsync(string username)
+    {
+        return await _context.Users.AnyAsync(u => u.Username == username);
+    }
+
     public async Task<User?> ValidateCredentialsAsync(string email, HashedPassword password)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
