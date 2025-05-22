@@ -29,15 +29,15 @@ public class ApplicationDbContext : DbContext
 
     public required DbSet<User> Users { get; set; } = null!;
     public required DbSet<Vehicle> Vehicles { get; set; }
-    public DbSet<Business>? Business { get; set; }
+    public required DbSet<Business> Business { get; set; }
     public required DbSet<Make> Makes { get; set; }
     public required DbSet<Model> Models { get; set; }
-    public DbSet<CabType> cabTypes { get; set; }
+    public required DbSet<CabType> cabTypes { get; set; }
     public required DbSet<Menu> Menus { get; set; }
     public required DbSet<EmailSettings> EmailSettings { get; set; }
-    public DbSet<Listing> Listings { get; set; } = null!;
+    public required DbSet<Listing> Listings { get; set; } = null!;
     public required DbSet<Color> Colors { get; set; }
-    public DbSet<Comment>? Comments { get; set; }
+    public required DbSet<Comment>? Comments { get; set; }
     public DbSet<VehicleImage> VehicleImages { get; set; } = null!;
 
     public DbSet<Country>? Countries { get; set; }

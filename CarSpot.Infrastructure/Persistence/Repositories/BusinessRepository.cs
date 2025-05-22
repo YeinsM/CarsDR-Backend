@@ -47,7 +47,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             return await _context.SaveChangesAsync();
         }
 
-        public async Task<Business?> GetByBussinesNumberAsync(Guid bussinesNumber)
+        public async Task<Business?> GetByBussinesNumberAsync(string bussinesNumber)
         {
             return await _context.Business!
                 .FirstOrDefaultAsync(b => b.BusinessNumber == bussinesNumber);

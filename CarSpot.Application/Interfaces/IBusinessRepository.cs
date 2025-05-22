@@ -13,6 +13,6 @@ namespace CarSpot.Application.Interfaces.Repositories
         void Update(Business bussines);
         void Delete(Business bussines);
         Task<int> SaveChangesAsync();
-        Task<Business?> GetByBussinesNumberAsync(Guid bussinesNumber);
+        Task<Business?> GetByBussinesNumberAsync(string bussinesNumber);
     }
 }

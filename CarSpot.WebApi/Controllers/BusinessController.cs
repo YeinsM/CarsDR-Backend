@@ -27,6 +27,7 @@ namespace CarSpot.WebApi.Controllers
 
             var response = bussinesList.Select(b => new BusinessResponse(
                 b.Id,
+                b.Name,
                 b.BusinessNumber,
                 b.Phone,
                 b.Extension,
@@ -39,16 +40,17 @@ namespace CarSpot.WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<BusinessResponse>> GetById(Guid id)
         {
-            var bussines = await _businessRepository.GetByIdAsync(id);
+            var business = await _businessRepository.GetByIdAsync(id);
 
-            if (bussines == null) return NotFound();
+            if (business == null) return NotFound();
 
             var response = new BusinessResponse(
-                bussines.Id,
-                bussines.BusinessNumber,
-                bussines.Phone,
-                bussines.Extension,
-                bussines.Address
+                business.Id,
+                business.Name,
+                business.BusinessNumber,
+                business.Phone,
+                business.Extension,
+                business.Address
             );
 
             return Ok(response);
