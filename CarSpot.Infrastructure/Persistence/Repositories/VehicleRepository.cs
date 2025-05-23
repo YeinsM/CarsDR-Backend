@@ -48,11 +48,13 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 
         }
 
-        public async Task AddAsync(Vehicle vehicle)
-        {
-            await _context.Vehicles.AddAsync(vehicle);
-            await _context.SaveChangesAsync();
-        }
+        public async Task<Vehicle> CreateVehicleAsync(Vehicle vehicle)
+    {
+        _context.Vehicles.Add(vehicle);
+        await _context.SaveChangesAsync();
+
+        return vehicle;
+    }
 
         public async Task UpdateAsync(Vehicle vehicle)
         {

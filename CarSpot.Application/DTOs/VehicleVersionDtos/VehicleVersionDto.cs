@@ -1,2 +1,2 @@
 namespace CarSpot.Application.DTOs;
-public record VehicleVersionDto(Guid Id, string Name, Guid ModelId);
+public record VehicleVersionDto(int Id, string Name, int ModelId);

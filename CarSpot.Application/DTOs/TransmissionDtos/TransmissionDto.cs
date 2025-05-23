@@ -1,1 +1,1 @@
-public record TransmissionDto(Guid Id, string Name);
+public record TransmissionDto(int Id, string Name);

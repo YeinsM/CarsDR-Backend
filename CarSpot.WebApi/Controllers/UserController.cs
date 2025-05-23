@@ -100,6 +100,9 @@ public class UsersController : ControllerBase
             if (await _userRepository.IsEmailRegisteredAsync(request.Email))
                 return BadRequest(new { Status = 400, Message = "Email already registered" });
 
+            if (await _userRepository.GetByUsernameAsync(request.Username) != null)
+                return BadRequest(new { Status = 400, Message = "Username already registered" });
+
             var hashedPassword = HashedPassword.Create(request.Password);
 
             var user = new User(

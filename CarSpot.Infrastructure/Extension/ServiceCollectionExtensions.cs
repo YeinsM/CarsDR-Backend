@@ -3,7 +3,8 @@ using CarSpot.Application.Services;
 using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 using CarSpot.Domain.Events;
-using CarSpot.Infrastructure.Persistence.Repositories; 
+using CarSpot.Infrastructure.Persistence.Repositories;
+using CarSpot.Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions. DependencyInjection;
 
@@ -35,7 +36,7 @@ namespace CarSpot. Infrastructure.Extensions
             services.AddScoped<IAuxiliarRepository<Make>, AuxiliarRepository<Make>>();
             services.AddScoped<IAuxiliarRepository<MarketVersion>, AuxiliarRepository<MarketVersion>>(); 
             services.AddScoped<IAuxiliarRepository<Model>, AuxiliarRepository<Model>>();
-            services.AddScoped<IAuxiliarRepository<Role>, AuxiliarRepository<Role>>();
+            services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IAuxiliarRepository<VehicleVersion>, AuxiliarRepository<VehicleVersion>>();
             services.AddScoped<IAuxiliarRepository<Country>, AuxiliarRepository<Country>>();
 

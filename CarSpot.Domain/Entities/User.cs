@@ -65,11 +65,6 @@ namespace CarSpot.Domain.Entities
 
         }
 
-        //public void Register()
-        //{
-           // AddDomainEvent(new UserRegisteredEvent(Email, FullName));
-        //}
-
         public void UpdateBasicInfo(string firstName, string lastName, string username)
         {
             if (string.IsNullOrWhiteSpace(firstName))

@@ -17,7 +17,7 @@ public class AuxiliarRepository<T> : IAuxiliarRepository<T> where T : BaseAuxili
         return await _context.Set<T>().ToListAsync();
     }
 
-    public async Task<T?> GetByIdAsync(Guid id)
+    public async Task<T?> GetByIdAsync(int id)
     {
         return await _context.Set<T>().FindAsync(id);
     }
@@ -36,7 +36,7 @@ public class AuxiliarRepository<T> : IAuxiliarRepository<T> where T : BaseAuxili
         return entity;
     }
 
-    public async Task<T> DeleteAsync(Guid id)
+    public async Task<T> DeleteAsync(int id)
     {
         var entity = await _context.Set<T>().FindAsync(id);
         if (entity == null)
@@ -45,5 +45,9 @@ public class AuxiliarRepository<T> : IAuxiliarRepository<T> where T : BaseAuxili
         _context.Set<T>().Remove(entity);
         await _context.SaveChangesAsync();
         return entity;
+    }
+    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.SaveChangesAsync(cancellationToken);
     }
 }

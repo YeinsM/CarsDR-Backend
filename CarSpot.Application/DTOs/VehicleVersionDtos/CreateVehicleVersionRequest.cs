@@ -1,3 +1,3 @@
 namespace CarSpot.Application.DTOs;
 
-public record CreateVehicleVersionRequest(string Name, Guid ModelId);
+public record CreateVehicleVersionRequest(string Name, int ModelId);

@@ -1,1 +1,1 @@
-public record RoleDto(Guid Id, string Name, string? Description);
+public record RoleDto(int Id, string Name, string? Description);

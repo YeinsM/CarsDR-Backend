@@ -19,7 +19,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        public async 
+        public async
         Task<IActionResult> GetAll()
         {
             var items = await _repository.GetAllAsync();
@@ -27,21 +27,33 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var item = await _repository.GetByIdAsync(id);
-            return item is null ? NotFound() : Ok(item);
+            var condition = await _repository.GetByIdAsync(id);
+            if (condition == null)
+                return NotFound();
+            return Ok(condition);
         }
+
 
         [HttpPost]
         public async Task<IActionResult> Create(Condition condition)
         {
-            await _repository.Add(condition);
-            return CreatedAtAction(nameof(GetById), new { id = condition.Id }, condition);
+            try
+            {
+                await _repository.Add(condition);
+                await _repository.SaveChangesAsync();
+                return CreatedAtAction(nameof(GetById), new { id = condition.Id }, condition);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal error: {ex.Message}");
+            }
         }
 
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, Condition updated)
+        public async Task<IActionResult> Update(int id, Condition updated)
         {
             if (id != updated.Id) return BadRequest();
             await _repository.UpdateAsync(updated);
@@ -49,7 +61,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(Guid id)
+        public async Task<IActionResult> Delete(int id)
         {
             await _repository.DeleteAsync(id);
             return NoContent();

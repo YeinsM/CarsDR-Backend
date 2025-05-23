@@ -89,7 +89,7 @@ namespace CarSpot.WebApi.Controllers
             vehicle.Images = [];
             vehicle.Comments = [];
 
-            await _vehicleRepository.AddAsync(vehicle);
+            await _vehicleRepository.CreateVehicleAsync(vehicle);
             return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
         }
 

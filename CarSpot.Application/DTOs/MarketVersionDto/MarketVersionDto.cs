@@ -1,1 +1,1 @@
-public record MarketVersionDto(Guid Id, string Name);
+public record MarketVersionDto(int Id, string Name);

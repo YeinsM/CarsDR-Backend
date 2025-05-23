@@ -7,7 +7,7 @@ namespace CarSpot.Domain.Entities
     public class Model : BaseAuxiliar
     {
         
-        public Guid MakeId { get; private set; }
+        public int MakeId { get; private set; }
         public Make? Make { get; private set; }
         [JsonIgnore]
         public ICollection<Vehicle> Vehicles { get; private set; } = new List<Vehicle>();
@@ -17,7 +17,7 @@ namespace CarSpot.Domain.Entities
         {
         }
 
-        public Model(string name, Guid makeId)
+        public Model(string name, int makeId)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentNullException(nameof(name), "Model name is required.");
@@ -27,7 +27,7 @@ namespace CarSpot.Domain.Entities
         }
 
 
-        public void Update(string name, Guid makeId)
+        public void Update(string name, int makeId)
         {
             Name = name;
             MakeId = makeId;
