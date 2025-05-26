@@ -1,1 +1,1 @@
-public record CityResponse(int Id, string Name, Guid CountryId);
+public record CityResponse(int Id, string Name, int CountryId);

@@ -11,5 +11,6 @@ namespace CarSpot.Application.Interfaces
         Task<Listing> Add(Listing listing);
         Task<Listing> UpdateAsync(Listing listing);
         Task<Listing> DeleteAsync(Guid id);
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

@@ -31,7 +31,7 @@ namespace CarSpot.Infrastructure.Repositories
                 .FirstOrDefaultAsync(img => img.Id == id);
         }
 
-        public async Task<IEnumerable<VehicleImage>> GetByVehicleIdAsync(int vehicleId)
+        public async Task<IEnumerable<VehicleImage>> GetByVehicleIdAsync(Guid vehicleId)
         {
             return await _context.VehicleImages
                 .Where(img => img.VehicleId == vehicleId)

@@ -45,16 +45,16 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .Include(v => v.Comments)
                 .Include(u => u.Comments)
                 .FirstOrDefaultAsync(u => u.Id == id);
-                
+
         }
 
         public async Task<Vehicle> CreateVehicleAsync(Vehicle vehicle)
-    {
-        _context.Vehicles.Add(vehicle);
-        await _context.SaveChangesAsync();
+        {
+            _context.Vehicles.Add(vehicle);
+            await _context.SaveChangesAsync();
 
-        return vehicle;
-    }
+            return vehicle;
+        }
 
         public async Task UpdateAsync(Vehicle vehicle)
         {
@@ -66,6 +66,11 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
         {
             _context.Vehicles.Remove(vehicle);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.SaveChangesAsync(cancellationToken);
         }
     }
 }

@@ -60,6 +60,8 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             }
         }
 
+        
+
         public async Task<bool> ExistsAsync(Guid id)
         {
             return await _dbContext.Menus.AnyAsync(m => m.Id == id);

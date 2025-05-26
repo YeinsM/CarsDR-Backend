@@ -32,7 +32,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet("vehicle/{vehicleId}")]
-        public async Task<IActionResult> GetByVehicleIdAsync(int vehicleId)
+        public async Task<IActionResult> GetByVehicleIdAsync(Guid vehicleId)
         {
             var images = await _repository.GetByVehicleIdAsync(vehicleId);
             return Ok(images);

@@ -20,7 +20,7 @@ public class MenuController : ControllerBase
         _menuTreeBuilder = new MenuTreeBuilder();
     }
 
-   
+
     [HttpGet]
     public async Task<IActionResult> GetAllAsync()
     {
@@ -29,7 +29,7 @@ public class MenuController : ControllerBase
         return Ok(tree);
     }
 
-    
+
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -46,7 +46,7 @@ public class MenuController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = menu.Id }, menu);
     }
 
-    
+
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UpdateMenuRequest request)
     {
@@ -59,18 +59,18 @@ public class MenuController : ControllerBase
         return NoContent();
     }
 
-    
+
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var menu = await _repository.GetByIdAsync(id);
         if (menu == null)
         {
-            return NotFound(); 
+            return NotFound();
         }
 
-        await _repository.DeleteAsync(id);  
-        return NoContent(); 
+        await _repository.DeleteAsync(id);
+        return NoContent();
     }
 }
 

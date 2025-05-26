@@ -79,19 +79,20 @@ namespace CarSpot.WebApi.Controllers
                 DateTime.UtcNow
             );
 
-            
             vehicle.User = user;
             vehicle.Make = make;
             vehicle.Model = model;
             vehicle.Condition = condition;
 
-            
             vehicle.Images = [];
             vehicle.Comments = [];
 
             await _vehicleRepository.CreateVehicleAsync(vehicle);
+            await _vehicleRepository.SaveChangesAsync();
+
             return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
         }
+
 
         [HttpPut("{id:Guid}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateVehicleRequest request)
