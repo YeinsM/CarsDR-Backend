@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace CarSpot.Infrastructure.Repositories
 {
-    public class VehicleImageRepository : IAuxiliarRepository<VehicleImage>
+    public class VehicleImageRepository : IVehicleImageRepository
     {
         private readonly ApplicationDbContext _context;
 
@@ -38,7 +38,7 @@ namespace CarSpot.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<VehicleImage> Add(VehicleImage vehicleImage)
+        public async Task<VehicleImage> CreateAsync(VehicleImage vehicleImage)
         {
             _context.VehicleImages.Add(vehicleImage);
             await _context.SaveChangesAsync();
@@ -47,7 +47,7 @@ namespace CarSpot.Infrastructure.Repositories
 
         public async Task<VehicleImage> UpdateAsync(VehicleImage vehicleImage)
         {
-             _context.VehicleImages.Update(vehicleImage);
+            _context.VehicleImages.Update(vehicleImage);
             await _context.SaveChangesAsync();
             return vehicleImage;
         }
@@ -62,6 +62,10 @@ namespace CarSpot.Infrastructure.Repositories
             _context.VehicleImages.Remove(image);
             await _context.SaveChangesAsync();
             return image;
+        }
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.SaveChangesAsync(cancellationToken);
         }
 
     }

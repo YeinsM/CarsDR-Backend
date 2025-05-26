@@ -2,7 +2,7 @@ using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 using System.Text.Json.Serialization;
 
-public class Role : BaseAuxiliar
+public class Role : BaseEntity
 {
 
 public string? Description { get; set; }

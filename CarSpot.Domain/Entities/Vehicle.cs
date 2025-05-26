@@ -15,28 +15,28 @@ namespace CarSpot.Domain.Entities
         public Guid ModelId { get; set; }
         public Model Model { get; set; } = null!;
 
-        public Guid VehicleVersionId { get; set; }
+        public int VehicleVersionId { get; set; }
         public VehicleVersion VehicleVersion { get; set; } = null!;
 
-        public Guid MarketVersionId { get; set; }
+        public int MarketVersionId { get; set; }
         public MarketVersion MarketVersion { get; set; } = null!;
 
-        public Guid TransmissionId { get; set; }
+        public int TransmissionId { get; set; }
         public Transmission Transmission { get; set; } = null!;
 
-        public Guid DrivetrainId { get; set; }
+        public int DrivetrainId { get; set; }
         public Drivetrain Drivetrain { get; set; } = null!;
 
-        public Guid CylinderOptionId { get; set; }
+        public int CylinderOptionId { get; set; }
         public CylinderOption CylinderOption { get; set; } = null!;
 
-        public Guid CabTypeId { get; set; }
+        public int CabTypeId { get; set; }
         public CabType CabType { get; set; } = null!;
 
-        public Guid ConditionId { get; set; }
+        public int ConditionId { get; set; }
         public Condition Condition { get; set; } = null!;
 
-        public Guid ColorId { get; set; }
+        public int ColorId { get; set; }
         public Color Color { get; set; } = null!;
 
         public int Year { get; set; }
@@ -57,14 +57,14 @@ namespace CarSpot.Domain.Entities
             Guid userId,
             Guid makeId,
             Guid modelId,
-            Guid vehicleVersionId,
-            Guid marketVersionId,
-            Guid transmissionId,
-            Guid drivetrainId,
-            Guid cylinderOptionId,
-            Guid cabTypeId,
-            Guid conditionId,
-            Guid colorId,
+            int vehicleVersionId,
+            int marketVersionId,
+            int transmissionId,
+            int drivetrainId,
+            int cylinderOptionId,
+            int cabTypeId,
+            int conditionId,
+            int colorId,
             int year,
             int mileage,
             decimal price,
@@ -79,12 +79,6 @@ namespace CarSpot.Domain.Entities
                 throw new ArgumentNullException(nameof(vin), "VIN cannot be null or empty.");
             if (userId == Guid.Empty)
                 throw new ArgumentException("UserId cannot be empty.", nameof(userId));
-            if (makeId == Guid.Empty)
-                throw new ArgumentException("MakeId cannot be empty.", nameof(makeId));
-            if (modelId == Guid.Empty)
-                throw new ArgumentException("ModelId cannot be empty.", nameof(modelId));
-            if (vehicleVersionId == Guid.Empty)
-                throw new ArgumentException("VehicleVersionId cannot be empty.", nameof(vehicleVersionId));
             if (year < 1900 || year > DateTime.UtcNow.Year + 1)
                 throw new ArgumentOutOfRangeException(nameof(year), "Year is invalid.");
             if (price <= 0)

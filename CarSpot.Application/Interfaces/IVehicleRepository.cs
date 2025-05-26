@@ -7,8 +7,9 @@ namespace CarSpot.Application.Interfaces
     {
         Task<IEnumerable<Vehicle>> GetAllAsync();
         Task<Vehicle?> GetByIdAsync(Guid id);
-        Task AddAsync(Vehicle vehicle);
+        Task <Vehicle> CreateVehicleAsync(Vehicle vehicle);
         Task UpdateAsync(Vehicle vehicle);
         Task DeleteAsync(Vehicle vehicle);
+        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     }
 }

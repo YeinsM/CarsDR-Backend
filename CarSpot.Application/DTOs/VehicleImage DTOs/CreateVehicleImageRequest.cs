@@ -1,3 +1,3 @@
 public record CreateVehicleImageRequest
-(Guid VehicleId, string ImageUrl = null!
+(int VehicleId, string ImageUrl = null!
 );

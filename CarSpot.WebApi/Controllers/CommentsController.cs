@@ -1,18 +1,18 @@
 using System;
 using System.Threading.Tasks;
-using CarSpot.Domain.Entities;
-using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using CarSpot.Domain.Entities;
+using CarSpot.Application.Interfaces.Repositories;
 
-namespace CarSpot.API.Controllers
+namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class CommentsController : ControllerBase
     {
-        private readonly IAuxiliarRepository<Comment> _commentRepository;
+        private readonly ICommentRepository _commentRepository;
 
-        public CommentsController(IAuxiliarRepository<Comment> commentRepository)
+        public CommentsController(ICommentRepository commentRepository)
         {
             _commentRepository = commentRepository;
         }
@@ -24,6 +24,7 @@ namespace CarSpot.API.Controllers
             return Ok(comments);
         }
 
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -31,26 +32,57 @@ namespace CarSpot.API.Controllers
             return comment == null ? NotFound() : Ok(comment);
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] Comment comment)
+
+        [HttpGet("vehicle/{vehicleId:guid}")]
+        public async Task<IActionResult> GetByVehicleId(Guid vehicleId)
         {
-            comment.CreatedAt = DateTime.UtcNow;
-            await _commentRepository.Add(comment);
+            var comments = await _commentRepository.GetByVehicleIdAsync(vehicleId);
+            return Ok(comments);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateCommentRequest request)
+        {
+            var comment = new Comment
+            {
+                VehicleId = request.VehicleId,
+                UserId = request.UserId,
+                Content = request.Content,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            await _commentRepository.CreateAddAsync(comment);
             return CreatedAtAction(nameof(GetById), new { id = comment.Id }, comment);
         }
 
-        [HttpPut("{id}")]
+
+        [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] Comment updated)
         {
-            if (id != updated.Id) return BadRequest();
-            await _commentRepository.UpdateAsync(updated);
+            if (id != updated.Id)
+                return BadRequest("Comment ID mismatch.");
+
+            var existing = await _commentRepository.GetByIdAsync(id);
+            if (existing == null)
+                return NotFound();
+
+            existing.Content = updated.Content;
+            
+
+            await _commentRepository.SaveChangesAsync();
             return NoContent();
         }
 
-        [HttpDelete("{id}")]
+        [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            await _commentRepository.DeleteAsync(id);
+            var existing = await _commentRepository.GetByIdAsync(id);
+            if (existing == null)
+                return NotFound();
+
+            await _commentRepository.DeleteAsync(existing);
+            await _commentRepository.SaveChangesAsync();
+
             return NoContent();
         }
     }

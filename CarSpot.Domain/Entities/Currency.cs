@@ -1,5 +1,7 @@
 using CarSpot.Domain.Common;
 
+namespace CarSpot.Domain.Entities;
+
 public class Currency : BaseEntity
 {
     public string Name { get; set; }         

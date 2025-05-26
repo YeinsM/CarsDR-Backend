@@ -10,9 +10,9 @@ namespace CarSpot.API.Controllers
     [Route("api/[controller]")]
     public class RolesController : ControllerBase
     {
-        private readonly IAuxiliarRepository<Role> _repository;
+        private readonly IRoleRepository _repository;
 
-        public RolesController(IAuxiliarRepository<Role> repository)
+        public RolesController(IRoleRepository repository)
         {
             _repository = repository;
         }
@@ -30,13 +30,15 @@ namespace CarSpot.API.Controllers
             var item = await _repository.GetByIdAsync(id);
             return item is null ? NotFound() : Ok(item);
         }
-
         [HttpPost]
         public async Task<IActionResult> Create(Role role)
         {
-            await _repository.Add(role);
+            await _repository.CreateAsync(role);
+            await _repository.SaveChangesAsync();
+
             return CreatedAtAction(nameof(GetById), new { id = role.Id }, role);
         }
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, Role updated)

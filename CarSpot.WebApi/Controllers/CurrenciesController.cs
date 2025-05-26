@@ -21,21 +21,26 @@ public class CurrenciesController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<CurrencyResponse>> GetAll()
+    public async Task<ActionResult<IEnumerable<CurrencyResponse>>> GetAll()
     {
-        var currencies = _repository.GetAll()
-            .Select(c => new CurrencyResponse(c.Id, c.Name, c.Code, c.Symbol));
-        return Ok(currencies);
+        var currencies = await _repository.GetAll();
+
+        var result = currencies.Select(c =>
+            new CurrencyResponse(c.Id, c.Name, c.Code, c.Symbol));
+
+        return Ok(result);
     }
 
+
     [HttpGet("{id:guid}")]
-    public ActionResult<CurrencyResponse> GetById(Guid id)
+    public async Task<ActionResult<CurrencyResponse>> GetById(Guid id)
     {
-        var currency = _repository.GetById(id);
+        var currency = await _repository.GetById(id);
         if (currency == null) return NotFound();
 
         return Ok(new CurrencyResponse(currency.Id, currency.Name, currency.Code, currency.Symbol));
     }
+
 
     [HttpPost]
     public IActionResult Create([FromBody] CreateCurrencyRequest request)
@@ -46,18 +51,19 @@ public class CurrenciesController : ControllerBase
     }
 
     [HttpPut("{id:guid}")]
-    public IActionResult Update(Guid id, [FromBody] UpdateCurrencyRequest request)
+    public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCurrencyRequest request)
     {
-        var existing = _repository.GetById(id);
+        var existing = await _repository.GetById(id);
         if (existing == null) return NotFound();
 
         existing.Name = request.Name;
         existing.Code = request.Code;
         existing.Symbol = request.Symbol;
 
-        _repository.Update(existing);
+        await _repository.Update(existing);
         return NoContent();
     }
+
 
     [HttpDelete("{id:guid}")]
     public IActionResult Delete(Guid id)

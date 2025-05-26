@@ -1,9 +1,7 @@
 using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
-using CarSpot.Infrastructure.Persistence;
 using CarSpot.Infrastructure.Persistence.Context;
-
-
+using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories;
 
@@ -16,29 +14,40 @@ public class CurrencyRepository : ICurrencyRepository
         _context = context;
     }
 
-    public IEnumerable<Currency> GetAll() => _context.Currencies.ToList();
-
-    public Currency? GetById(Guid id) => _context.Currencies.Find(id);
-
-    public void Add(Currency currency)
+    public async Task<IEnumerable<Currency>> GetAll()
     {
-        _context.Currencies.Add(currency);
-        _context.SaveChanges();
+        return await _context.Currencies.ToListAsync();
     }
 
-    public void Update(Currency currency)
+    public async Task<Currency?> GetById(Guid id)
+    {
+        return await _context.Currencies.FindAsync(id);
+    }
+
+    public async Task Add(Currency currency)
+    {
+        await _context.Currencies.AddAsync(currency);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task Update(Currency currency)
     {
         _context.Currencies.Update(currency);
-        _context.SaveChanges();
+        await _context.SaveChangesAsync();
     }
 
-    public void Delete(Guid id)
+    public async Task Delete(Guid id)
     {
-        var currency = _context.Currencies.Find(id);
+        var currency = await _context.Currencies.FindAsync(id);
         if (currency != null)
         {
             _context.Currencies.Remove(currency);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.SaveChangesAsync(cancellationToken);
     }
 }

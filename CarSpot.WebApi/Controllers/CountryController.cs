@@ -26,7 +26,7 @@ public class CountryController : ControllerBase
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<IActionResult> GetById(Guid id)
+    public async Task<IActionResult> GetById(int id)
     {
         var country = await _repository.GetByIdAsync(id);
         if (country is null) return NotFound();
@@ -36,13 +36,13 @@ public class CountryController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateCountryRequest request)
     {
-        var country = new Country { Id = Guid.NewGuid(), Name = request.Name, Abbreviation = request.Abbreviation };
+        var country = new Country { Id = request.Id , Name = request.Name, Abbreviation = request.Abbreviation };
         await _repository.Add(country);
         return CreatedAtAction(nameof(GetById), new { id = country.Id }, new CountryResponse(country.Id, country.Name, country.Abbreviation));
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<IActionResult> Update(Guid id, UpdateCountryRequest request)
+    public async Task<IActionResult> Update(int id, UpdateCountryRequest request)
     {
         var country = await _repository.GetByIdAsync(id);
         if (country is null) return NotFound();
@@ -55,7 +55,7 @@ public class CountryController : ControllerBase
     }
 
     [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(int id)
     {
         await _repository.DeleteAsync(id);
         return NoContent();

@@ -25,7 +25,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id)
+        public async Task<IActionResult> GetById(int id)
         {
             var item = await _repository.GetByIdAsync(id);
             return item is null ? NotFound() : Ok(item);
@@ -39,7 +39,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, CabType updated)
+        public async Task<IActionResult> Update(int id, CabType updated)
         {
             if (id != updated.Id) return BadRequest();
             await _repository.UpdateAsync(updated);
@@ -47,7 +47,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteAsync(Guid id)
+        public async Task<IActionResult> DeleteAsync(int id)
         {
             await _repository.DeleteAsync(id);
             return NoContent();

@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using CarSpot.Application.Interfaces.Repositories;
+using Microsoft.AspNetCore.DataProtection.Repositories;
 
 namespace CarSpot.API.Controllers
 {
@@ -10,9 +12,9 @@ namespace CarSpot.API.Controllers
     [Route("api/[controller]")]
     public class MakesController : ControllerBase
     {
-        private readonly IAuxiliarRepository<Make> _repository;
+        private readonly IMakeRepository _repository;
 
-        public MakesController(IAuxiliarRepository<Make> repository)
+        public MakesController(IMakeRepository repository)
         {
             _repository = repository;
         }
@@ -40,20 +42,20 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] string name)
+        public async Task<IActionResult> Update(Guid id, [FromBody] string newName)
         {
             var existing = await _repository.GetByIdAsync(id);
             if (existing is null) return NotFound();
 
-            existing.Update(name);
-            await _repository.UpdateAsync(existing);
+            existing.Update(newName);
+            await _repository.UpdateAsync(id, newName);
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            await _repository.DeleteAsync(id);
+            await _repository.RemoveAsync(id);
             return NoContent();
         }
     }

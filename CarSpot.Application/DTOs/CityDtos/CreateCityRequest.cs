@@ -1,1 +1,1 @@
-public record CreateCityRequest(string Name, Guid CountryId);
+public record CreateCityRequest(string Name, int CountryId);

@@ -1,3 +1,3 @@
 namespace CarSpot.Application.DTOs;
 
-public record UpdateModelRequest(string Name, Guid MakeId);
+public record UpdateModelRequest(Guid Id, string Name, Guid MakeId);

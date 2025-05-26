@@ -62,8 +62,8 @@ public class UserRepository : IUserRepository
 
         //if (emailSettings is not null)
         //{
-            //await _emailService.SendEmailAsync(user.Email, "Bienvenido al sistema", bodyMessage, emailSettings.NickName!);
-       // }
+        //await _emailService.SendEmailAsync(user.Email, "Bienvenido al sistema", bodyMessage, emailSettings.NickName!);
+        // }
 
         return user;
     }
@@ -87,9 +87,9 @@ public class UserRepository : IUserRepository
         if (user == null)
             throw new KeyNotFoundException($"User with ID {id} not found.");
 
-        
+
         user.UpdatedAt = DateTime.UtcNow;
-        
+
 
         await _context.SaveChangesAsync();
 
@@ -103,8 +103,9 @@ public class UserRepository : IUserRepository
     }
 
     public async Task<User?> GetByUsernameAsync(string username)
-{
-    return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
-}
+    {
+        return await _context.Users.FirstOrDefaultAsync(u => u.Username == username);
+    }
+
 
 }
