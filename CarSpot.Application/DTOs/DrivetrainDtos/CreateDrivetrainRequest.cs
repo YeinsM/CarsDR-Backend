@@ -1,0 +1,1 @@
+public record CreateDrivetrainRequest(string Name);

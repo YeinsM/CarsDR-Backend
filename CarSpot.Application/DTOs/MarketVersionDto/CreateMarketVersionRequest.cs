@@ -1,0 +1,1 @@
+public record CreateMarketVersionRequest(string Name);

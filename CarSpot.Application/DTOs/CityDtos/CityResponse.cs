@@ -1,0 +1,1 @@
+public record CityResponse(int Id, string Name, int CountryId);

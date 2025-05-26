@@ -1,0 +1,1 @@
+public record UpdateCountryRequest(int Id, string Name, string Abbreviation);

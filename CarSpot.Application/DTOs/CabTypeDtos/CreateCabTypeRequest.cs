@@ -1,0 +1,1 @@
+public record CreateCabTypeRequest(string Name);
