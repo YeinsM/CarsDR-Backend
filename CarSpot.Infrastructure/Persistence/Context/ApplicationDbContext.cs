@@ -29,7 +29,7 @@ public class ApplicationDbContext : DbContext
 
     public required DbSet<User> Users { get; set; } = null!;
     public required DbSet<Vehicle> Vehicles { get; set; }
-    public DbSet<Bussines>? Bussines { get; set; }
+    public DbSet<Business>? Business { get; set; }
     public required DbSet<Make> Makes { get; set; }
     public required DbSet<Model> Models { get; set; }
     public required DbSet<Menu> Menus { get; set; }
