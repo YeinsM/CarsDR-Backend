@@ -1,8 +1,8 @@
 namespace CarSpot.Application.DTOs;
 
 public record UpdateVehicleRequest(
-        int MakeId,
-        int ModelId,
+        Guid MakeId,
+        Guid ModelId,
         int VehicleVersionId,
         int MarketVersionId,
         int TransmissionId,

@@ -4,6 +4,8 @@ using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Domain.Common;
+using CarSpot.Application.Interfaces.Repositories;
+using CarSpot.Application.DTOs;
 
 namespace CarSpot.API.Controllers
 {
@@ -11,10 +13,10 @@ namespace CarSpot.API.Controllers
     [Route("api/[controller]")]
     public class ModelsController : ControllerBase
     {
-        private readonly IAuxiliarRepository<Model> _repository;
-        private readonly IAuxiliarRepository<Make> _makeRepository; 
+        private readonly IModelRepository _repository;
+        private readonly IMakeRepository _makeRepository;
 
-        public ModelsController(IAuxiliarRepository<Model> repository, IAuxiliarRepository<Make> makeRepository)
+        public ModelsController(IModelRepository repository, IMakeRepository makeRepository)
         {
             _repository = repository;
             _makeRepository = makeRepository;
@@ -28,7 +30,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<IActionResult> GetById(Guid id)
         {
             var item = await _repository.GetByIdAsync(id);
             return item is null ? NotFound() : Ok(item);
@@ -37,7 +39,7 @@ namespace CarSpot.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] Model model)
         {
-            
+
             var make = await _makeRepository.GetByIdAsync(model.MakeId);
             if (make is null)
                 return BadRequest($"Make with ID {model.MakeId} does not exist.");
@@ -47,21 +49,22 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Model updated)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateModelRequest updated)
         {
-            if (id != updated.Id) return BadRequest();
+            if (id != updated.Id)
+                return BadRequest("URL ID does not match body ID.");
 
-            
             var make = await _makeRepository.GetByIdAsync(updated.MakeId);
             if (make is null)
                 return BadRequest($"Make with ID {updated.MakeId} does not exist.");
 
-            await _repository.UpdateAsync(updated);
+            await _repository.UpdateAsync(updated.Id, updated.Name, updated.MakeId);
             return NoContent();
         }
 
+
         [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(Guid id)
         {
             await _repository.DeleteAsync(id);
             return NoContent();

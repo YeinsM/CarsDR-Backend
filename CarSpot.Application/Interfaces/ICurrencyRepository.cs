@@ -4,8 +4,8 @@ namespace CarSpot.Application.Interfaces;
 
 public interface ICurrencyRepository
 {
-    IEnumerable<Currency> GetAll();
-    Currency? GetById(Guid id);
+    Task<IEnumerable<Currency>> GetAll();
+    Task<Currency?> GetById(Guid id);
     Task Add(Currency currency);
     Task Update(Currency currency);
     Task Delete(Guid id);

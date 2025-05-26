@@ -1,5 +1,6 @@
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
+using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -11,8 +12,8 @@ namespace CarSpot.WebApi.Controllers
     [Route("api/[controller]")]
     public class VehicleController : ControllerBase
     {
-        private readonly IAuxiliarRepository<Make> _makeRepository;
-        private readonly IAuxiliarRepository<Model> _modelRepository;
+        private readonly IMakeRepository _makeRepository;
+        private readonly IModelRepository _modelRepository;
         private readonly IAuxiliarRepository<Condition> _conditionRepository;
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IUserRepository _userRepository;
@@ -20,8 +21,8 @@ namespace CarSpot.WebApi.Controllers
         public VehicleController(
             IVehicleRepository vehicleRepository,
             IUserRepository userRepository,
-            IAuxiliarRepository<Make> makeRepository,
-            IAuxiliarRepository<Model> modelRepository,
+            IMakeRepository makeRepository,
+            IModelRepository modelRepository,
             IAuxiliarRepository<Condition> conditionRepository)
         {
             _vehicleRepository = vehicleRepository;

@@ -1,4 +1,5 @@
-using CarSpot.Application. Interfaces; 
+using CarSpot.Application. Interfaces;
+using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Application.Services;
 using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
@@ -24,21 +25,23 @@ namespace CarSpot. Infrastructure.Extensions
             services.AddScoped<IMenuRepository, MenuRepository>();
             services.AddScoped<IMenuService, MenuService>();
             services.AddScoped<IEmailSettingsRepository, EmailSettingsRepository>();
+            services.AddScoped<IBussinesRepository, BussinesRepository>();
             services.AddScoped<IListingRepository, ListingRepository>();
             services.AddScoped<IListingStatusRepository, ListingStatusRepository>();
             services.AddScoped<ICurrencyRepository, CurrencyRepository>();
+            services.AddScoped<IModelRepository, ModelRepository>();
+            services.AddScoped<IMakeRepository, MakeRepository>();
             services.AddScoped<IAuxiliarRepository<Transmission>, AuxiliarRepository<Transmission>>();
             services.AddScoped<IAuxiliarRepository<Color>, AuxiliarRepository<Color>>();
             services.AddScoped<IAuxiliarRepository<CabType>, AuxiliarRepository<CabType>>();
             services.AddScoped<IAuxiliarRepository<Condition>, AuxiliarRepository<Condition>>(); 
             services.AddScoped<IAuxiliarRepository<CylinderOption>, AuxiliarRepository<CylinderOption>>();
             services.AddScoped<IAuxiliarRepository<Drivetrain>, AuxiliarRepository<Drivetrain>>(); 
-            services.AddScoped<IAuxiliarRepository<Make>, AuxiliarRepository<Make>>();
             services.AddScoped<IAuxiliarRepository<MarketVersion>, AuxiliarRepository<MarketVersion>>(); 
-            services.AddScoped<IAuxiliarRepository<Model>, AuxiliarRepository<Model>>();
             services.AddScoped<IRoleRepository, RoleRepository>();
             services.AddScoped<IAuxiliarRepository<VehicleVersion>, AuxiliarRepository<VehicleVersion>>();
             services.AddScoped<IAuxiliarRepository<Country>, AuxiliarRepository<Country>>();
+            services.AddScoped<IAuxiliarRepository<City>, AuxiliarRepository<City>>();
 
             services.AddScoped<IDomainEventHandlerFactory, DomainEventHandlerFactory>();
             services.AddScoped<DomainEventsInterceptor>();

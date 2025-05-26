@@ -1,3 +1,3 @@
 namespace CarSpot.Application.DTOs;
 
-public record ModelDto(int Id, string Name, int MakeId);
+public record ModelDto(Guid Id, string Name, int MakeId);

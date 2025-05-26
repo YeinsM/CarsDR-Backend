@@ -3,8 +3,12 @@ using System.Text.Json.Serialization;
 
 namespace CarSpot.Domain.Entities
 {
-    public class Make : BaseAuxiliar
+    public class Make
+
     {
+        public Guid Id { get; set; }
+        public string Name { get; set; }
+
         [JsonIgnore]
         public ICollection<Model> Models { get; private set; } = new List<Model>();
 

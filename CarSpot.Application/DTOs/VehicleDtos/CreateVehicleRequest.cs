@@ -3,8 +3,8 @@ namespace CarSpot.Application.DTOs
     public record CreateVehicleRequest(
         string VIN,
         Guid UserId,
-        int MakeId,
-        int ModelId,
+        Guid MakeId,
+        Guid ModelId,
         int VehicleVersionId,
         int MarketVersionId,
         int TransmissionId,

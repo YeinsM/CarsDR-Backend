@@ -29,6 +29,7 @@ public class ApplicationDbContext : DbContext
 
     public required DbSet<User> Users { get; set; } = null!;
     public required DbSet<Vehicle> Vehicles { get; set; }
+    public DbSet<Bussines>? Bussines { get; set; }
     public required DbSet<Make> Makes { get; set; }
     public required DbSet<Model> Models { get; set; }
     public required DbSet<Menu> Menus { get; set; }
@@ -39,6 +40,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<VehicleImage> VehicleImages { get; set; } = null!;
 
     public DbSet<Country>? Countries { get; set; }
+    public DbSet<City> Cities { get; set; } = null!;
     public DbSet<Currency> Currencies { get; set; } = null!;
 
     public DbSet<ListingStatus> ListingStatuses { get; set; } = null!;

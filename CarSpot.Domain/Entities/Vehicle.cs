@@ -9,10 +9,10 @@ namespace CarSpot.Domain.Entities
         public Guid UserId { get; set; }
         public User User { get; set; } = null!;
 
-        public int MakeId { get; set; }
+        public Guid MakeId { get; set; }
         public Make Make { get; set; } = null!;
 
-        public int ModelId { get; set; }
+        public Guid ModelId { get; set; }
         public Model Model { get; set; } = null!;
 
         public int VehicleVersionId { get; set; }
@@ -55,8 +55,8 @@ namespace CarSpot.Domain.Entities
         public Vehicle(
             string vin,
             Guid userId,
-            int makeId,
-            int modelId,
+            Guid makeId,
+            Guid modelId,
             int vehicleVersionId,
             int marketVersionId,
             int transmissionId,

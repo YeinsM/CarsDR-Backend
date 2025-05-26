@@ -3,6 +3,7 @@ using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Threading.Tasks;
+using CarSpot.Application.Interfaces.Repositories;
 
 namespace CarSpot.API.Controllers
 {
@@ -11,11 +12,11 @@ namespace CarSpot.API.Controllers
     public class VehicleVersionsController : ControllerBase
     {
         private readonly IAuxiliarRepository<VehicleVersion> _repository;
-        private readonly IAuxiliarRepository<Model> _modelRepository;
+        private readonly IModelRepository _modelRepository;
 
         public VehicleVersionsController(
             IAuxiliarRepository<VehicleVersion> repository,
-            IAuxiliarRepository<Model> modelRepository)
+            IModelRepository modelRepository)
         {
             _repository = repository;
             _modelRepository = modelRepository;

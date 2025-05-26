@@ -4,11 +4,12 @@ using System.Text.Json.Serialization;
 namespace CarSpot.Domain.Entities
 
 {
-    public class Model : BaseAuxiliar
+    public class Model
     {
-        
-        public int MakeId { get; private set; }
-        public Make? Make { get; private set; }
+        public Guid Id { get; set; }
+        public string? Name { get; set; }
+        public Guid MakeId { get; set; }
+        public Make? Make { get; set; }
         [JsonIgnore]
         public ICollection<Vehicle> Vehicles { get; private set; } = new List<Vehicle>();
         public ICollection<VehicleVersion> VehicleVersions {get; private set;} = new List<VehicleVersion>();
@@ -17,7 +18,7 @@ namespace CarSpot.Domain.Entities
         {
         }
 
-        public Model(string name, int makeId)
+        public Model(string name, Guid makeId)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentNullException(nameof(name), "Model name is required.");
@@ -27,7 +28,7 @@ namespace CarSpot.Domain.Entities
         }
 
 
-        public void Update(string name, int makeId)
+        public void Update(string name, Guid makeId)
         {
             Name = name;
             MakeId = makeId;
