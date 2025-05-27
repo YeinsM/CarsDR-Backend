@@ -38,7 +38,7 @@ namespace CarSpot.Infrastructure.Middleware
                     Status = context.Response.StatusCode,
                     Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
                     Title = "Internal Server Error",
-                    Detail = "An unexpected error occurred on the server."
+                    Detail = e.Message
                 };
 
                 var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };

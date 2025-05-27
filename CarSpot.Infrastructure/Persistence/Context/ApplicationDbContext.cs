@@ -32,6 +32,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<Bussines>? Bussines { get; set; }
     public required DbSet<Make> Makes { get; set; }
     public required DbSet<Model> Models { get; set; }
+    public DbSet<CabType> cabTypes { get; set; }
     public required DbSet<Menu> Menus { get; set; }
     public required DbSet<EmailSettings> EmailSettings { get; set; }
     public DbSet<Listing> Listings { get; set; } = null!;
