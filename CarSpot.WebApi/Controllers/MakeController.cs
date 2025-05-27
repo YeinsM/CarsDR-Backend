@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Interfaces.Repositories;
 using Microsoft.AspNetCore.DataProtection.Repositories;
 
-namespace CarSpot.API.Controllers
+namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

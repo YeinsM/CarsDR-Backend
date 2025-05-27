@@ -15,7 +15,6 @@
     <Folder Include="Authentication\" />
     <Folder Include="Extensions\" />
     <Folder Include="Persistence\Context\" />
-    <Folder Include="Persistence\Repositories\" />
   </ItemGroup>
 
   <ItemGroup>
