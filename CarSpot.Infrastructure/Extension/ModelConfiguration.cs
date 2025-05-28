@@ -166,6 +166,8 @@ namespace CarSpot.Infrastructure.Persistence.Configurations
 
                 entity.Property(b => b.Address)
                 .HasMaxLength(300);
+                entity.Property(b => b.UpdatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
             });
 
         }

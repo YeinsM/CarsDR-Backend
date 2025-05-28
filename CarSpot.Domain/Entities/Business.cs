@@ -12,6 +12,7 @@ namespace CarSpot.Domain.Entities
         public string? Phone {get; set;}
         public string? Extension {get; set;}
         public string? Address {get; set;}
+       
 
     }
 }

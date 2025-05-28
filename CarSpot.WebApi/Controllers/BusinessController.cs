@@ -59,20 +59,34 @@ namespace CarSpot.WebApi.Controllers
         [HttpPost]
         public async Task<ActionResult> Create(CreateBusinessRequest request)
         {
-            var bussines = new Business
+            try
             {
-                Id = Guid.NewGuid(),
-                BusinessNumber = request.BusinessNumber,
-                Phone = request.Phone,
-                Extension = request.Extension,
-                Address = request.Address
-            };
+                var business = new Business
+                {
+                    Id = Guid.NewGuid(),
+                    Name = request.Name,
+                    BusinessNumber = request.BusinessNumber,
+                    Phone = request.Phone,
+                    Extension = request.Extension,
+                    Address = request.Address,
+                    UpdatedAt = DateTime.UtcNow
+                };
 
-            await _businessRepository.AddAsync(bussines);
-            await _businessRepository.SaveChangesAsync();
+                await _businessRepository.Add(business);
+                await _businessRepository.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetById), new { id = bussines.Id }, null);
+                return CreatedAtAction(nameof(GetById), new { id = business.Id }, null);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = ex.Message,
+                    inner = ex.InnerException?.Message
+                });
+            }
         }
+
 
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(Guid id, UpdateBusinessRequest request)
