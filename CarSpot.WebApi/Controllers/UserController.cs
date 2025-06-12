@@ -10,6 +10,8 @@ using System;
 using System.Linq;
 using System.Net.Mail;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace CarSpot.WebApi.Controllers;
 
@@ -247,6 +249,38 @@ public class UsersController : ControllerBase
             return StatusCode(500, $"Connection failed: {ex.Message}");
         }
     }
+
+    [Authorize]
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetProfile()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { message = "Invalid token or user ID not found." });
+
+        var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
+
+        if (user == null)
+            return NotFound(new { message = "User not found." });
+
+        var response = new UserDto(
+            user.Id,
+            user.Email,
+            user.Username,
+            user.Phone,
+            user.RoleId,
+            user.IsActive,
+            user.CreatedAt,
+            user.UpdatedAt,
+            user.BusinessId,
+            [.. user.Vehicles.Select(v => new VehicleDto(v.Id, v.VIN, v.Year, v.Color?.ToString(), v.ModelId))],
+            [.. user.Comments.Select(c => new CommentResponse(c.Id, c.VehicleId, c.UserId, c.Content, c.CreatedAt))]
+        );
+
+        return Ok(response);
+    }
+
 
 
 
