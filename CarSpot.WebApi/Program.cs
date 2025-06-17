@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using System.Text;
+using System;
+using Microsoft.Extensions.Options;
 using CarSpot.Infrastructure.Extensions;
 using CarSpot.Infrastructure.Middleware;
 using CarSpot.Infrastructure.Persistence.Context;
@@ -20,7 +22,7 @@ builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
-// Security policy allowing connections from any source to the API
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowWebApp",
@@ -35,6 +37,14 @@ builder.Services.AddCors(options =>
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+
+
+if (jwtSettings == null || string.IsNullOrWhiteSpace(jwtSettings.Secret))
+{
+    throw new InvalidOperationException("JwtSettings section is missing or incomplete in configuration. Please check your appsettings.json.");
+}
+builder.Services.AddSingleton(jwtSettings);
+
 var key = Encoding.ASCII.GetBytes(jwtSettings.Secret);
 
 builder.Services.AddAuthentication(options =>
@@ -55,6 +65,7 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(key)
     };
 });
+
 
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();

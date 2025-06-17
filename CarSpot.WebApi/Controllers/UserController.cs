@@ -23,17 +23,20 @@ public class UsersController : ControllerBase
     private readonly IEmailService _emailService;
     private readonly IEmailSettingsRepository _emailSettingsRepository;
     private readonly IConfiguration _configuration;
+    private readonly IJwtTokenGenerator _jwtTokenGenerator;
 
     public UsersController(
         IUserRepository userRepository,
         IEmailService emailService,
         IConfiguration configuration,
-        IEmailSettingsRepository emailSettingsRepository)
+        IEmailSettingsRepository emailSettingsRepository,
+        IJwtTokenGenerator jwtTokenGenerator)
     {
         _userRepository = userRepository;
         _emailService = emailService;
         _configuration = configuration;
         _emailSettingsRepository = emailSettingsRepository;
+        _jwtTokenGenerator = jwtTokenGenerator;
     }
 
     [HttpGet]
@@ -162,15 +165,25 @@ public class UsersController : ControllerBase
     {
         var user = await _userRepository.GetByEmailAsync(request.EmailOrUsername);
 
-
         if (user == null)
             user = await _userRepository.GetByUsernameAsync(request.EmailOrUsername);
 
         if (user == null || !user.Password.Verify(request.Password))
             return Unauthorized(new { Status = 401, Message = "Invalid credentials" });
 
-        return Ok(new { Status = 200, Message = "Login successful" });
+        // AQUÍ GENERAMOS EL TOKEN:
+        var token = _jwtTokenGenerator.GenerateToken(user);
+
+        return Ok(new
+        {
+            Status = 200,
+            Message = "Login successful",
+            Token = token,
+            Expires = DateTime.UtcNow.AddMinutes(60),
+            UserId = user.Id
+        });
     }
+
 
 
     [HttpPut("{id}")]
