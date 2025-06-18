@@ -66,18 +66,6 @@ builder.Services.AddCors(options =>
     });
 });
 
-builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
-var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
-
-
-if (jwtSettings == null || string.IsNullOrWhiteSpace(jwtSettings.Secret))
-{
-    throw new InvalidOperationException("JwtSettings section is missing or incomplete in configuration. Please check your appsettings.json.");
-}
-builder.Services.AddSingleton(jwtSettings);
-
-var key = Encoding.UTF8.GetBytes(jwtSettings.Secret);
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -94,7 +82,8 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
         ValidAudience = builder.Configuration["JwtSettings:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"]))
+            Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"])),
+        ClockSkew = TimeSpan.Zero
     };
 });
 

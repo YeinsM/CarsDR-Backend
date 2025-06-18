@@ -3,22 +3,27 @@ using System.Security.Claims;
 using System.Text;
 using CarSpot.Domain.Entities;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Configuration;
 
 public class JwtTokenGenerator : IJwtTokenGenerator
 {
-    private readonly JwtSettings _jwtSettings;
+    private readonly IConfiguration _configuration;
 
-    public JwtTokenGenerator(IOptions<JwtSettings> jwtSettings)
+    public JwtTokenGenerator(IConfiguration configuration)
     {
-        _jwtSettings = jwtSettings.Value;
+        _configuration = configuration;
     }
 
     public string GenerateToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var key = Encoding.UTF8.GetBytes(_jwtSettings.Secret);
+        var secret = _configuration["JwtSettings:Secret"]
+                ?? throw new InvalidOperationException("JwtSettings:Secret is missing in configuration.");
+
+        var key = Encoding.UTF8.GetBytes(secret);
+
         var now = DateTime.UtcNow;
+
         var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
@@ -28,14 +33,16 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
+        var expiryMinutes = Convert.ToInt32(_configuration["JwtSettings:ExpiryMinutes"]);
+
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryMinutes),
+            Expires = now.AddMinutes(expiryMinutes),
             NotBefore = now,
             IssuedAt = now,
-            Issuer = _jwtSettings.Issuer,
-            Audience = _jwtSettings.Audience,
+            Issuer = _configuration["JwtSettings:Issuer"],
+            Audience = _configuration["JwtSettings:Audience"],
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(key),
                 SecurityAlgorithms.HmacSha256Signature
