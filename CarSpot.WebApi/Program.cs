@@ -76,7 +76,7 @@ if (jwtSettings == null || string.IsNullOrWhiteSpace(jwtSettings.Secret))
 }
 builder.Services.AddSingleton(jwtSettings);
 
-var key = Encoding.ASCII.GetBytes(jwtSettings.Secret);
+var key = Encoding.UTF8.GetBytes(jwtSettings.Secret);
 
 builder.Services.AddAuthentication(options =>
 {
