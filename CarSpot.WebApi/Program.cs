@@ -24,7 +24,7 @@ builder.Services.AddSwaggerGen(c =>
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Name = "Authorization",
-        Type = SecuritySchemeType.Http,
+        Type = SecuritySchemeType.ApiKey,
         Scheme = "bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
@@ -46,26 +46,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
-
-// Register application services
-builder.Services.AddApplicationServices(builder.Configuration);
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
-
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowWebApp",
-    policy =>
-    {
-        policy
-    .AllowAnyOrigin()
-    .AllowAnyMethod()
-    .AllowAnyHeader();
-    });
-});
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -86,6 +66,27 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero
     };
 });
+
+
+
+// Register application services
+builder.Services.AddApplicationServices(builder.Configuration);
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowWebApp",
+    policy =>
+    {
+        policy
+    .AllowAnyOrigin()
+    .AllowAnyMethod()
+    .AllowAnyHeader();
+    });
+});
+
 
 
 
