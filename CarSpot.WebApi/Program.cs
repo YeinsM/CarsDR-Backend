@@ -12,11 +12,16 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using CarSpot.Infrastructure.Settings;
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
+
+builder.Services.AddScoped<IPhotoService, PhotoService>();
 
 
 // Register application services

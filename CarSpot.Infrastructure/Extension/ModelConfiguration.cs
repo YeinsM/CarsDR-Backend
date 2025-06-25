@@ -142,7 +142,7 @@ namespace CarSpot.Infrastructure.Persistence.Configurations
 
             modelBuilder.Entity<VehicleVersion>(entity =>
             {
-                entity.ToTable("Versions");
+                entity.ToTable("VehicleVersions");
                 entity.HasKey(c => c.Id);
                 entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
             });

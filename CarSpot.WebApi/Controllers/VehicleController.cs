@@ -1,4 +1,5 @@
 using CarSpot.Application.DTOs;
+using CarSpot.Application.DTOs.VehicleImage;
 using CarSpot.Application.Interfaces;
 using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Domain.Entities;
@@ -17,19 +18,26 @@ namespace CarSpot.WebApi.Controllers
         private readonly IAuxiliarRepository<Condition> _conditionRepository;
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IUserRepository _userRepository;
+        private readonly IVehicleImageRepository _vehicleImageRepository;
+        private readonly IPhotoService _photoService;
+
 
         public VehicleController(
             IVehicleRepository vehicleRepository,
             IUserRepository userRepository,
             IMakeRepository makeRepository,
             IModelRepository modelRepository,
-            IAuxiliarRepository<Condition> conditionRepository)
+            IAuxiliarRepository<Condition> conditionRepository,
+            IVehicleImageRepository vehicleImageRepository,
+            IPhotoService photoService)
         {
             _vehicleRepository = vehicleRepository;
             _userRepository = userRepository;
             _makeRepository = makeRepository;
             _modelRepository = modelRepository;
             _conditionRepository = conditionRepository;
+            _vehicleImageRepository = vehicleImageRepository;
+            _photoService = photoService;
         }
 
         [HttpGet]
@@ -93,6 +101,27 @@ namespace CarSpot.WebApi.Controllers
 
             return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
         }
+
+        [HttpPost("upload-image")]
+        public async Task<IActionResult> UploadVehicleImage([FromForm] CreateVehicleImageRequest request)
+        {
+            var url = await _photoService.UploadImageAsync(request.ImageFile);
+
+            if (url == null)
+                return BadRequest("Error uploading image.");
+
+            var image = new VehicleImage
+            {
+                Id = Guid.NewGuid(),
+                VehicleId = request.VehicleId,
+                ImageUrl = url
+            };
+
+            await _vehicleImageRepository.CreateAsync(image);
+
+            return Ok(new { image.Id, image.ImageUrl });
+        }
+
 
 
         [HttpPut("{id:Guid}")]
