@@ -5,6 +5,7 @@ using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Interfaces.Repositories;
 using Microsoft.AspNetCore.DataProtection.Repositories;
+using CarSpot.Application.DTOs.MakeDtos;
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -34,12 +35,13 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] string name)
+        public async Task<IActionResult> Create([FromBody] CreateMakeRequest request)
         {
-            var make = new Make(name);
+            var make = new Make(request.Name);
             await _repository.Add(make);
             return CreatedAtAction(nameof(GetById), new { id = make.Id }, make);
         }
+
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] string newName)

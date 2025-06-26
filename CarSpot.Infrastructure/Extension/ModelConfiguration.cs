@@ -170,6 +170,41 @@ namespace CarSpot.Infrastructure.Persistence.Configurations
                 .HasDefaultValueSql("GETUTCDATE()");
             });
 
+             modelBuilder.Entity<MarketVersion>(entity =>
+            {
+                entity.ToTable("MarketVersions");
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
+            });
+
+             modelBuilder.Entity<Transmission>(entity =>
+            {
+                entity.ToTable("Transmissions");
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
+            });
+
+             modelBuilder.Entity<Drivetrain>(entity =>
+            {
+                entity.ToTable("Drivetrains");
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
+            });
+
+             modelBuilder.Entity<CylinderOption>(entity =>
+            {
+                entity.ToTable("CylinderOptions");
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
+            });
+
+            modelBuilder.Entity<Condition>(entity =>
+            {
+                entity.ToTable("Conditions");
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
+            });
+
         }
     }
 }

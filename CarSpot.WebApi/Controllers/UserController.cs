@@ -171,7 +171,7 @@ public class UsersController : ControllerBase
         if (user == null || !user.Password.Verify(request.Password))
             return Unauthorized(new { Status = 401, Message = "Invalid credentials" });
 
-        // AQUÍ GENERAMOS EL TOKEN:
+        
         var token = _jwtTokenGenerator.GenerateToken(user);
 
         return Ok(new

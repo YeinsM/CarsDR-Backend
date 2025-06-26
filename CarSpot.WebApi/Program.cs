@@ -15,7 +15,12 @@ using Microsoft.OpenApi.Models;
 using CarSpot.Infrastructure.Settings;
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(x =>
+        {
+            x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        });
+        
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.Configure<CloudinarySettings>(
@@ -49,11 +54,15 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 
+
+
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseHttpsRedirection();
