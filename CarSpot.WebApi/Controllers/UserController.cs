@@ -1,5 +1,6 @@
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
+using CarSpot.Infrastructure.Persistence.Repositories;
 using CarSpot.Domain.Entities;
 using CarSpot.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
@@ -24,16 +25,20 @@ public class UsersController : ControllerBase
     private readonly IEmailSettingsRepository _emailSettingsRepository;
     private readonly IConfiguration _configuration;
     private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly IVehicleRepository _vehicleRepository;
+
 
     public UsersController(
         IUserRepository userRepository,
         IEmailService emailService,
+        IVehicleRepository vehicleRepository,
         IConfiguration configuration,
         IEmailSettingsRepository emailSettingsRepository,
         IJwtTokenGenerator jwtTokenGenerator)
     {
         _userRepository = userRepository;
         _emailService = emailService;
+        _vehicleRepository = vehicleRepository;
         _configuration = configuration;
         _emailSettingsRepository = emailSettingsRepository;
         _jwtTokenGenerator = jwtTokenGenerator;
@@ -42,7 +47,12 @@ public class UsersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
+
         var users = await _userRepository.GetAllAsync();
+
+
+        var vehicles = await _vehicleRepository.GetAllAsync();
+
 
         var response = users.Select(u => new UserDto(
             u.Id,
@@ -54,12 +64,25 @@ public class UsersController : ControllerBase
             u.CreatedAt,
             u.UpdatedAt,
             u.BusinessId,
-            [.. u.Vehicles.Select(v => new VehicleDto(v.Id, v.VIN, v.Year, v.Color?.ToString(), v.ModelId))],
-            [.. u.Comments.Select(c => new CommentResponse(c.Id, c.VehicleId, c.UserId, c.Content, c.CreatedAt))]
+
+            vehicles.Where(v => v.UserId == u.Id).ToList(),
+
+
+            u.Comments.Select(c => new CommentResponse(
+                c.Id,
+                c.VehicleId,
+                c.UserId,
+                c.Content,
+                c.CreatedAt
+            )).ToList()
         ));
 
         return Ok(response);
     }
+
+
+
+
 
 
     [HttpGet("{id:Guid}")]
@@ -68,6 +91,9 @@ public class UsersController : ControllerBase
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null)
             return NotFound(new { Status = 404, Message = "User not found" });
+
+        var vehicles = await _vehicleRepository.GetAllAsync();
+        var userVehicles = vehicles.Where(v => v.UserId == user.Id).ToList();
 
         var userDto = new UserDto(
             user.Id,
@@ -79,8 +105,14 @@ public class UsersController : ControllerBase
             user.CreatedAt,
             user.UpdatedAt,
             user.BusinessId,
-            [.. user.Vehicles.Select(v => new VehicleDto(v.Id, v.VIN, v.Year, v.Color?.ToString(), v.ModelId))],
-            [.. user.Comments.Select(c => new CommentResponse(c.Id, c.VehicleId, c.UserId, c.Content, c.CreatedAt))]
+            userVehicles,
+            user.Comments.Select(c => new CommentResponse(
+                c.Id,
+                c.VehicleId,
+                c.UserId,
+                c.Content,
+                c.CreatedAt
+            )).ToList()
         );
 
         return Ok(userDto);
@@ -171,7 +203,7 @@ public class UsersController : ControllerBase
         if (user == null || !user.Password.Verify(request.Password))
             return Unauthorized(new { Status = 401, Message = "Invalid credentials" });
 
-        
+
         var token = _jwtTokenGenerator.GenerateToken(user);
 
         return Ok(new
@@ -277,6 +309,9 @@ public class UsersController : ControllerBase
         if (user == null)
             return NotFound(new { message = "User not found." });
 
+        var vehicles = await _vehicleRepository.GetAllAsync();
+        var userVehicles = vehicles.Where(v => v.UserId == user.Id).ToList();
+
         var response = new UserDto(
             user.Id,
             user.Email,
@@ -287,8 +322,14 @@ public class UsersController : ControllerBase
             user.CreatedAt,
             user.UpdatedAt,
             user.BusinessId,
-            [.. user.Vehicles.Select(v => new VehicleDto(v.Id, v.VIN, v.Year, v.Color?.ToString(), v.ModelId))],
-            [.. user.Comments.Select(c => new CommentResponse(c.Id, c.VehicleId, c.UserId, c.Content, c.CreatedAt))]
+            userVehicles,
+            user.Comments.Select(c => new CommentResponse(
+                c.Id,
+                c.VehicleId,
+                c.UserId,
+                c.Content,
+                c.CreatedAt
+            )).ToList()
         );
 
         return Ok(response);

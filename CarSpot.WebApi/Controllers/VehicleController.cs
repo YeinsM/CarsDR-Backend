@@ -16,6 +16,7 @@ namespace CarSpot.WebApi.Controllers
         private readonly IMakeRepository _makeRepository;
         private readonly IModelRepository _modelRepository;
         private readonly IAuxiliarRepository<Condition> _conditionRepository;
+        private readonly IAuxiliarRepository<Color> _colorRepository;
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IUserRepository _userRepository;
         private readonly IVehicleImageRepository _vehicleImageRepository;
@@ -28,6 +29,7 @@ namespace CarSpot.WebApi.Controllers
             IMakeRepository makeRepository,
             IModelRepository modelRepository,
             IAuxiliarRepository<Condition> conditionRepository,
+            IAuxiliarRepository<Color> colorRepository,
             IVehicleImageRepository vehicleImageRepository,
             IPhotoService photoService)
         {
@@ -36,6 +38,7 @@ namespace CarSpot.WebApi.Controllers
             _makeRepository = makeRepository;
             _modelRepository = modelRepository;
             _conditionRepository = conditionRepository;
+            _colorRepository = colorRepository;
             _vehicleImageRepository = vehicleImageRepository;
             _photoService = photoService;
         }
@@ -61,9 +64,10 @@ namespace CarSpot.WebApi.Controllers
             var make = await _makeRepository.GetByIdAsync(request.MakeId);
             var model = await _modelRepository.GetByIdAsync(request.ModelId);
             var condition = await _conditionRepository.GetByIdAsync(request.ConditionId);
+            var color = await _colorRepository.GetByIdAsync(request.ColorId);
 
-            if (user is null || make is null || model is null || condition is null)
-                return BadRequest("One or more required entities (User, Make, Model, Condition) were not found.");
+            if (user is null || make is null || model is null || condition is null || color is null)
+                return BadRequest("One or more required entities (User, Make, Model, Condition, Color) were not found.");
 
             var vehicle = new Vehicle(
                 request.VIN,
@@ -92,13 +96,26 @@ namespace CarSpot.WebApi.Controllers
             vehicle.Make = make;
             vehicle.Model = model;
             vehicle.Condition = condition;
+            vehicle.Color = color;
 
             vehicle.Images = [];
             vehicle.Comments = [];
 
             await _vehicleRepository.CreateVehicleAsync(vehicle);
 
-            return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, vehicle);
+            var response = new VehicleResponse(
+                vehicle.Id,
+                vehicle.Title,
+                vehicle.VIN,
+                make.Name,
+                model.Name,
+                condition.Name,
+                color.Name,
+                vehicle.Year,
+                vehicle.Price
+            );
+
+            return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, response);
         }
 
         [HttpPost("upload-image")]
