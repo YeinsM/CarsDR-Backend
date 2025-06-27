@@ -10,7 +10,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
         public async Task<IEnumerable<Vehicle>> GetAllAsync()
         {
             return await _context.Vehicles
-                .Include(v => v.Model)
+               /* .Include(v => v.Model)
                 .Include(v => v.Make)
                 .Include(v => v.User)
                 .Include(v => v.VehicleVersion)
@@ -23,7 +23,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .Include(v => v.Color)
                 .Include(v => v.Images)
                 .Include(v => v.Comments)
-                .AsNoTracking()
+                */.AsNoTracking()
                 .ToListAsync();
         }
 
@@ -50,7 +50,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
 
         public async Task<Vehicle> CreateVehicleAsync(Vehicle vehicle)
         {
-            _context.Vehicles.Add(vehicle);
+            await _context.Vehicles.AddAsync(vehicle);
             await _context.SaveChangesAsync();
 
             return vehicle;
