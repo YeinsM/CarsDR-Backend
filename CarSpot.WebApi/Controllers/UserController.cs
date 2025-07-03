@@ -13,6 +13,8 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Collections.Generic;
+
 
 namespace CarSpot.WebApi.Controllers;
 
@@ -42,6 +44,29 @@ public class UsersController : ControllerBase
         _configuration = configuration;
         _emailSettingsRepository = emailSettingsRepository;
         _jwtTokenGenerator = jwtTokenGenerator;
+    }
+
+
+    [HttpGet("basic")]
+    public async Task<IActionResult> GetAllBasic()
+    {
+        var users = await _userRepository.GetAllBasicAsync();
+
+        var response = users.Select(u => new UserDto(
+            u.Id,
+            u.Email,
+            u.Username,
+            u.Phone,
+            u.RoleId,
+            u.IsActive,
+            u.CreatedAt,
+            u.UpdatedAt,
+            u.BusinessId,
+            new List<VehicleDto>(), 
+            new List<CommentResponse>()
+        ));
+
+        return Ok(response);
     }
 
     [HttpGet]
@@ -176,16 +201,6 @@ public class UsersController : ControllerBase
 
             await _userRepository.RegisterUserAsync(user);
             await _userRepository.SaveChangesAsync();
-
-            /*var bodyMessage = _emailService.Body(user);
-            var emailSettings = await _emailSettingsRepository.GetSettingsAsync();
-
-            await _emailService.SendEmailAsync(
-                user.Email,
-                "Welcome to CarSpot",
-                bodyMessage,
-                emailSettings?.NickName
-            );*/
 
             return Ok(new { Status = 200, Message = "User registered successfully", UserId = user.Id });
         }

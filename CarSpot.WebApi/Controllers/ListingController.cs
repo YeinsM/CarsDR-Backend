@@ -6,6 +6,7 @@ using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces;
 using CarSpot.Application.DTOs;
 using System.Collections.Generic;
+using CarSpot.Application.DTOS;
 
 
 [ApiController]
@@ -23,7 +24,24 @@ public class ListingsController : ControllerBase
     public async Task<IActionResult> GetAll()
     {
         var listings = await _repository.GetAllAsync();
-        return Ok(listings);
+
+        var response = listings.Select(listing => new ListingResponse
+        {
+            Id = listing.Id,
+            Title = listing.Title,
+            Description = listing.Description,
+            Price = listing.Price,
+            CurrencyId = listing.CurrencyId,
+            ListingStatusId = listing.ListingStatusId,
+            ExpiresAt = listing.ExpiresAt,
+            IsFeatured = listing.IsFeatured,
+            FeaturedUntil = listing.FeaturedUntil,
+            UserId = listing.UserId,
+            VehicleId = listing.VehicleId
+
+        });
+
+        return Ok(response);
     }
 
 
@@ -39,7 +57,7 @@ public class ListingsController : ControllerBase
 
 
     [HttpPost]
-    public IActionResult Create([FromBody] CreateListingRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateListingRequest request)
     {
         if (request == null)
             return BadRequest("Request cannot be null");
@@ -59,13 +77,17 @@ public class ListingsController : ControllerBase
             FeaturedUntil = request.FeaturedUntil,
             ViewCount = 0,
 
-            Images = request.Images?.Select(url => new VehicleImage { ImageUrl = url }).ToList() ?? new List<VehicleImage>()
         };
 
-        _repository.Add(listing);
+        var savedListing = await _repository.Add(listing);
 
-        return Ok(new { Message = "Listing created successfully", ListingId = listing.Id });
+        return Ok(new
+        {
+            Message = "Listing created successfully",
+            ListingId = savedListing.Id
+        });
     }
+
 
 
 
@@ -89,15 +111,11 @@ public class ListingsController : ControllerBase
         existingListing.IsFeatured = request.IsFeatured;
         existingListing.FeaturedUntil = request.FeaturedUntil;
 
-
-        existingListing.Images.Clear();
-        foreach (var url in request.Images)
-        {
-            existingListing.Images.Add(new VehicleImage { ImageUrl = url });
-        }
+         existingListing.UpdatedAt = DateTime.UtcNow;
 
         await _repository.UpdateAsync(existingListing);
-        return NoContent();
+        return Ok("Listing updated successfully");
+
     }
 
 

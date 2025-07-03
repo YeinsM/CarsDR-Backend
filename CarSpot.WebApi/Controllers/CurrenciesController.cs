@@ -43,12 +43,31 @@ public class CurrenciesController : ControllerBase
 
 
     [HttpPost]
-    public IActionResult Create([FromBody] CreateCurrencyRequest request)
+    public async Task<IActionResult> Create([FromBody] CreateCurrencyRequest request)
     {
-        var currency = new Currency(request.Name, request.Code, request.Symbol);
-        _repository.Add(currency);
-        return Ok();
+        var currency = new Currency
+        {
+            Id = Guid.NewGuid(),
+            Name = request.Name,
+            Code = request.Code,
+            Symbol = request.Symbol
+        };
+
+        await _repository.Add(currency);
+
+        return Ok(new
+        {
+            Status = 200,
+            Message = "Currency created successfully",
+            Data = new
+            {
+                currency.Name,
+                currency.Code,
+                currency.Symbol
+            }
+        });
     }
+
 
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCurrencyRequest request)

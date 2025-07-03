@@ -5,6 +5,8 @@ namespace CarSpot.Application.Interfaces
 {
     public interface IUserRepository
     {
+        Task<IEnumerable<User>> GetAllBasicAsync();
+
         Task<User?> GetByEmailAsync(string email);
         Task<IEnumerable<User>> GetAllAsync();
 
