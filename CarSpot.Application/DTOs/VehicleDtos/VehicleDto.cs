@@ -15,6 +15,8 @@ public record VehicleDto(
     string CabType,
     string MarketVersion,
     string VehicleVersion,
-    Guid UserId
+    Guid UserId,
+    List<VehicleImageDto> Images
 );
+
 

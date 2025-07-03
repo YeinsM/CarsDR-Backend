@@ -1,5 +1,4 @@
 using CarSpot.Application.DTOs;
-using CarSpot.Application.DTOs.VehicleImage;
 using CarSpot.Application.Interfaces;
 using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Domain.Entities;
@@ -118,26 +117,45 @@ namespace CarSpot.WebApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, response);
         }
 
-        [HttpPost("upload-image")]
-        public async Task<IActionResult> UploadVehicleImage([FromForm] CreateVehicleImageRequest request)
+        [HttpPost("{vehicleId}/images")]
+        public async Task<IActionResult> UploadImage(Guid vehicleId, [FromForm] CreateVehicleImageRequest request)
         {
-            var url = await _photoService.UploadImageAsync(request.ImageFile);
+            var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId);
+            if (vehicle == null) return NotFound();
 
-            if (url == null)
-                return BadRequest("Error uploading image.");
+            var uploadResult = await _photoService.UploadImageAsync(request.File);
 
             var image = new VehicleImage
             {
                 Id = Guid.NewGuid(),
-                VehicleId = request.VehicleId,
-                ImageUrl = url
+                VehicleId = vehicleId,
+                ImageUrl = uploadResult.Url,
+                PublicId = uploadResult.PublicId
             };
 
-            await _vehicleImageRepository.CreateAsync(image);
+            await _vehicleImageRepository.GetByIdAsync(image.Id);
 
-            return Ok(new { image.Id, image.ImageUrl });
+            return CreatedAtAction(nameof(GetImageById), new { id = image.Id }, image);
         }
 
+        [HttpGet("images/{id}")]
+        public async Task<IActionResult> GetImageById(Guid id)
+        {
+            var image = await _vehicleImageRepository.GetByIdAsync(id);
+            return image is null ? NotFound() : Ok(image);
+        }
+
+        [HttpDelete("images/{id}")]
+        public async Task<IActionResult> DeleteImage(Guid id)
+        {
+            var image = await _vehicleImageRepository.GetByIdAsync(id);
+            if (image is null) return NotFound();
+
+            await _photoService.DeleteImageAsync(image.ListingId);
+            await _vehicleImageRepository.DeleteAsync(id);
+
+            return NoContent();
+        }
 
 
         [HttpPut("{id:Guid}")]

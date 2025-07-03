@@ -47,12 +47,7 @@ public class UsersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-
         var users = await _userRepository.GetAllAsync();
-
-
-        var vehicles = await _vehicleRepository.GetAllAsync();
-
 
         var response = users.Select(u => new UserDto(
             u.Id,
@@ -64,10 +59,27 @@ public class UsersController : ControllerBase
             u.CreatedAt,
             u.UpdatedAt,
             u.BusinessId,
-
-            vehicles.Where(v => v.UserId == u.Id).ToList(),
-
-
+            u.Vehicles.Select(v => new VehicleDto(
+                v.Id,
+                v.VIN,
+                v.Year,
+                v.Make?.Name ?? "N/A",
+                v.Model?.Name ?? "N/A",
+                v.ModelId,
+                v.Color?.Name ?? "N/A",
+                v.Condition?.Name ?? "N/A",
+                v.Transmission?.Name ?? "N/A",
+                v.Drivetrain?.Name ?? "N/A",
+                v.CylinderOption?.Name ?? "N/A",
+                v.CabType?.Name ?? "N/A",
+                v.MarketVersion?.Name ?? "N/A",
+                v.VehicleVersion?.Name ?? "N/A",
+                v.UserId,
+                v.Images.Select(img => new VehicleImageDto(
+                    img.Id,
+                    img.ImageUrl ?? ""
+                )).ToList()
+            )).ToList(),
             u.Comments.Select(c => new CommentResponse(
                 c.Id,
                 c.VehicleId,
@@ -89,13 +101,15 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> GetById(Guid id)
     {
         var user = await _userRepository.GetByIdAsync(id);
-        if (user == null)
-            return NotFound(new { Status = 404, Message = "User not found" });
+        if (user is null)
+            return NotFound(new { message = "User not found" });
 
         var vehicles = await _vehicleRepository.GetAllAsync();
-        var userVehicles = vehicles.Where(v => v.UserId == user.Id).ToList();
+        var userVehicles = vehicles
+            .Where(v => v.UserId == user.Id)
+            .ToList();
 
-        var userDto = new UserDto(
+        var response = new UserDto(
             user.Id,
             user.Email,
             user.Username,
@@ -115,8 +129,13 @@ public class UsersController : ControllerBase
             )).ToList()
         );
 
-        return Ok(userDto);
+        return Ok(response);
     }
+
+
+
+
+
 
 
 

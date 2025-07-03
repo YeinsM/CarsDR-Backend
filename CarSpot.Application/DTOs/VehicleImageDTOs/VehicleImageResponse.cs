@@ -1,6 +1,7 @@
-public record ListingDto(
-    int Id,
-    decimal Price,
-    string Currency,
-    List<string> Images
+namespace CarSpot.Application.DTOs;
+
+public record VehicleImageResponse(
+    Guid Id,
+    Guid VehicleId,
+    string ImageUrl
 );

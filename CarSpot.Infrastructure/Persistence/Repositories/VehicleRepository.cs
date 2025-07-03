@@ -3,50 +3,66 @@ using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
-    public class VehicleRepository(ApplicationDbContext _context) : IVehicleRepository
+    public class VehicleRepository : IVehicleRepository
     {
+        private readonly ApplicationDbContext _context;
+        private readonly IPhotoService _photoService;
+
+        public VehicleRepository(ApplicationDbContext context, IPhotoService photoService)
+        {
+            _context = context;
+            _photoService = photoService;
+        }
+
         public async Task<IEnumerable<VehicleDto>> GetAllAsync()
         {
-            var result = await (
-                from v in _context.Vehicles
+            var vehicles = await _context.Vehicles
+                .Include(v => v.Images)
+                .Include(v => v.Make)
+                .Include(v => v.Model)
+                .Include(v => v.Color)
+                .Include(v => v.Condition)
+                .Include(v => v.Transmission)
+                .Include(v => v.Drivetrain)
+                .Include(v => v.CylinderOption)
+                .Include(v => v.CabType)
+                .Include(v => v.MarketVersion)
+                .Include(v => v.VehicleVersion)
+                .AsNoTracking()
+                .ToListAsync();
 
-                join mk in _context.Makes on v.MakeId equals mk.Id
-                join mo in _context.Models on v.ModelId equals mo.Id
-                join c in _context.Colors on v.ColorId equals c.Id
-                join cond in _context.Conditions on v.ConditionId equals cond.Id
-                join t in _context.Transmissions on v.TransmissionId equals t.Id
-                join d in _context.Drivetrains on v.DrivetrainId equals d.Id
-                join cy in _context.CylinderOptions on v.CylinderOptionId equals cy.Id
-                join cab in _context.CabTypes on v.CabTypeId equals cab.Id
-                join mv in _context.MarketVersions on v.MarketVersionId equals mv.Id
-                join vv in _context.VehicleVersions on v.VehicleVersionId equals vv.Id
-                join u in _context.Users on v.UserId equals u.Id
-
-                select new VehicleDto(
-                    v.Id,
-                    v.VIN,
-                    v.Year,
-                    mk.Name,
-                    mo.Name,
-                    mo.Id,
-                    c.Name,
-                    cond.Name,
-                    t.Name,
-                    d.Name,
-                    cy.Name,
-                    cab.Name,
-                    mv.Name,
-                    vv.Name,
-                    v.UserId
-                )
-            ).AsNoTracking().ToListAsync();
+            var result = vehicles.Select(v => new VehicleDto(
+                v.Id,
+                v.VIN,
+                v.Year,
+                v.Make.Name,
+                v.Model.Name!,
+                v.Model.Id,
+                v.Color.Name,
+                v.Condition.Name,
+                v.Transmission.Name,
+                v.Drivetrain.Name,
+                v.CylinderOption.Name,
+                v.CabType.Name,
+                v.MarketVersion.Name,
+                v.VehicleVersion.Name,
+                v.UserId,
+               v.Images.Select(img => new VehicleImageDto(
+                img.Id,
+                img.ImageUrl ?? ""
+                )).ToList()
+            ));
 
             return result;
         }
-
 
         public async Task<Vehicle?> GetByIdAsync(Guid id)
         {
@@ -64,9 +80,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .Include(v => v.Color)
                 .Include(v => v.Images)
                 .Include(v => v.Comments)
-                .Include(u => u.Comments)
-                .FirstOrDefaultAsync(u => u.Id == id);
-
+                .FirstOrDefaultAsync(v => v.Id == id);
         }
 
         public async Task<Vehicle> CreateVehicleAsync(Vehicle vehicle)
@@ -92,6 +106,28 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             return await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task DeleteByIdAsync(Guid id)
+        {
+            var vehicle = await _context.Vehicles
+                .Include(v => v.Images)
+                .FirstOrDefaultAsync(v => v.Id == id);
+
+            if (vehicle is null) return;
+
+            foreach (var img in vehicle.Images)
+            {
+                if (img.ListingId != Guid.Empty)
+                {
+                    await _photoService.DeleteImageAsync(img.ListingId);
+                }
+
+                _context.VehicleImages.Remove(img);
+            }
+
+            _context.Vehicles.Remove(vehicle);
+            await _context.SaveChangesAsync();
         }
     }
 }

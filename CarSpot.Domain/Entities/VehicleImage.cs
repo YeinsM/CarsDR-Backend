@@ -9,6 +9,5 @@ public string? ImageUrl { get; set; }
 public Vehicle? Vehicle { get; set; }
 public Guid ListingId { get; set; }
 public Listing Listing { get; set; }=null!;
-
-
+public string? PublicId { get; set; }
 }
