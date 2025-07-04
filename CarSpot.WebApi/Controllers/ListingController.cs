@@ -88,11 +88,6 @@ public class ListingsController : ControllerBase
         });
     }
 
-
-
-
-
-
     [HttpPut("{id}")]
     public async Task<IActionResult> UpdateListing(Guid id, [FromBody] UpdateListingRequest request)
     {

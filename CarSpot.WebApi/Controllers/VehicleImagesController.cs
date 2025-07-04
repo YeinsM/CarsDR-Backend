@@ -90,8 +90,12 @@ namespace CarSpot.API.Controllers
             if (image is null)
                 return NotFound(new { message = "Image not found." });
 
+            await _photoService.DeleteImageAsync(id);
+
             await _repository.DeleteAsync(id);
+
             return NoContent();
         }
+
     }
 }
