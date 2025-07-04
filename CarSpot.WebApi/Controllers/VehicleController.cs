@@ -121,9 +121,11 @@ namespace CarSpot.WebApi.Controllers
         public async Task<IActionResult> UploadImage(Guid vehicleId, [FromForm] CreateVehicleImageRequest request)
         {
             var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId);
-            if (vehicle == null) return NotFound();
+            if (vehicle == null) return NotFound(new { message = "Vehicle not found." });
 
             var uploadResult = await _photoService.UploadImageAsync(request.File);
+            if (uploadResult is null)
+                return StatusCode(500, new { message = "Image upload failed." });
 
             var image = new VehicleImage
             {
@@ -133,10 +135,11 @@ namespace CarSpot.WebApi.Controllers
                 PublicId = uploadResult.PublicId
             };
 
-            await _vehicleImageRepository.GetByIdAsync(image.Id);
+            await _vehicleImageRepository.CreateAsync(image);
 
             return CreatedAtAction(nameof(GetImageById), new { id = image.Id }, image);
         }
+
 
         [HttpGet("images/{id}")]
         public async Task<IActionResult> GetImageById(Guid id)
@@ -149,13 +152,14 @@ namespace CarSpot.WebApi.Controllers
         public async Task<IActionResult> DeleteImage(Guid id)
         {
             var image = await _vehicleImageRepository.GetByIdAsync(id);
-            if (image is null) return NotFound();
+            if (image is null) return NotFound(new { message = "Image not found." });
 
-            await _photoService.DeleteImageAsync(image.ListingId);
+            await _photoService.DeleteImageAsync(id);
             await _vehicleImageRepository.DeleteAsync(id);
 
             return NoContent();
         }
+
 
 
         [HttpPut("{id:Guid}")]
