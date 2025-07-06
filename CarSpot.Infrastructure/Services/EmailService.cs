@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Mail;
 using CarSpot.Application.Interfaces;
 
+namespace CarSpot.Infrastructure.Services;
+
 public class EmailService : IEmailService
 {
     private readonly IEmailSettingsRepository _emailSettingsRepository;

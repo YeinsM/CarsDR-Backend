@@ -1,4 +1,4 @@
-using CarSpot.Domain.Entities;
+namespace CarSpot.Domain.Entities;
 
 public class VehicleImage
 {

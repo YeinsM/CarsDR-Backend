@@ -1,7 +1,7 @@
-
-
 using CarSpot.Domain.Common;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+
+namespace CarSpot.Infrastructure.Persistence.Interceptor;
 
 public class DomainEventsInterceptor : SaveChangesInterceptor
 {
