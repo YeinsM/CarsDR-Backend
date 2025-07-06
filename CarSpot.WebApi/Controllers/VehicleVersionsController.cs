@@ -1,9 +1,6 @@
-using CarSpot.Domain.Entities;
-using CarSpot.Application.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Threading.Tasks;
 using CarSpot.Application.Interfaces.Repositories;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.API.Controllers
 {
@@ -39,11 +36,11 @@ namespace CarSpot.API.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] VehicleVersion vehicleVersion)
         {
-            
-        
-                var model = await _modelRepository.GetByIdAsync(vehicleVersion.ModelId);
-                if (model is null)
-                    return BadRequest($"Model with ID {vehicleVersion.ModelId} does not exist.");
+
+
+            var model = await _modelRepository.GetByIdAsync(vehicleVersion.ModelId);
+            if (model is null)
+                return BadRequest($"Model with ID {vehicleVersion.ModelId} does not exist.");
 
             await _repository.Add(vehicleVersion);
             return CreatedAtAction(nameof(GetById), new { id = vehicleVersion.Id }, vehicleVersion);

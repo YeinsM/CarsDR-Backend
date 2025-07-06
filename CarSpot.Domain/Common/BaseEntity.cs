@@ -1,4 +1,4 @@
-﻿namespace CarSpot.Domain.Common
+namespace CarSpot.Domain.Common
 {
     public abstract class BaseEntity
     {
@@ -22,7 +22,7 @@
 
 
 
-        
+
         protected void AddDomainEvent(IDomainEvent domainEvent)
         {
             _domainEvents.Add(domainEvent);

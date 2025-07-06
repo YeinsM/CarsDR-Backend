@@ -1,3 +1,3 @@
 using CarSpot.Domain.Common;
 
-public class Color : BaseAuxiliar {}
+public class Color : BaseAuxiliar { }

@@ -17,10 +17,42 @@ public class UserRepository : IUserRepository
         _emailService = emailService;
     }
 
+    public async Task<IEnumerable<User>> GetAllBasicAsync()
+    {
+        return await _context.Users
+            .Include(u => u.Role)
+            .ToListAsync();
+    }
+
     public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await _context.Users.ToListAsync();
+        return await _context.Users
+            .Include(u => u.Vehicles)
+                .ThenInclude(v => v.Make)
+            .Include(u => u.Vehicles)
+                .ThenInclude(v => v.Model)
+            .Include(u => u.Vehicles)
+                .ThenInclude(v => v.Color)
+            .Include(u => u.Vehicles)
+                .ThenInclude(v => v.Condition)
+            .Include(u => u.Vehicles)
+                .ThenInclude(v => v.Transmission)
+            .Include(u => u.Vehicles)
+                .ThenInclude(v => v.Drivetrain)
+            .Include(u => u.Vehicles)
+                .ThenInclude(v => v.CylinderOption)
+            .Include(u => u.Vehicles)
+                .ThenInclude(v => v.CabType)
+            .Include(u => u.Vehicles)
+                .ThenInclude(v => v.MarketVersion)
+            .Include(u => u.Vehicles)
+                .ThenInclude(v => v.VehicleVersion)
+            .Include(u => u.Vehicles)
+                .ThenInclude(v => v.Images)
+            .Include(u => u.Comments)
+            .ToListAsync();
     }
+
 
 
     public async Task<User?> GetByIdAsync(Guid id)
@@ -42,6 +74,11 @@ public class UserRepository : IUserRepository
         return await _context.Users.AnyAsync(u => u.Email == email);
     }
 
+    public async Task<bool> IsUserRegisteredAsync(string username)
+    {
+        return await _context.Users.AnyAsync(u => u.Username == username);
+    }
+
     public async Task<User?> ValidateCredentialsAsync(string email, HashedPassword password)
     {
         var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
@@ -56,14 +93,6 @@ public class UserRepository : IUserRepository
     {
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
-
-        //var bodyMessage = _emailService.Body(user);
-        //var emailSettings = await _context.EmailSettings.FirstOrDefaultAsync(e => e.NickName == "Notifications");
-
-        //if (emailSettings is not null)
-        //{
-        //await _emailService.SendEmailAsync(user.Email, "Bienvenido al sistema", bodyMessage, emailSettings.NickName!);
-        // }
 
         return user;
     }

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CarSpot.Domain.Entities;
 
 namespace CarSpot.Application.Interfaces
@@ -11,7 +9,7 @@ namespace CarSpot.Application.Interfaces
         Task AddAsync(Menu menu);
         Task Update(Menu menu);
         Task DeleteAsync(Guid id);
-        
+
         Task<bool> ExistsAsync(Guid id);
     }
 }

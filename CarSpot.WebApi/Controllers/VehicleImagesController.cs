@@ -1,55 +1,100 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
-using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+
+
 
 namespace CarSpot.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")] 
+    [Route("api/[controller]")]
     public class VehicleImagesController : ControllerBase
     {
         private readonly IVehicleImageRepository _repository;
+        private readonly IPhotoService _photoService;
 
-        public VehicleImagesController(IVehicleImageRepository repository)
+        public VehicleImagesController(
+            IVehicleImageRepository repository,
+            IPhotoService photoService)
         {
             _repository = repository;
+            _photoService = photoService;
         }
+
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<IEnumerable<VehicleImageResponse>>> GetAll()
         {
             var images = await _repository.GetAllAsync();
-            return Ok(images);
+            var response = images.Select(img => new VehicleImageResponse(img.Id, img.VehicleId, img.ImageUrl));
+            return Ok(response);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(Guid id)
+
+        [HttpGet("{id:guid}")]
+        public async Task<ActionResult<VehicleImageResponse>> GetById(Guid id)
         {
             var image = await _repository.GetByIdAsync(id);
-            return image == null ? NotFound() : Ok(image);
+            if (image is null)
+                return NotFound(new { message = "Image not found." });
+
+            var response = new VehicleImageResponse(image.Id, image.VehicleId, image.ImageUrl);
+            return Ok(response);
         }
 
-        [HttpGet("vehicle/{vehicleId}")]
-        public async Task<IActionResult> GetByVehicleIdAsync(Guid vehicleId)
+
+        [HttpGet("vehicle/{vehicleId:guid}")]
+        public async Task<ActionResult<IEnumerable<VehicleImageResponse>>> GetByVehicleIdAsync(Guid vehicleId)
         {
             var images = await _repository.GetByVehicleIdAsync(vehicleId);
-            return Ok(images);
+            var response = images.Select(img => new VehicleImageResponse(img.Id, img.VehicleId, img.ImageUrl));
+            return Ok(response);
         }
 
+
+        [Consumes("multipart/form-data")]
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] VehicleImage image)
+        public async Task<IActionResult> Create([FromForm] CreateVehicleImageRequest request)
         {
+            if (request.File is null || request.File.Length == 0)
+                return BadRequest(new { message = "Image file is required." });
+
+            var uploadResult = await _photoService.UploadImageAsync(request.File);
+            if (uploadResult == null || string.IsNullOrWhiteSpace(uploadResult.Url))
+                return StatusCode(500, new { message = "Image upload failed." });
+
+            var image = new VehicleImage
+            {
+                Id = Guid.NewGuid(),
+                VehicleId = request.VehicleId,
+                ImageUrl = uploadResult.Url,
+                PublicId = uploadResult.PublicId
+            };
+
             await _repository.CreateAsync(image);
-            return CreatedAtAction(nameof(GetById), new { id = image.Id }, image);
+
+            var response = new VehicleImageResponse(image.Id, image.VehicleId, image.ImageUrl);
+            return CreatedAtAction(nameof(GetById), new { id = image.Id }, response);
         }
 
-        [HttpDelete("{id}")]
+
+        [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
+            var image = await _repository.GetByIdAsync(id);
+            if (image is null)
+                return NotFound(new { message = "Image not found." });
+
+            await _photoService.DeleteImageAsync(id);
+
             await _repository.DeleteAsync(id);
+
             return NoContent();
         }
+
     }
 }

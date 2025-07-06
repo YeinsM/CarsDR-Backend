@@ -1,9 +1,7 @@
-using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Domain.Entities;
-using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
 
 
 [ApiController]
@@ -25,7 +23,7 @@ public class CountryController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
         var country = await _repository.GetByIdAsync(id);
@@ -36,7 +34,7 @@ public class CountryController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Create(CreateCountryRequest request)
     {
-        var country = new Country { Id = request.Id , Name = request.Name, Abbreviation = request.Abbreviation };
+        var country = new Country { Id = request.Id, Name = request.Name, Abbreviation = request.Abbreviation };
         await _repository.Add(country);
         return CreatedAtAction(nameof(GetById), new { id = country.Id }, new CountryResponse(country.Id, country.Name, country.Abbreviation));
     }

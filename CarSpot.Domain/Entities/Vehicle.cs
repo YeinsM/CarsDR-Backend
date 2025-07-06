@@ -51,7 +51,7 @@ namespace CarSpot.Domain.Entities
         public ICollection<VehicleImage> Images { get; set; } = new List<VehicleImage>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 
-        public Vehicle(){}
+        public Vehicle() { }
         public Vehicle(
             string vin,
             Guid userId,

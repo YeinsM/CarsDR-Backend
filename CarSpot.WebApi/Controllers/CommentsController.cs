@@ -1,8 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces.Repositories;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -67,7 +66,7 @@ namespace CarSpot.WebApi.Controllers
                 return NotFound();
 
             existing.Content = updated.Content;
-            
+
 
             await _commentRepository.SaveChangesAsync();
             return NoContent();

@@ -1,5 +1,5 @@
-using CarSpot.Domain.Entities;
 using CarSpot.Application.DTOs;
+using CarSpot.Domain.Entities;
 
 namespace CarSpot.Application.Services
 {

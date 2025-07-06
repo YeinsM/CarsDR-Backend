@@ -1,23 +1,38 @@
 using CarSpot.Infrastructure.Extensions;
 using CarSpot.Infrastructure.Middleware;
 using CarSpot.Infrastructure.Persistence.Context;
+using CarSpot.Infrastructure.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
 var builder = WebApplication.CreateBuilder(args);
+
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(x =>
+        {
+            x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        });
+
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+builder.Services.Configure<CloudinarySettings>(
+    builder.Configuration.GetSection("CloudinarySettings"));
+
+
+builder.Services.AddScoped<IPhotoService, PhotoService>();
+
 
 // Register application services
+builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
-// Security policy allowing connections from any source to the API
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowWebApp",
@@ -29,7 +44,10 @@ builder.Services.AddCors(options =>
     .AllowAnyHeader();
     });
 });
+
+
 var app = builder.Build();
+
 app.UseMiddleware<ExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
@@ -37,12 +55,15 @@ if (app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseHttpsRedirection();
 
 app.UseCors("AllowWebApp");
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();

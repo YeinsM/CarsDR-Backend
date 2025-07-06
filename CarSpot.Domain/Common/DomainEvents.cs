@@ -1,6 +1,3 @@
-
-using CarSpot.Domain.Common;
-
 namespace CarSpot.Domain.Common;
 
 public static class DomainEvents

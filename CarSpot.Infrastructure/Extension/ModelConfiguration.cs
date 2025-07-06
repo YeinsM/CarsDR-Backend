@@ -2,7 +2,6 @@ using CarSpot.Domain.Entities;
 using CarSpot.Domain.ValueObjects;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace CarSpot.Infrastructure.Persistence.Configurations
@@ -142,10 +141,69 @@ namespace CarSpot.Infrastructure.Persistence.Configurations
 
             modelBuilder.Entity<VehicleVersion>(entity =>
             {
-                entity.ToTable("Versions");
+                entity.ToTable("VehicleVersions");
                 entity.HasKey(c => c.Id);
                 entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
             });
+
+            modelBuilder.Entity<Business>(entity =>
+            {
+                entity.HasKey(b => b.Id);
+                entity.Property(b => b.Name)
+                .IsRequired()
+                .HasMaxLength(150);
+
+                entity.Property(b => b.BusinessNumber)
+                .IsRequired()
+                .HasMaxLength(50);
+
+                entity.Property(b => b.Phone)
+                .HasMaxLength(20);
+
+                entity.Property(b => b.Extension)
+                .HasMaxLength(10);
+
+                entity.Property(b => b.Address)
+                .HasMaxLength(300);
+                entity.Property(b => b.UpdatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
+            });
+
+            modelBuilder.Entity<MarketVersion>(entity =>
+           {
+               entity.ToTable("MarketVersions");
+               entity.HasKey(c => c.Id);
+               entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
+           });
+
+            modelBuilder.Entity<Transmission>(entity =>
+           {
+               entity.ToTable("Transmissions");
+               entity.HasKey(c => c.Id);
+               entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
+           });
+
+            modelBuilder.Entity<Drivetrain>(entity =>
+           {
+               entity.ToTable("Drivetrains");
+               entity.HasKey(c => c.Id);
+               entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
+           });
+
+            modelBuilder.Entity<CylinderOption>(entity =>
+           {
+               entity.ToTable("CylinderOptions");
+               entity.HasKey(c => c.Id);
+               entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
+           });
+
+            modelBuilder.Entity<Condition>(entity =>
+            {
+                entity.ToTable("Conditions");
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
+            });
+
         }
     }
 }

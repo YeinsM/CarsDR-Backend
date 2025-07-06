@@ -1,11 +1,12 @@
- namespace CarSpot.Application.DTOs
+namespace CarSpot.Application.DTOs
 {
- 
- public record BusinessResponse(
-        Guid Id,
-        Guid BussinesNumber,
-        string? PhoneBussines,
-        string? ExtencionBussines,
-        string? AddreesBussines
-    );
+
+    public record BusinessResponse(
+           Guid Id,
+           string Name,
+           string BussinesNumber,
+           string? PhoneBussines,
+           string? ExtencionBussines,
+           string? AddreesBussines
+       );
 }

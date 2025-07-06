@@ -1,9 +1,7 @@
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Domain.Entities;
-using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.WebApi.Controllers;
@@ -28,7 +26,7 @@ public class CitiesController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<CityResponse>> GetByIdAsync(int id)
+    public async Task<ActionResult<CityResponse>> GetById(int id)
     {
         var city = await _cityRepository.GetByIdAsync(id);
         if (city == null) return NotFound();
@@ -40,7 +38,7 @@ public class CitiesController : ControllerBase
     {
         var city = new City { Name = request.Name, CountryId = request.CountryId };
         await _cityRepository.Add(city);
-        return CreatedAtAction(nameof(GetByIdAsync), new { id = city.Id }, new CityResponse(city.Id, city.Name, city.CountryId));
+        return CreatedAtAction(nameof(GetById), "Cities", new { id = city.Id }, new CityResponse(city.Id, city.Name, city.CountryId));
     }
 
     [HttpPut("{id}")]

@@ -1,15 +1,18 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
 using CarSpot.Domain.ValueObjects;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Linq;
-using System.Net.Mail;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
+
 
 namespace CarSpot.WebApi.Controllers;
 
@@ -21,17 +24,47 @@ public class UsersController : ControllerBase
     private readonly IEmailService _emailService;
     private readonly IEmailSettingsRepository _emailSettingsRepository;
     private readonly IConfiguration _configuration;
+    private readonly IJwtTokenGenerator _jwtTokenGenerator;
+    private readonly IVehicleRepository _vehicleRepository;
+
 
     public UsersController(
         IUserRepository userRepository,
         IEmailService emailService,
+        IVehicleRepository vehicleRepository,
         IConfiguration configuration,
-        IEmailSettingsRepository emailSettingsRepository)
+        IEmailSettingsRepository emailSettingsRepository,
+        IJwtTokenGenerator jwtTokenGenerator)
     {
         _userRepository = userRepository;
         _emailService = emailService;
+        _vehicleRepository = vehicleRepository;
         _configuration = configuration;
         _emailSettingsRepository = emailSettingsRepository;
+        _jwtTokenGenerator = jwtTokenGenerator;
+    }
+
+
+    [HttpGet("basic")]
+    public async Task<IActionResult> GetAllBasic()
+    {
+        var users = await _userRepository.GetAllBasicAsync();
+
+        var response = users.Select(u => new UserDto(
+            u.Id,
+            u.Email,
+            u.Username,
+            u.Phone,
+            u.RoleId,
+            u.IsActive,
+            u.CreatedAt,
+            u.UpdatedAt,
+            u.BusinessId,
+            new List<VehicleDto>(),
+            new List<CommentResponse>()
+        ));
+
+        return Ok(response);
     }
 
     [HttpGet]
@@ -49,22 +82,57 @@ public class UsersController : ControllerBase
             u.CreatedAt,
             u.UpdatedAt,
             u.BusinessId,
-            [.. u.Vehicles.Select(v => new VehicleDto(v.Id, v.VIN, v.Year, v.Color?.ToString(), v.ModelId))],
-            [.. u.Comments.Select(c => new CommentResponse(c.Id, c.VehicleId, c.UserId, c.Content, c.CreatedAt))]
+            u.Vehicles.Select(v => new VehicleDto(
+                v.Id,
+                v.VIN,
+                v.Year,
+                v.Make?.Name ?? "N/A",
+                v.Model?.Name ?? "N/A",
+                v.ModelId,
+                v.Color?.Name ?? "N/A",
+                v.Condition?.Name ?? "N/A",
+                v.Transmission?.Name ?? "N/A",
+                v.Drivetrain?.Name ?? "N/A",
+                v.CylinderOption?.Name ?? "N/A",
+                v.CabType?.Name ?? "N/A",
+                v.MarketVersion?.Name ?? "N/A",
+                v.VehicleVersion?.Name ?? "N/A",
+                v.UserId,
+                v.Images.Select(img => new VehicleImageDto(
+                    img.Id,
+                    img.ImageUrl ?? ""
+                )).ToList()
+            )).ToList(),
+            u.Comments.Select(c => new CommentResponse(
+                c.Id,
+                c.VehicleId,
+                c.UserId,
+                c.Content,
+                c.CreatedAt
+            )).ToList()
         ));
 
         return Ok(response);
     }
 
 
+
+
+
+
     [HttpGet("{id:Guid}")]
     public async Task<IActionResult> GetById(Guid id)
     {
         var user = await _userRepository.GetByIdAsync(id);
-        if (user == null)
-            return NotFound(new { Status = 404, Message = "User not found" });
+        if (user is null)
+            return NotFound(new { message = "User not found" });
 
-        var userDto = new UserDto(
+        var vehicles = await _vehicleRepository.GetAllAsync();
+        var userVehicles = vehicles
+            .Where(v => v.UserId == user.Id)
+            .ToList();
+
+        var response = new UserDto(
             user.Id,
             user.Email,
             user.Username,
@@ -74,12 +142,23 @@ public class UsersController : ControllerBase
             user.CreatedAt,
             user.UpdatedAt,
             user.BusinessId,
-            [.. user.Vehicles.Select(v => new VehicleDto(v.Id, v.VIN, v.Year, v.Color?.ToString(), v.ModelId))],
-            [.. user.Comments.Select(c => new CommentResponse(c.Id, c.VehicleId, c.UserId, c.Content, c.CreatedAt))]
+            userVehicles,
+            user.Comments.Select(c => new CommentResponse(
+                c.Id,
+                c.VehicleId,
+                c.UserId,
+                c.Content,
+                c.CreatedAt
+            )).ToList()
         );
 
-        return Ok(userDto);
+        return Ok(response);
     }
+
+
+
+
+
 
 
 
@@ -121,16 +200,6 @@ public class UsersController : ControllerBase
             await _userRepository.RegisterUserAsync(user);
             await _userRepository.SaveChangesAsync();
 
-            /*var bodyMessage = _emailService.Body(user);
-            var emailSettings = await _emailSettingsRepository.GetSettingsAsync();
-
-            await _emailService.SendEmailAsync(
-                user.Email,
-                "Welcome to CarSpot",
-                bodyMessage,
-                emailSettings?.NickName
-            );*/
-
             return Ok(new { Status = 200, Message = "User registered successfully", UserId = user.Id });
         }
         catch (DbUpdateException ex)
@@ -160,15 +229,25 @@ public class UsersController : ControllerBase
     {
         var user = await _userRepository.GetByEmailAsync(request.EmailOrUsername);
 
-
         if (user == null)
             user = await _userRepository.GetByUsernameAsync(request.EmailOrUsername);
 
         if (user == null || !user.Password.Verify(request.Password))
             return Unauthorized(new { Status = 401, Message = "Invalid credentials" });
 
-        return Ok(new { Status = 200, Message = "Login successful" });
+
+        var token = _jwtTokenGenerator.GenerateToken(user);
+
+        return Ok(new
+        {
+            Status = 200,
+            Message = "Login successful",
+            Token = token,
+            Expires = DateTime.UtcNow.AddMinutes(60),
+            UserId = user.Id
+        });
     }
+
 
 
     [HttpPut("{id}")]
@@ -247,6 +326,47 @@ public class UsersController : ControllerBase
             return StatusCode(500, $"Connection failed: {ex.Message}");
         }
     }
+
+    [Authorize]
+    [HttpGet("profile")]
+    public async Task<IActionResult> GetProfile()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { message = "Invalid token or user ID not found." });
+
+        var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
+
+        if (user == null)
+            return NotFound(new { message = "User not found." });
+
+        var vehicles = await _vehicleRepository.GetAllAsync();
+        var userVehicles = vehicles.Where(v => v.UserId == user.Id).ToList();
+
+        var response = new UserDto(
+            user.Id,
+            user.Email,
+            user.Username,
+            user.Phone,
+            user.RoleId,
+            user.IsActive,
+            user.CreatedAt,
+            user.UpdatedAt,
+            user.BusinessId,
+            userVehicles,
+            user.Comments.Select(c => new CommentResponse(
+                c.Id,
+                c.VehicleId,
+                c.UserId,
+                c.Content,
+                c.CreatedAt
+            )).ToList()
+        );
+
+        return Ok(response);
+    }
+
 
 
 

@@ -1,4 +1,3 @@
-using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Common;
 using Microsoft.Extensions.DependencyInjection;
 

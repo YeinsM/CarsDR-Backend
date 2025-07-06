@@ -1,15 +1,14 @@
-using CarSpot.Domain.Common;
-
 namespace CarSpot.Domain.Entities;
 
-public class Currency : BaseEntity
+public class Currency
 {
-    public string Name { get; set; }         
-    public string Code { get; set; }          
-    public string Symbol { get; set; }     
-  
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
+    public string Symbol { get; set; } = string.Empty;
 
-    public Currency(string name, string code, string symbol)
+    public Currency() { }
+    public Currency(Guid id, string name, string code, string symbol)
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new ArgumentException("Currency name cannot be null or empty.", nameof(name));
@@ -19,9 +18,9 @@ public class Currency : BaseEntity
 
         if (string.IsNullOrWhiteSpace(symbol))
             throw new ArgumentException("Currency symbol cannot be null or empty.", nameof(symbol));
-
+        Id = id;
         Name = name;
         Code = code;
         Symbol = symbol;
-    }     
+    }
 }

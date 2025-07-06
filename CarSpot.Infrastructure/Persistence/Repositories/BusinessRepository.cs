@@ -2,9 +2,6 @@ using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Domain.Entities;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
@@ -19,27 +16,27 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
 
         public async Task<Business?> GetByIdAsync(Guid id)
         {
-            return await _context.Business!.FindAsync(id);
+            return await _context.Business.FindAsync(id);
         }
 
         public async Task<IEnumerable<Business>> GetAllAsync()
         {
-            return await _context.Business!.ToListAsync();
+            return await _context.Business.ToListAsync();
         }
 
-        public async Task AddAsync(Business bussines)
+        public async Task Add(Business bussines)
         {
-            await _context.Business!.AddAsync(bussines);
+            await _context.Business.AddAsync(bussines);
         }
 
         public void Update(Business bussines)
         {
-            _context.Business!.Update(bussines);
+            _context.Business.Update(bussines);
         }
 
         public void Delete(Business bussines)
         {
-            _context.Business!.Remove(bussines);
+            _context.Business.Remove(bussines);
         }
 
         public async Task<int> SaveChangesAsync()
@@ -47,9 +44,9 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             return await _context.SaveChangesAsync();
         }
 
-        public async Task<Business?> GetByBussinesNumberAsync(Guid bussinesNumber)
+        public async Task<Business?> GetByBussinesNumberAsync(string bussinesNumber)
         {
-            return await _context.Business!
+            return await _context.Business
                 .FirstOrDefaultAsync(b => b.BusinessNumber == bussinesNumber);
         }
     }

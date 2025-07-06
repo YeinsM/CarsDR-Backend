@@ -1,10 +1,7 @@
 using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Domain.Entities;
-using CarSpot.Infrastructure.Persistence;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using CarSpot.Infrastructure.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
 
 
 namespace CarSpot.Infrastructure.Repositories

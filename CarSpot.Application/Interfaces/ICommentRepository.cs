@@ -1,6 +1,3 @@
-
-using CarSpot.Domain.Entities;
-
 namespace CarSpot.Application.Interfaces.Repositories
 {
     public interface ICommentRepository

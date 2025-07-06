@@ -1,1 +1,1 @@
-public record UpdateTransmissionRequest(string Name);
+public record UpdateTransmissionRequest(int Id, string Name);
