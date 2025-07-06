@@ -29,12 +29,18 @@ public class ApplicationDbContext : DbContext
 
     public required DbSet<User> Users { get; set; } = null!;
     public required DbSet<Vehicle> Vehicles { get; set; }
-    public DbSet<Bussines>? Bussines { get; set; }
+    public required DbSet<Business> Business { get; set; }
     public required DbSet<Make> Makes { get; set; }
     public required DbSet<Model> Models { get; set; }
+    public required DbSet<CabType> CabTypes { get; set; }
+    public required DbSet<Condition> Conditions { get; set; }
+    public required DbSet<Transmission> Transmissions { get; set; }
+    public required DbSet<Drivetrain> Drivetrains { get; set; }
+    public required DbSet<CylinderOption> CylinderOptions { get; set; }
+    public required DbSet<MarketVersion> MarketVersions { get; set; }
     public required DbSet<Menu> Menus { get; set; }
     public required DbSet<EmailSettings> EmailSettings { get; set; }
-    public DbSet<Listing> Listings { get; set; } = null!;
+    public required DbSet<Listing> Listings { get; set; } = null!;
     public required DbSet<Color> Colors { get; set; }
     public DbSet<Comment>? Comments { get; set; }
     public DbSet<VehicleImage> VehicleImages { get; set; } = null!;

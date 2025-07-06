@@ -21,11 +21,13 @@ namespace CarSpot. Infrastructure.Extensions
 
             services.AddScoped<IUserRepository, UserRepository>(); 
             services.AddScoped<IVehicleRepository, VehicleRepository>();
+            services.AddScoped<IVehicleImageRepository, VehicleImageRepository>();
+            services.AddScoped<IPhotoService, PhotoService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IMenuRepository, MenuRepository>();
             services.AddScoped<IMenuService, MenuService>();
             services.AddScoped<IEmailSettingsRepository, EmailSettingsRepository>();
-            services.AddScoped<IBussinesRepository, BussinesRepository>();
+            services.AddScoped<IBusinessRepository, BusinessRepository>();
             services.AddScoped<IListingRepository, ListingRepository>();
             services.AddScoped<IListingStatusRepository, ListingStatusRepository>();
             services.AddScoped<ICurrencyRepository, CurrencyRepository>();
@@ -42,6 +44,8 @@ namespace CarSpot. Infrastructure.Extensions
             services.AddScoped<IAuxiliarRepository<VehicleVersion>, AuxiliarRepository<VehicleVersion>>();
             services.AddScoped<IAuxiliarRepository<Country>, AuxiliarRepository<Country>>();
             services.AddScoped<IAuxiliarRepository<City>, AuxiliarRepository<City>>();
+            services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+
 
             services.AddScoped<IDomainEventHandlerFactory, DomainEventHandlerFactory>();
             services.AddScoped<DomainEventsInterceptor>();

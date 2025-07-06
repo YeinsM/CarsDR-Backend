@@ -2,7 +2,10 @@ using System;
 using System.Threading.Tasks;
 using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces;
+using CarSpot.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+
 
 namespace CarSpot.API.Controllers
 {
@@ -18,39 +21,99 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<Transmission>), 200)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetAll()
         {
-            var items = await _repository.GetAllAsync();
-            return Ok(items);
+            try
+            {
+                var items = await _repository.GetAllAsync();
+                return Ok(items);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(Transmission), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetById(int id)
         {
-            var item = await _repository.GetByIdAsync(id);
-            return item is null ? NotFound() : Ok(item);
+            try
+            {
+                var item = await _repository.GetByIdAsync(id);
+                return item is null ? NotFound() : Ok(item);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Transmission transmission)
+        [ProducesResponseType(typeof(Transmission), 201)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> Create([FromBody] CreateTransmissionRequest request)
         {
-            await _repository.Add(transmission);
-            return CreatedAtAction(nameof(GetById), new { id = transmission.Id }, transmission);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var transmission = new Transmission { Name = request.Name };
+                await _repository.Add(transmission);
+                return CreatedAtAction(nameof(GetById), new { id = transmission.Id }, transmission);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, Transmission updated)
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateTransmissionRequest request)
         {
-            if (id != updated.Id) return BadRequest();
-            await _repository.UpdateAsync(updated);
-            return NoContent();
+            if (!ModelState.IsValid || id != request.Id)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var existing = await _repository.GetByIdAsync(id);
+                if (existing == null)
+                    return NotFound();
+
+                existing.Name = request.Name;
+                await _repository.UpdateAsync(existing);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> Delete(int id)
         {
-            await _repository.DeleteAsync(id);
-            return NoContent();
+            try
+            {
+                await _repository.DeleteAsync(id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }

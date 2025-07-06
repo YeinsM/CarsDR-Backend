@@ -7,15 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+
+   <PackageReference Include="CloudinaryDotNet" Version="1.27.6" />
+   <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <ProjectReference Include="..\CarSpot.Application\CarSpot.Application.csproj" />
     <ProjectReference Include="..\CarSpot.Domain\CarSpot.Domain.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.5" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Authentication\" />
     <Folder Include="Extensions\" />
     <Folder Include="Persistence\Context\" />
-    <Folder Include="Persistence\Repositories\" />
   </ItemGroup>
 
   <ItemGroup>

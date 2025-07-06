@@ -77,6 +77,7 @@ namespace CarSpot.Domain.Entities
             FirstName = firstName;
             LastName = lastName;
             Username = username;
+            AddDomainEvent(new UpdateUserEvent(Email, FullName));
         }
 
         public void UpdateEmail(string newEmail)

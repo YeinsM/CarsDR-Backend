@@ -6,4 +6,5 @@ public class UserWelcomeBodyBuilder : IEmailBodyBuilder<WelcomeEmailDto>
     {
         return $"<p>Hello! {user.FullName},</p><p>Thank you for join to CarSpot.</p>";
     }
+   
 }

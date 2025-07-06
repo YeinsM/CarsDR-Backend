@@ -25,7 +25,7 @@ public class CountryController : ControllerBase
         return Ok(response);
     }
 
-    [HttpGet("{id:guid}")]
+    [HttpGet("{id:int}")]
     public async Task<IActionResult> GetById(int id)
     {
         var country = await _repository.GetByIdAsync(id);
