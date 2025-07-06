@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using System.Text;
-using System;
-using Microsoft.Extensions.Options;
 using CarSpot.Infrastructure.Extensions;
 using CarSpot.Infrastructure.Middleware;
 using CarSpot.Infrastructure.Persistence.Context;
@@ -10,9 +6,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
 using CarSpot.Infrastructure.Settings;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -21,11 +16,12 @@ builder.Services.AddControllers()
         {
             x.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
         });
-        
+
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
+
 
 builder.Services.AddScoped<IPhotoService, PhotoService>();
 
@@ -50,16 +46,12 @@ builder.Services.AddCors(options =>
 });
 
 
-
-
 var app = builder.Build();
+
 app.UseMiddleware<ExceptionMiddleware>();
 
-
-
-
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
