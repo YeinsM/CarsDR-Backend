@@ -6,11 +6,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+
 var builder = WebApplication.CreateBuilder(args);
+
 // Add services to the container.
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// JWT + Swagger configuration
+builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddSwaggerWithJwt();
 
 // Register application services
 builder.Services.AddApplicationServices(builder.Configuration);
@@ -28,6 +33,8 @@ policy
 .AllowAnyHeader();
 });
 });
+
+
 var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 // Configure the HTTP request pipeline.
@@ -38,6 +45,9 @@ app.UseSwaggerUI();
 }
 app.UseHttpsRedirection();
 app.UseCors("AllowWebApp");
+
+app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 app.Run();
