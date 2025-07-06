@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using CarSpot.Application.DTOs;
-using CarSpot.Application.Interfaces;
-using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 

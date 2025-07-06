@@ -69,6 +69,9 @@ csharp_preserve_single_line_blocks = true
 dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
 
+# Remove unused usings
+dotnet_diagnostic.IDE0005.severity = warning
+
 # Code-block preferences
 csharp_prefer_braces = true:suggestion
 csharp_prefer_simple_using_statement = true:suggestion

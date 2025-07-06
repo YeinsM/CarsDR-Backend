@@ -1,7 +1,4 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using CarSpot.Domain.Common;
-using CarSpot.Domain.Events;
-using CarSpot.Domain.ValueObjects;
 
 namespace CarSpot.Domain.Entities
 {

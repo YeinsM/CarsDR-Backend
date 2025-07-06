@@ -1,4 +1,3 @@
-using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 
 public class VehicleImage

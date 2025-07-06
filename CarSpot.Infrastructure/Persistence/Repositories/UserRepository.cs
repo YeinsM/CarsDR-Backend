@@ -1,4 +1,3 @@
-using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
 using CarSpot.Domain.ValueObjects;

@@ -1,5 +1,4 @@
 using CarSpot.Application.DTOs;
-using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 
 namespace CarSpot.Application.Interfaces

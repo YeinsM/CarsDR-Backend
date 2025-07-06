@@ -1,7 +1,4 @@
-using System;
 using System.Threading.Tasks;
-using CarSpot.Application.Interfaces;
-using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.API.Controllers

@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using CarSpot.Domain.Common;
 
 namespace CarSpot.Domain.Entities
 

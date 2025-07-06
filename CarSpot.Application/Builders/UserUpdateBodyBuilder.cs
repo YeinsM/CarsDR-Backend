@@ -1,5 +1,3 @@
-using CarSpot.Domain.Entities;
-
 public class UserUpdateBodyBuilder : IEmailBodyBuilder<WelcomeEmailDto>
 {
     public string Build(WelcomeEmailDto user)

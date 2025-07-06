@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-using CarSpot.Application.Interfaces;
 using CarSpot.Infrastructure.Persistence.Context;
 using CarSpot.Infrastructure.Settings;
 using CloudinaryDotNet;
