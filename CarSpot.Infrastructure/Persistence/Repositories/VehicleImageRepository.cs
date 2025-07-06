@@ -1,8 +1,8 @@
-using CarSpot.Domain.Entities;
-using CarSpot.Domain.Common;
 using CarSpot.Application.Interfaces;
-using CarSpot.Infrastructure.Persistence.Context;
+using CarSpot.Domain.Common;
+using CarSpot.Domain.Entities;
 using CarSpot.Infrastructure.Persistence;
+using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 

@@ -11,7 +11,7 @@ namespace CarSpot.Domain.Entities
         public string? To { get; private set; }
         public List<Menu>? Children { get; private set; } = new();
 
-        
+
         public Menu(string label, string icon, string? to, Guid? parentId = null)
         {
             Label = label;
@@ -20,7 +20,7 @@ namespace CarSpot.Domain.Entities
             ParentId = parentId;
         }
 
-        
+
         public void Update(string label, string icon, string? to, Guid? parentId = null)
         {
             Label = label;

@@ -6,5 +6,5 @@ public class UserUpdateBodyBuilder : IEmailBodyBuilder<WelcomeEmailDto>
     {
         return $"<p>Hello! {user.FullName},</p><p>Your Data has been updated.</p>";
     }
-   
+
 }

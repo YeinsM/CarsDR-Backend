@@ -1,12 +1,12 @@
 using CarSpot.Infrastructure.Extensions;
 using CarSpot.Infrastructure.Middleware;
 using CarSpot.Infrastructure.Persistence.Context;
+using CarSpot.Infrastructure.Settings;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using CarSpot.Infrastructure.Settings;
 
 var builder = WebApplication.CreateBuilder(args);
 

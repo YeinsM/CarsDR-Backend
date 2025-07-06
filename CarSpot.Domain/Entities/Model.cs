@@ -1,5 +1,5 @@
-using CarSpot.Domain.Common;
 using System.Text.Json.Serialization;
+using CarSpot.Domain.Common;
 
 namespace CarSpot.Domain.Entities
 
@@ -12,7 +12,7 @@ namespace CarSpot.Domain.Entities
         public Make? Make { get; set; }
         [JsonIgnore]
         public ICollection<Vehicle> Vehicles { get; private set; } = new List<Vehicle>();
-        public ICollection<VehicleVersion> VehicleVersions {get; private set;} = new List<VehicleVersion>();
+        public ICollection<VehicleVersion> VehicleVersions { get; private set; } = new List<VehicleVersion>();
 
         public Model()
         {

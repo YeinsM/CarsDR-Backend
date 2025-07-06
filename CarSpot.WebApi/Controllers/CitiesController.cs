@@ -2,8 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces;
+using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.WebApi.Controllers;
@@ -40,7 +40,7 @@ public class CitiesController : ControllerBase
     {
         var city = new City { Name = request.Name, CountryId = request.CountryId };
         await _cityRepository.Add(city);
-        return CreatedAtAction(nameof(GetById),"Cities", new { id = city.Id }, new CityResponse(city.Id, city.Name, city.CountryId));
+        return CreatedAtAction(nameof(GetById), "Cities", new { id = city.Id }, new CityResponse(city.Id, city.Name, city.CountryId));
     }
 
     [HttpPut("{id}")]

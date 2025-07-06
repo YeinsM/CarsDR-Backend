@@ -1,9 +1,9 @@
+using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
 using CarSpot.Domain.ValueObjects;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
-using CarSpot.Application.DTOs;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories;
 

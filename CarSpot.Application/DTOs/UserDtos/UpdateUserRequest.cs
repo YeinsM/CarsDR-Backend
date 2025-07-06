@@ -10,5 +10,5 @@ public record UpdateUserRequest(
     string? Address,
 
     Guid BusinessId
-    
+
 );

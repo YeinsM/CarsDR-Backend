@@ -1,12 +1,12 @@
+using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json;
 using CarSpot.Domain;
 using CarSpot.Domain.Entities;
+using CarSpot.Domain.ValueObjects;
+using CarSpot.Infrastructure.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using CarSpot.Domain.ValueObjects;
-using System.Text.Json;
-using System.ComponentModel.DataAnnotations.Schema;
-using CarSpot.Infrastructure.Persistence.Configurations;
 
 
 namespace CarSpot.Infrastructure.Persistence.Context;

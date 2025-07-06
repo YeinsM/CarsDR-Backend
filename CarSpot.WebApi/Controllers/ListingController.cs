@@ -1,12 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using CarSpot.Domain.Entities;
-using CarSpot.Application.Interfaces;
 using CarSpot.Application.DTOs;
-using System.Collections.Generic;
 using CarSpot.Application.DTOS;
+using CarSpot.Application.Interfaces;
+using CarSpot.Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
 
 
 [ApiController]
@@ -106,7 +106,7 @@ public class ListingsController : ControllerBase
         existingListing.IsFeatured = request.IsFeatured;
         existingListing.FeaturedUntil = request.FeaturedUntil;
 
-         existingListing.UpdatedAt = DateTime.UtcNow;
+        existingListing.UpdatedAt = DateTime.UtcNow;
 
         await _repository.UpdateAsync(existingListing);
         return Ok("Listing updated successfully");

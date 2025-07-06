@@ -1,7 +1,7 @@
-using CarSpot.Domain.Common;
-using CarSpot.Domain.ValueObjects;
-using CarSpot.Domain.Events;
 using System.ComponentModel.DataAnnotations.Schema;
+using CarSpot.Domain.Common;
+using CarSpot.Domain.Events;
+using CarSpot.Domain.ValueObjects;
 
 namespace CarSpot.Domain.Entities
 {
@@ -18,7 +18,7 @@ namespace CarSpot.Domain.Entities
         public Guid RoleId { get; set; }
         public Role? Role { get; set; }
         public Guid BusinessId { get; set; }
-        
+
 
         public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
@@ -41,7 +41,7 @@ namespace CarSpot.Domain.Entities
                 throw new ArgumentNullException(nameof(lastName), "Last name is required.");
             if (string.IsNullOrWhiteSpace(email))
                 throw new ArgumentNullException(nameof(email), "Email is required.");
-           
+
             if (string.IsNullOrWhiteSpace(username))
                 throw new ArgumentNullException(nameof(username), "Username is required.");
             if (password is null)
@@ -123,10 +123,10 @@ namespace CarSpot.Domain.Entities
             Extension = extension;
             CellPhone = cellPhone;
             Address = address;
-           
+
         }
 
-       
+
 
 
     }

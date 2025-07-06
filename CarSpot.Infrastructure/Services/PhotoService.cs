@@ -1,18 +1,18 @@
+using System.Threading.Tasks;
+using CarSpot.Application.Interfaces;
+using CarSpot.Infrastructure.Persistence.Context;
+using CarSpot.Infrastructure.Settings;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
-using Microsoft.Extensions.Options;
-using CarSpot.Application.Interfaces;
-using CarSpot.Infrastructure.Settings;
 using Microsoft.AspNetCore.Http;
-using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
 
 
 
 public class PhotoService : IPhotoService
 {
-     private readonly Cloudinary _cloudinary;
+    private readonly Cloudinary _cloudinary;
     private readonly ApplicationDbContext _context;
 
     public PhotoService(IOptions<CloudinarySettings> config, ApplicationDbContext context)
@@ -49,18 +49,18 @@ public class PhotoService : IPhotoService
 
     public async Task DeleteImageAsync(Guid id)
     {
-        
+
         var image = await _context.VehicleImages.FirstOrDefaultAsync(img => img.Id == id);
         if (image == null || string.IsNullOrWhiteSpace(image.PublicId))
             return;
 
-        
+
         var deleteParams = new DeletionParams(image.PublicId);
 
-        
+
         var result = await _cloudinary.DestroyAsync(deleteParams);
 
-        
+
         if (result.Result != "ok")
         {
             throw new Exception($"Failed to delete image from Cloudinary. Status: {result.Result}");

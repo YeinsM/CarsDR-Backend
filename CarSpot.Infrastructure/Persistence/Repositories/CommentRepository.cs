@@ -45,8 +45,8 @@ namespace CarSpot.Infrastructure.Repositories
 
         public async Task CreateAddAsync(Comment comment)
         {
-             _context.Comments!.Add(comment);
-             await SaveChangesAsync();
+            _context.Comments!.Add(comment);
+            await SaveChangesAsync();
         }
 
         public async Task DeleteAsync(Comment comment)

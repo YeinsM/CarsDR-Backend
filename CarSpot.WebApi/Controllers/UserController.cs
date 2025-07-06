@@ -1,19 +1,19 @@
-using CarSpot.Application.DTOs;
-using CarSpot.Application.Interfaces;
-using CarSpot.Infrastructure.Persistence.Repositories;
-using CarSpot.Domain.Entities;
-using CarSpot.Domain.ValueObjects;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Mail;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
-using System.Collections.Generic;
+using System.Threading.Tasks;
+using CarSpot.Application.DTOs;
+using CarSpot.Application.Interfaces;
+using CarSpot.Domain.Entities;
+using CarSpot.Domain.ValueObjects;
+using CarSpot.Infrastructure.Persistence.Repositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 
 namespace CarSpot.WebApi.Controllers;
@@ -62,7 +62,7 @@ public class UsersController : ControllerBase
             u.CreatedAt,
             u.UpdatedAt,
             u.BusinessId,
-            new List<VehicleDto>(), 
+            new List<VehicleDto>(),
             new List<CommentResponse>()
         ));
 
