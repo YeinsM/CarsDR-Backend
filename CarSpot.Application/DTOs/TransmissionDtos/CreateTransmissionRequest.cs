@@ -1,0 +1,1 @@
+public record CreateTransmissionRequest(string Name);

@@ -1,0 +1,1 @@
+public record CabTypeDto(int Id, string Name);

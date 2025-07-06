@@ -1,0 +1,1 @@
+public record CountryResponse(int Id, string Name, string Abbreviation);

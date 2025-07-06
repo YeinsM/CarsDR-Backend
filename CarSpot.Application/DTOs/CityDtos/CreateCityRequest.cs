@@ -1,0 +1,1 @@
+public record CreateCityRequest(string Name, int CountryId);
