@@ -62,7 +62,7 @@ public class UsersController : ControllerBase
             u.CreatedAt,
             u.UpdatedAt,
             u.BusinessId,
-            new List<VehicleDto>(), 
+            new List<VehicleDto>(),
             new List<CommentResponse>()
         ));
 
@@ -75,44 +75,51 @@ public class UsersController : ControllerBase
         var users = await _userRepository.GetAllAsync();
 
         var response = users.Select(u => new UserDto(
-            u.Id,
-            u.Email,
-            u.Username,
-            u.Phone,
-            u.RoleId,
-            u.IsActive,
-            u.CreatedAt,
-            u.UpdatedAt,
-            u.BusinessId,
-            u.Vehicles.Select(v => new VehicleDto(
-                v.Id,
-                v.VIN,
-                v.Year,
-                v.Make?.Name ?? "N/A",
-                v.Model?.Name ?? "N/A",
-                v.ModelId,
-                v.Color?.Name ?? "N/A",
-                v.Condition?.Name ?? "N/A",
-                v.Transmission?.Name ?? "N/A",
-                v.Drivetrain?.Name ?? "N/A",
-                v.CylinderOption?.Name ?? "N/A",
-                v.CabType?.Name ?? "N/A",
-                v.MarketVersion?.Name ?? "N/A",
-                v.VehicleVersion?.Name ?? "N/A",
-                v.UserId,
-                v.Images.Select(img => new VehicleImageDto(
-                    img.Id,
-                    img.ImageUrl ?? ""
-                )).ToList()
-            )).ToList(),
-            u.Comments.Select(c => new CommentResponse(
-                c.Id,
-                c.VehicleId,
-                c.UserId,
-                c.Content,
-                c.CreatedAt
-            )).ToList()
-        ));
+    u.Id,
+    u.Email,
+    u.Username,
+    u.Phone,
+    u.RoleId,
+    u.IsActive,
+    u.CreatedAt,
+    u.UpdatedAt,
+    u.BusinessId,
+    u.Vehicles.Select(v => new VehicleDto(
+        v.Id,
+        v.VIN,
+        v.Price,
+        v.Title,
+        v.IsFeatured,
+        v.FeaturedUntil,
+        v.Mileage,
+        v.Year,
+        v.VehicleType?.Name ?? "N/A",
+        v.Make?.Name ?? "N/A",
+        v.Model?.Name ?? "N/A",
+        v.ModelId,
+        v.Color?.Name ?? "N/A",
+        v.Condition?.Name ?? "N/A",
+        v.Transmission?.Name ?? "N/A",
+        v.Drivetrain?.Name ?? "N/A",
+        v.CylinderOption?.Name ?? "N/A",
+        v.CabType?.Name ?? "N/A",
+        v.MarketVersion?.Name ?? "N/A",
+        v.VehicleVersion?.Name ?? "N/A",
+        v.UserId,
+        v.Images.Select(img => new VehicleImageDto(
+            img.Id,
+            img.ImageUrl ?? ""
+        )).ToList()
+    )).ToList(),
+    u.Comments.Select(c => new CommentResponse(
+        c.Id,
+        c.VehicleId,
+        c.UserId,
+        c.Content,
+        c.CreatedAt
+    )).ToList()
+));
+
 
         return Ok(response);
     }

@@ -5,6 +5,7 @@ namespace CarSpot.Application.DTOs
         Guid UserId,
         Guid MakeId,
         Guid ModelId,
+        int VehicleTypeId,
         int VehicleVersionId,
         int MarketVersionId,
         int TransmissionId,

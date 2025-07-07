@@ -17,6 +17,9 @@ namespace CarSpot.Domain.Entities
 
         public int VehicleVersionId { get; set; }
         public VehicleVersion VehicleVersion { get; set; } = null!;
+        public int VehicleTypeId { get; set; }
+        public VehicleType VehicleType { get; set; } = default!;
+
 
         public int MarketVersionId { get; set; }
         public MarketVersion MarketVersion { get; set; } = null!;
@@ -57,6 +60,7 @@ namespace CarSpot.Domain.Entities
             Guid userId,
             Guid makeId,
             Guid modelId,
+            int vehicleTypeId,
             int vehicleVersionId,
             int marketVersionId,
             int transmissionId,
@@ -88,6 +92,7 @@ namespace CarSpot.Domain.Entities
             UserId = userId;
             MakeId = makeId;
             ModelId = modelId;
+            VehicleTypeId = vehicleTypeId;
             VehicleVersionId = vehicleVersionId;
             MarketVersionId = marketVersionId;
             TransmissionId = transmissionId;

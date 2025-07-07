@@ -28,6 +28,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .Include(v => v.Images)
                 .Include(v => v.Make)
                 .Include(v => v.Model)
+                .Include(v => v.VehicleType)
                 .Include(v => v.Color)
                 .Include(v => v.Condition)
                 .Include(v => v.Transmission)
@@ -42,7 +43,13 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             var result = vehicles.Select(v => new VehicleDto(
                 v.Id,
                 v.VIN,
+                v.Price,
+                v.Title,
+                v.IsFeatured,
+                v.FeaturedUntil,
+                v.Mileage,
                 v.Year,
+                v.VehicleType?.Name ?? "N/A",
                 v.Make.Name,
                 v.Model.Name!,
                 v.Model.Id,

@@ -3,7 +3,13 @@ namespace CarSpot.Application.DTOs;
 public record VehicleDto(
     Guid Id,
     string VIN,
+    decimal Price,
+    string Title,
+    bool IsFeatured,
+    DateTime? FeaturedUntil,
+    int Mileage,
     int Year,
+    string VehicleType,
     string Make,
     string Model,
     Guid ModelId,
@@ -18,5 +24,3 @@ public record VehicleDto(
     Guid UserId,
     List<VehicleImageDto> Images
 );
-
-

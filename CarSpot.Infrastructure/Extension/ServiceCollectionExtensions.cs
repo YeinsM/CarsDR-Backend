@@ -34,6 +34,7 @@ namespace CarSpot. Infrastructure.Extensions
             services.AddScoped<IModelRepository, ModelRepository>();
             services.AddScoped<IMakeRepository, MakeRepository>();
             services.AddScoped<IAuxiliarRepository<Transmission>, AuxiliarRepository<Transmission>>();
+            services.AddScoped<IAuxiliarRepository<VehicleType>, AuxiliarRepository<VehicleType>>();
             services.AddScoped<IAuxiliarRepository<Color>, AuxiliarRepository<Color>>();
             services.AddScoped<IAuxiliarRepository<CabType>, AuxiliarRepository<CabType>>();
             services.AddScoped<IAuxiliarRepository<Condition>, AuxiliarRepository<Condition>>(); 

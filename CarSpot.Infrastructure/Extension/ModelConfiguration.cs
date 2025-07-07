@@ -205,6 +205,13 @@ namespace CarSpot.Infrastructure.Persistence.Configurations
                 entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
             });
 
+             modelBuilder.Entity<VehicleType>(entity =>
+            {
+                entity.ToTable("VehicleTypes");
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
+            });
+
         }
     }
 }
