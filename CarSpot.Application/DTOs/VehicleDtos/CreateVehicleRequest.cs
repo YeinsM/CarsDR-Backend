@@ -17,7 +17,7 @@ namespace CarSpot.Application.DTOs
         int Year,
         int Mileage,
         decimal Price,
-        string Title,
+        string? Title,
         bool IsFeatured,
         DateTime FeaturedUntil
     );

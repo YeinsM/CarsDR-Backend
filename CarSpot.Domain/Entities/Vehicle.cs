@@ -46,7 +46,7 @@ namespace CarSpot.Domain.Entities
         public int Mileage { get; set; }
         public decimal Price { get; set; }
 
-        public string Title { get; set; } = string.Empty;
+        public string? Title { get; set; }
         public bool IsFeatured { get; set; }
         public DateTime FeaturedUntil { get; set; }
         public int ViewCount { get; set; }
