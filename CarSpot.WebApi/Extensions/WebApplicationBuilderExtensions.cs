@@ -40,11 +40,11 @@ namespace CarSpot.WebApi.Extensions
             cfg["CloudinarySettings:ApiSecret"] = Environment.GetEnvironmentVariable("CLOUDINARY_API_SECRET") ?? cfg["CloudinarySettings:ApiSecret"];
 
             // ConnectionStrings:Default
-            var server = Environment.GetEnvironmentVariable("DB_SERVER");
-            var port = Environment.GetEnvironmentVariable("DB_PORT");
-            var name = Environment.GetEnvironmentVariable("DB_NAME");
-            var user = Environment.GetEnvironmentVariable("DB_USER");
-            var pwd = Environment.GetEnvironmentVariable("DB_PASSWORD");
+            string server = Environment.GetEnvironmentVariable("DB_SERVER");
+            string port = Environment.GetEnvironmentVariable("DB_PORT");
+            string name = Environment.GetEnvironmentVariable("DB_NAME");
+            string user = Environment.GetEnvironmentVariable("DB_USER");
+            string pwd = Environment.GetEnvironmentVariable("DB_PASSWORD");
             if (!string.IsNullOrEmpty(server)
                 && !string.IsNullOrEmpty(port)
                 && !string.IsNullOrEmpty(name)
