@@ -1,8 +1,12 @@
 name: Pull Request Checks
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, synchronize, reopened]
+
+permissions:
+  pull-requests: write
+  contents: read
 
 jobs:
   validate:
@@ -27,7 +31,7 @@ jobs:
 
       # - name: Lint (if applicable)
       #   run: dotnet format --verify-no-changes
-        
+
   auto-approve:
     runs-on: ubuntu-latest
     needs: validate
