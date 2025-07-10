@@ -1,10 +1,7 @@
 using System;
-using System.Threading.Tasks;
-using CarSpot.Domain.Entities;
-using CarSpot.Application.Interfaces;
-using CarSpot.Application.DTOs;
-using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 
 
 namespace CarSpot.API.Controllers

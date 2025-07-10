@@ -1,10 +1,6 @@
-using CarSpot.Domain.Entities;
-using CarSpot.Domain.Common;
 using CarSpot.Application.Interfaces;
 using CarSpot.Infrastructure.Persistence.Context;
-using CarSpot.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace CarSpot.Infrastructure.Repositories
 {

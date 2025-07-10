@@ -1,5 +1,3 @@
-using CarSpot.Domain.Entities;
-
 namespace CarSpot.Application.DTOS
 {
     public class ListingResponse

@@ -1,1 +1,1 @@
-public record UpdateCommentRequest(string Content );
+public record UpdateCommentRequest(string Content);

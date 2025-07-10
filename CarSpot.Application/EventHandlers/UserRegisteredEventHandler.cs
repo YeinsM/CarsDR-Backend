@@ -11,6 +11,8 @@ public class UserRegisteredEventHandler : IDomainEventHandler<UserRegisteredEven
     }
     public async Task HandleAsync(UserRegisteredEvent domainEvent)
     {
+        Console.WriteLine($"UserRegisteredEventHandler: Processing event for user {domainEvent.Email}");
+        
         await _emailService.SendEmailAsync(
         domainEvent.Email,
         "Welcome to CarSpot!",

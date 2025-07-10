@@ -1,11 +1,9 @@
 using System;
 using System.Threading.Tasks;
-using CarSpot.Domain.Entities;
-using CarSpot.Application.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using CarSpot.Application.Interfaces.Repositories;
-using Microsoft.AspNetCore.DataProtection.Repositories;
 using CarSpot.Application.DTOs.MakeDtos;
+using CarSpot.Application.Interfaces.Repositories;
+using CarSpot.Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.WebApi.Controllers
 {

@@ -1,7 +1,4 @@
 using CarSpot.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace CarSpot.Application.Interfaces.Repositories
 {

@@ -1,11 +1,9 @@
+using System.Net;
+using System.Text.Json;
+using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Net;
-using System.Text.Json;
-using System.Threading.Tasks;
-using CarSpot.Application.Interfaces;
 
 namespace CarSpot.Infrastructure.Middleware
 {
@@ -40,7 +38,7 @@ namespace CarSpot.Infrastructure.Middleware
                     Title = "Internal Server Error",
                     Detail = $"{e.Message}-{e.Source}",
                     Instance = e.StackTrace,
-                    
+
                 };
 
                 var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };

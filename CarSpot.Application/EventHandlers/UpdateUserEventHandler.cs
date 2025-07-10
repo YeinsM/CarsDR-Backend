@@ -14,7 +14,7 @@ public class UpdatedUserEventHandler : IDomainEventHandler<UpdateUserEvent>
         await _emailService.SendEmailAsync(
         domainEvent.Email,
         "Your data has been updated!",
-        EmailTemplateType.UpdateUser,
+        EmailTemplateType.PasswordChanged,
         new WelcomeEmailDto(domainEvent.FullName, domainEvent.Email),
         "Notifications"
         );

@@ -14,7 +14,7 @@ namespace CarSpot.Application.DTOs
         DateTime? FeaturedUntil,
         int ViewCount,
          List<string> Images
-        
+
 
     );
 }

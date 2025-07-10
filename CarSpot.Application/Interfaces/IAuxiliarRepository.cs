@@ -8,7 +8,7 @@ public interface IAuxiliarRepository<T> where T : BaseAuxiliar
     Task<T> UpdateAsync(T entity);
     Task<T> DeleteAsync(int id);
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-    
+
 }
 
 

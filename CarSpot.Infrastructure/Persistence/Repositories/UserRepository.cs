@@ -3,7 +3,6 @@ using CarSpot.Domain.Entities;
 using CarSpot.Domain.ValueObjects;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
-using CarSpot.Application.DTOs;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories;
 
@@ -93,7 +92,11 @@ public class UserRepository : IUserRepository
     public async Task<User> RegisterUserAsync(User user)
     {
         _context.Users.Add(user);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(); // Primero guardar para obtener el ID
+
+        // Disparar el evento después de que el usuario tenga un ID válido
+        user.NotifyUserRegistered();
+        await _context.SaveChangesAsync(); // Guardar nuevamente para procesar el evento
 
         return user;
     }

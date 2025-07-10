@@ -3,11 +3,6 @@ using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
@@ -94,6 +89,10 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
         {
             await _context.Vehicles.AddAsync(vehicle);
             await _context.SaveChangesAsync();
+
+            // Disparar el evento después de que el vehículo tenga un ID válido
+            vehicle.NotifyVehicleCreated();
+            await _context.SaveChangesAsync(); // Guardar nuevamente para procesar el evento
 
             return vehicle;
         }

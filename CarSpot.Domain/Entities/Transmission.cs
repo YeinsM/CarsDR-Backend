@@ -1,3 +1,3 @@
 using CarSpot.Domain.Common;
 
-public class Transmission : BaseAuxiliar {}
+public class Transmission : BaseAuxiliar { }

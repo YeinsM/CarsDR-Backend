@@ -11,5 +11,5 @@ public record CreateUserRequest(
     string? CellPhone,
     string? Address,
     Guid BusinessId
-    
+
 );

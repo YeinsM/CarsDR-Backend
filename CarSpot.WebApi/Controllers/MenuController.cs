@@ -1,11 +1,11 @@
 using System;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using CarSpot.Application.DTOs;
-using CarSpot.Domain.Entities;
-using CarSpot.Application.Services;
-using CarSpot.Application.Interfaces;
 using System.Linq;
+using System.Threading.Tasks;
+using CarSpot.Application.DTOs;
+using CarSpot.Application.Interfaces;
+using CarSpot.Application.Services;
+using CarSpot.Domain.Entities;
+using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
 [Route("api/[controller]")]

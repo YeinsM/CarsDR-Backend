@@ -401,3 +401,6 @@ FodyWeavers.xsd
 
 # Ignore appsettings
 appsettings.json
+
+# Environment variable files
+.env
