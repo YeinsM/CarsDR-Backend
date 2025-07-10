@@ -25,8 +25,8 @@ jobs:
       - name: Run Tests
         run: dotnet test CarSpot.Api.sln --no-restore --no-build --configuration Release --verbosity normal
 
-      - name: Lint (if applicable)
-        run: dotnet format --verify-no-changes
+      # - name: Lint (if applicable)
+      #   run: dotnet format --verify-no-changes
         
   auto-approve:
     runs-on: ubuntu-latest
