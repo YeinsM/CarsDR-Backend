@@ -44,7 +44,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 v.Id,
                 v.VIN,
                 v.Price,
-                v.Title,
+                v.Title!,
                 v.IsFeatured,
                 v.FeaturedUntil,
                 v.Mileage,
