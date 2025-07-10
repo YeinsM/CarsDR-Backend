@@ -83,6 +83,10 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             await _context.Vehicles.AddAsync(vehicle);
             await _context.SaveChangesAsync();
 
+            // Disparar el evento después de que el vehículo tenga un ID válido
+            vehicle.NotifyVehicleCreated();
+            await _context.SaveChangesAsync(); // Guardar nuevamente para procesar el evento
+
             return vehicle;
         }
 

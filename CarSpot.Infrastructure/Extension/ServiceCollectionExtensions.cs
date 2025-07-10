@@ -51,6 +51,7 @@ namespace CarSpot.Infrastructure.Extensions
             services.AddScoped<DomainEventsInterceptor>();
 
             services.AddScoped<IDomainEventHandler<UserRegisteredEvent>, UserRegisteredEventHandler>();
+            services.AddScoped<IDomainEventHandler<VehicleCreatedEvent>, VehicleCreatedEventHandler>();
 
             return services;
         }

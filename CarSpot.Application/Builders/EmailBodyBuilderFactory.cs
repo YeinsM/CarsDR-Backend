@@ -5,7 +5,7 @@ public class EmailBodyBuilderFactory
         return templateType switch
         {
             EmailTemplateType.Welcome => (IEmailBodyBuilder<T>)new UserWelcomeBodyBuilder(),
-            EmailTemplateType.UpdateUser => (IEmailBodyBuilder<T>)new UserUpdateBodyBuilder(),
+            EmailTemplateType.VehicleCreated => (IEmailBodyBuilder<T>)new VehicleCreatedBodyBuilder(),
             _ => throw new ArgumentException("Tipo de plantilla no soportada")
         };
     }

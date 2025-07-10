@@ -31,7 +31,7 @@ public class EmailService : IEmailService
         mailMessage.To.Add(to);
         await smtpClient.SendMailAsync(mailMessage);
     }
-    private string GenerateEmailBody<T>(EmailTemplateType templateType, T entity)
+    private static string GenerateEmailBody<T>(EmailTemplateType templateType, T entity)
     {
         var bodyBuilder = EmailBodyBuilderFactory.GetBuilder<T>(templateType);
         string content = bodyBuilder.Build(entity);

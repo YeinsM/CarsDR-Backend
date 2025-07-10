@@ -1,4 +1,5 @@
 using CarSpot.Domain.Common;
+using CarSpot.Domain.Events;
 
 namespace CarSpot.Domain.Entities
 {
@@ -104,6 +105,8 @@ namespace CarSpot.Domain.Entities
             FeaturedUntil = featuredUntil;
             ViewCount = viewCount;
             CreatedAt = createdAt;
+
+            // RaiseCreatedEvent(); // Movido al repository después de guardar
         }
 
         public void UpdateVehicle(string title, int mileage, decimal price, bool isFeatured, DateTime featuredUntil)
@@ -123,6 +126,16 @@ namespace CarSpot.Domain.Entities
         public void AddComment(Comment comment)
         {
             Comments.Add(comment);
+        }
+
+        public void RaiseCreatedEvent()
+        {
+            AddDomainEvent(new VehicleCreatedEvent(Id, UserId));
+        }
+
+        public void NotifyVehicleCreated()
+        {
+            RaiseCreatedEvent();
         }
     }
 }
