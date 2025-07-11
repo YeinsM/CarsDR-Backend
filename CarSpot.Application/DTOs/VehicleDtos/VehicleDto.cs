@@ -22,5 +22,5 @@ public record VehicleDto(
     string MarketVersion,
     string VehicleVersion,
     Guid UserId,
-    List<VehicleImageDto> Images
+    List<VehicleMediaFileDto> MediaFile
 );

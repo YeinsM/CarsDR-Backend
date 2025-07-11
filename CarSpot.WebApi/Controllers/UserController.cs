@@ -104,9 +104,9 @@ public class UsersController : ControllerBase
         v.MarketVersion?.Name ?? "N/A",
         v.VehicleVersion?.Name ?? "N/A",
         v.UserId,
-        v.Images.Select(img => new VehicleImageDto(
-            img.Id,
-            img.ImageUrl ?? ""
+        v.MediaFiles.Select(med => new VehicleMediaFileDto(
+            med.Id,
+            med.Url ?? ""
         )).ToList()
     )).ToList(),
     u.Comments.Select(c => new CommentResponse(

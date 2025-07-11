@@ -1,6 +1,6 @@
 namespace CarSpot.Application.DTOs
 {
-    public record VehicleImageDto(
+    public record VehicleMediaFileDto(
         Guid Id,
         string Url
 

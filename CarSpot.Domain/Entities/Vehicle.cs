@@ -54,7 +54,7 @@ namespace CarSpot.Domain.Entities
         public DateTime FeaturedUntil { get; set; }
         public int ViewCount { get; set; }
 
-        public ICollection<VehicleImage> Images { get; set; } = new List<VehicleImage>();
+        public ICollection<VehicleMediaFile> MediaFiles { get; set; } = new List<VehicleMediaFile>();
         public ICollection<Comment> Comments { get; set; } = new List<Comment>();
 
         public Vehicle() { }
@@ -125,9 +125,9 @@ namespace CarSpot.Domain.Entities
             FeaturedUntil = featuredUntil;
         }
 
-        public void AddImage(VehicleImage image)
+        public void AddImage(VehicleMediaFile mediaFile)
         {
-            Images.Add(image);
+            MediaFiles.Add(mediaFile);
         }
 
         public void AddComment(Comment comment)

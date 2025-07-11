@@ -1,7 +1,7 @@
 namespace CarSpot.Application.DTOs;
 
-public record VehicleImageResponse(
+public record VehicleMediaFileResponse(
     Guid Id,
     Guid VehicleId,
-    string ImageUrl
+    string Url
 );

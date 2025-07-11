@@ -48,7 +48,7 @@ public class UserRepository : IUserRepository
             .Include(u => u.Vehicles)
                 .ThenInclude(v => v.VehicleVersion)
             .Include(u => u.Vehicles)
-                .ThenInclude(v => v.Images)
+                .ThenInclude(v => v.MediaFiles)
             .Include(u => u.Comments)
             .ToListAsync();
     }

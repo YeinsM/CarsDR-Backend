@@ -37,7 +37,7 @@ public class ApplicationDbContext : DbContext
     public required DbSet<Listing> Listings { get; set; } = null!;
     public required DbSet<Color> Colors { get; set; }
     public DbSet<Comment>? Comments { get; set; }
-    public DbSet<VehicleImage> VehicleImages { get; set; } = null!;
+    public DbSet<VehicleMediaFile> VehicleMediaFiles { get; set; } = null!;
 
     public DbSet<Country>? Countries { get; set; }
     public DbSet<City> Cities { get; set; } = null!;

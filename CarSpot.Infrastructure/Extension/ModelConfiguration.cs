@@ -102,14 +102,33 @@ namespace CarSpot.Infrastructure.Persistence.Configurations
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
-            modelBuilder.Entity<VehicleImage>(entity =>
+            modelBuilder.Entity<VehicleMediaFile>(entity =>
             {
-                entity.HasKey(v => v.Id);
-                entity.Property(v => v.ImageUrl).IsRequired().HasMaxLength(1000);
-                entity.HasOne(v => v.Vehicle)
-                      .WithMany(v => v.Images)
-                      .HasForeignKey(v => v.VehicleId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                entity.HasKey(m => m.Id);
+
+                entity.Property(m => m.Url)
+                    .IsRequired()
+                    .HasMaxLength(500);
+
+                entity.Property(m => m.PublicId)
+                    .IsRequired()
+                    .HasMaxLength(255);
+
+                entity.Property(m => m.MediaType)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+       
+                entity.HasOne(m => m.Vehicle)
+                    .WithMany(v => v.MediaFiles)
+                    .HasForeignKey(m => m.VehicleId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+       
+                entity.HasOne(m => m.Listing)
+                    .WithMany(l => l.MediaFiles)
+                    .HasForeignKey(m => m.ListingId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             modelBuilder.Entity<Listing>(entity =>
@@ -119,9 +138,9 @@ namespace CarSpot.Infrastructure.Persistence.Configurations
                 entity.HasOne(l => l.Currency)
                       .WithMany()
                       .HasForeignKey(l => l.CurrencyId);
-                entity.HasMany(p => p.Images)
-                      .WithOne(img => img.Listing)
-                      .HasForeignKey(img => img.ListingId)
+                entity.HasMany(p => p.MediaFiles)
+                      .WithOne(med => med.Listing)
+                      .HasForeignKey(med => med.ListingId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
@@ -204,12 +223,12 @@ namespace CarSpot.Infrastructure.Persistence.Configurations
                 entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
             });
 
-             modelBuilder.Entity<VehicleType>(entity =>
-            {
-                entity.ToTable("VehicleTypes");
-                entity.HasKey(c => c.Id);
-                entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
-            });
+            modelBuilder.Entity<VehicleType>(entity =>
+           {
+               entity.ToTable("VehicleTypes");
+               entity.HasKey(c => c.Id);
+               entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
+           });
 
         }
     }

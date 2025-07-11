@@ -19,7 +19,7 @@ namespace CarSpot.WebApi.Controllers
         private readonly IAuxiliarRepository<VehicleType> _vehicleTypeRepository;
         private readonly IVehicleRepository _vehicleRepository;
         private readonly IUserRepository _userRepository;
-        private readonly IVehicleImageRepository _vehicleImageRepository;
+        private readonly IVehicleMediaFileRepository _vehicleMediaRepository;
         private readonly IPhotoService _photoService;
 
 
@@ -31,7 +31,7 @@ namespace CarSpot.WebApi.Controllers
             IAuxiliarRepository<Condition> conditionRepository,
             IAuxiliarRepository<Color> colorRepository,
             IAuxiliarRepository<VehicleType> vehicleTypeRepository,
-            IVehicleImageRepository vehicleImageRepository,
+            IVehicleMediaFileRepository vehicleMediaFileRepository,
             IPhotoService photoService)
         {
             _vehicleRepository = vehicleRepository;
@@ -41,7 +41,7 @@ namespace CarSpot.WebApi.Controllers
             _conditionRepository = conditionRepository;
             _colorRepository = colorRepository;
             _vehicleTypeRepository = vehicleTypeRepository;
-            _vehicleImageRepository = vehicleImageRepository;
+            _vehicleMediaRepository = vehicleMediaFileRepository;
             _photoService = photoService;
         }
 
@@ -104,7 +104,7 @@ namespace CarSpot.WebApi.Controllers
             vehicle.Color = color;
             vehicle.VehicleType = vehicleType;
 
-            vehicle.Images = [];
+            vehicle.MediaFiles = [];
             vehicle.Comments = [];
 
             await _vehicleRepository.CreateVehicleAsync(vehicle);
@@ -125,50 +125,6 @@ namespace CarSpot.WebApi.Controllers
 
             return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, response);
         }
-
-        [HttpPost("{vehicleId}/images")]
-        public async Task<IActionResult> UploadImage(Guid vehicleId, [FromForm] CreateVehicleImageRequest request)
-        {
-            var vehicle = await _vehicleRepository.GetByIdAsync(vehicleId);
-            if (vehicle == null) return NotFound(new { message = "Vehicle not found." });
-
-            var uploadResult = await _photoService.UploadImageAsync(request.File);
-            if (uploadResult is null)
-                return StatusCode(500, new { message = "Image upload failed." });
-
-            var image = new VehicleImage
-            {
-                Id = Guid.NewGuid(),
-                VehicleId = vehicleId,
-                ImageUrl = uploadResult.Url,
-                PublicId = uploadResult.PublicId
-            };
-
-            await _vehicleImageRepository.CreateAsync(image);
-
-            return CreatedAtAction(nameof(GetImageById), new { id = image.Id }, image);
-        }
-
-
-        [HttpGet("images/{id}")]
-        public async Task<IActionResult> GetImageById(Guid id)
-        {
-            var image = await _vehicleImageRepository.GetByIdAsync(id);
-            return image is null ? NotFound() : Ok(image);
-        }
-
-        [HttpDelete("images/{id}")]
-        public async Task<IActionResult> DeleteImage(Guid id)
-        {
-            var image = await _vehicleImageRepository.GetByIdAsync(id);
-            if (image is null) return NotFound(new { message = "Image not found." });
-
-            await _photoService.DeleteImageAsync(id);
-            await _vehicleImageRepository.DeleteAsync(id);
-
-            return NoContent();
-        }
-
 
 
         [HttpPut("{id:Guid}")]

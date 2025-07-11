@@ -30,7 +30,7 @@ public class VehicleCreatedEventHandler : IDomainEventHandler<VehicleCreatedEven
             var vehicleEmailData = new VehicleCreatedEmailDto(
                 user.FullName,
                 user.Email,
-                vehicle.Title,
+                vehicle.Title!,
                 vehicle.VIN,
                 vehicle.Make?.Name ?? "N/A",
                 vehicle.Model?.Name ?? "N/A",

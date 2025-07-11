@@ -1,19 +1,15 @@
-using CarSpot.Infrastructure.Persistence.Context;
+
 using CarSpot.Infrastructure.Settings;
 using CloudinaryDotNet;
 using CloudinaryDotNet.Actions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-
-
 
 public class PhotoService : IPhotoService
 {
     private readonly Cloudinary _cloudinary;
-    private readonly ApplicationDbContext _context;
 
-    public PhotoService(IOptions<CloudinarySettings> config, ApplicationDbContext context)
+    public PhotoService(IOptions<CloudinarySettings> config)
     {
         var acc = new Account(
             config.Value.CloudName,
@@ -22,7 +18,6 @@ public class PhotoService : IPhotoService
         );
 
         _cloudinary = new Cloudinary(acc);
-        _context = context;
     }
 
     public async Task<PhotoUploadResult?> UploadImageAsync(IFormFile file)
@@ -45,19 +40,32 @@ public class PhotoService : IPhotoService
         };
     }
 
-    public async Task DeleteImageAsync(Guid id)
+    public async Task<PhotoUploadResult?> UploadVideoAsync(IFormFile file)
     {
+        if (file.Length <= 0) return null;
 
-        var image = await _context.VehicleImages.FirstOrDefaultAsync(img => img.Id == id);
-        if (image == null || string.IsNullOrWhiteSpace(image.PublicId))
-            return;
+        await using var stream = file.OpenReadStream();
+        var uploadParams = new VideoUploadParams
+        {
+            File = new FileDescription(file.FileName, stream),
+            Folder = "vehicle-videos"
+        };
 
+        var uploadResult = await _cloudinary.UploadAsync(uploadParams);
 
-        var deleteParams = new DeletionParams(image.PublicId);
+        return new PhotoUploadResult
+        {
+            Url = uploadResult.SecureUrl.ToString(),
+            PublicId = uploadResult.PublicId
+        };
+    }
 
+    public async Task DeleteImageAsync(string publicId)
+    {
+        if (string.IsNullOrWhiteSpace(publicId)) return;
 
+        var deleteParams = new DeletionParams(publicId);
         var result = await _cloudinary.DestroyAsync(deleteParams);
-
 
         if (result.Result != "ok")
         {
@@ -65,4 +73,20 @@ public class PhotoService : IPhotoService
         }
     }
 
+    public async Task DeleteVideoAsync(string publicId)
+    {
+        if (string.IsNullOrWhiteSpace(publicId)) return;
+
+        var deleteParams = new DeletionParams(publicId)
+        {
+            ResourceType = ResourceType.Video
+        };
+
+        var result = await _cloudinary.DestroyAsync(deleteParams);
+
+        if (result.Result != "ok")
+        {
+            throw new Exception($"Failed to delete video from Cloudinary. Status: {result.Result}");
+        }
+    }
 }

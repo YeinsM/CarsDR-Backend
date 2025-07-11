@@ -20,7 +20,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
         public async Task<IEnumerable<VehicleDto>> GetAllAsync()
         {
             var vehicles = await _context.Vehicles
-                .Include(v => v.Images)
+                .Include(v => v.MediaFiles)
                 .Include(v => v.Make)
                 .Include(v => v.Model)
                 .Include(v => v.VehicleType)
@@ -57,9 +57,9 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 v.MarketVersion.Name,
                 v.VehicleVersion.Name,
                 v.UserId,
-               v.Images.Select(img => new VehicleImageDto(
-                img.Id,
-                img.ImageUrl ?? ""
+               v.MediaFiles.Select(med => new VehicleMediaFileDto(
+                med.Id,
+                med.Url ?? ""
                 )).ToList()
             ));
 
@@ -80,7 +80,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .Include(v => v.CabType)
                 .Include(v => v.Condition)
                 .Include(v => v.Color)
-                .Include(v => v.Images)
+                .Include(v => v.MediaFiles)
                 .Include(v => v.Comments)
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
@@ -115,19 +115,19 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
         public async Task DeleteByIdAsync(Guid id)
         {
             var vehicle = await _context.Vehicles
-                .Include(v => v.Images)
+                .Include(v => v.MediaFiles)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             if (vehicle is null) return;
 
-            foreach (var img in vehicle.Images)
+            foreach (var med in vehicle.MediaFiles)
             {
-                if (img.ListingId != Guid.Empty)
+                if (med.ListingId != Guid.Empty)
                 {
-                    await _photoService.DeleteImageAsync(img.ListingId);
+                    await _photoService.DeleteImageAsync(med.PublicId);
                 }
 
-                _context.VehicleImages.Remove(img);
+                _context.VehicleMediaFiles.Remove(med);
             }
 
             _context.Vehicles.Remove(vehicle);
