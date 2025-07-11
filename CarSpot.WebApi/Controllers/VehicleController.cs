@@ -108,7 +108,7 @@ namespace CarSpot.WebApi.Controllers
             vehicle.Comments = [];
 
             await _vehicleRepository.CreateVehicleAsync(vehicle);
-            
+
 
             var response = new VehicleResponse(
                 vehicle.Id,
@@ -209,5 +209,13 @@ namespace CarSpot.WebApi.Controllers
             await _vehicleRepository.DeleteAsync(vehicle);
             return NoContent();
         }
+
+        [HttpPost("filter")]
+        public async Task<IActionResult> Filter([FromBody] VehicleFilterRequest request)
+        {
+            var vehicles = await _vehicleRepository.FilterAsync(request);
+            return Ok(vehicles);
+        }
+
     }
 }

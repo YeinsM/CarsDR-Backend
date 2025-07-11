@@ -133,5 +133,38 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             _context.Vehicles.Remove(vehicle);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<IEnumerable<Vehicle>> FilterAsync(VehicleFilterRequest request)
+        {
+            var query = _context.Vehicles
+                .Include(v => v.Make)
+                .Include(v => v.Model)
+                .Include(v => v.VehicleType)
+                .Include(v => v.Condition)
+                .Include(v => v.MarketVersion)
+                .Include(v => v.City)
+                .AsQueryable();
+
+            if (request.VehicleTypeId.HasValue)
+                query = query.Where(v => v.VehicleTypeId == request.VehicleTypeId);
+
+            if (request.MakeId.HasValue)
+                query = query.Where(v => v.MakeId == request.MakeId);
+
+            if (request.ModelId.HasValue)
+                query = query.Where(v => v.ModelId == request.ModelId);
+
+            if (request.ConditionId.HasValue)
+                query = query.Where(v => v.ConditionId == request.ConditionId);
+
+            if (request.VehicleVersionId.HasValue)
+                query = query.Where(v => v.MarketVersionId == request.VehicleVersionId);
+
+            if (request.CityId.HasValue)
+                query = query.Where(v => v.CityId == request.CityId);
+
+            return await query.ToListAsync();
+        }
+
     }
 }

@@ -42,6 +42,8 @@ namespace CarSpot.Domain.Entities
 
         public int ColorId { get; set; }
         public Color Color { get; set; } = null!;
+        public int CityId { get; set; }
+        public City City { get; set; } = null!;
 
         public int Year { get; set; }
         public int Mileage { get; set; }
