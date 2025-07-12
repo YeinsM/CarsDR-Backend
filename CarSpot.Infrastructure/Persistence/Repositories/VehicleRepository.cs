@@ -137,34 +137,47 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
         public async Task<IEnumerable<Vehicle>> FilterAsync(VehicleFilterRequest request)
         {
             var query = _context.Vehicles
+                .Include(v => v.VehicleType)
                 .Include(v => v.Make)
                 .Include(v => v.Model)
-                .Include(v => v.VehicleType)
                 .Include(v => v.Condition)
-                .Include(v => v.MarketVersion)
                 .Include(v => v.City)
+                .Include(v => v.VehicleVersion)
                 .AsQueryable();
 
-            if (request.VehicleTypeId.HasValue)
-                query = query.Where(v => v.VehicleTypeId == request.VehicleTypeId);
+            if (!string.IsNullOrWhiteSpace(request.VehicleType))
+                query = query.Where(v =>
+                    v.VehicleType != null &&
+                    v.VehicleType.Name.ToLower() == request.VehicleType.ToLower());
 
-            if (request.MakeId.HasValue)
-                query = query.Where(v => v.MakeId == request.MakeId);
+            if (!string.IsNullOrWhiteSpace(request.Make))
+                query = query.Where(v =>
+                    v.Make != null &&
+                    v.Make.Name.ToLower() == request.Make.ToLower());
 
-            if (request.ModelId.HasValue)
-                query = query.Where(v => v.ModelId == request.ModelId);
+            if (!string.IsNullOrWhiteSpace(request.Model))
+                query = query.Where(v =>
+                    v.Model != null &&
+                    v.Model.Name.ToLower() == request.Model.ToLower());
 
-            if (request.ConditionId.HasValue)
-                query = query.Where(v => v.ConditionId == request.ConditionId);
+            if (!string.IsNullOrWhiteSpace(request.Condition))
+                query = query.Where(v =>
+                    v.Condition != null &&
+                    v.Condition.Name.ToLower() == request.Condition.ToLower());
 
-            if (request.VehicleVersionId.HasValue)
-                query = query.Where(v => v.MarketVersionId == request.VehicleVersionId);
+            if (!string.IsNullOrWhiteSpace(request.Version))
+                query = query.Where(v =>
+                    v.VehicleVersion != null &&
+                    v.VehicleVersion.Name.ToLower() == request.Version.ToLower());
 
-            if (request.CityId.HasValue)
-                query = query.Where(v => v.CityId == request.CityId);
+            if (!string.IsNullOrWhiteSpace(request.City))
+                query = query.Where(v =>
+                    v.City != null &&
+                    v.City.Name.ToLower() == request.City.ToLower());
 
             return await query.ToListAsync();
         }
+
 
     }
 }
