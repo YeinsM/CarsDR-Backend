@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
@@ -172,6 +173,26 @@ namespace CarSpot.WebApi.Controllers
             var vehicles = await _vehicleRepository.FilterAsync(request);
             return Ok(vehicles);
         }
+
+        [HttpGet("paginated")]
+        public async Task<IActionResult> GetPaginated(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string? orderBy = null,
+            [FromQuery] string? sortDir = "asc")
+        {
+            orderBy = string.IsNullOrWhiteSpace(orderBy) ? "CreatedAt" : orderBy;
+
+            IQueryable<Vehicle> query = _vehicleRepository.Query();
+
+            string baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+
+            PaginatedResponse<Vehicle> result = await PaginationHelper.CreatePaginatedResponse(query, page, pageSize, baseUrl, orderBy, sortDir);
+
+            return Ok(result);
+        }
+
+
 
     }
 }

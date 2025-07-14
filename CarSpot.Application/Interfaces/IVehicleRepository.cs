@@ -13,5 +13,7 @@ namespace CarSpot.Application.Interfaces
          Task<IEnumerable<Vehicle>> FilterAsync(VehicleFilterRequest request);
      
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+        IQueryable<Vehicle> Query();
+
     }
 }

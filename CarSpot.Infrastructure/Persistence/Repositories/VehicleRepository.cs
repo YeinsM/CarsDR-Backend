@@ -178,6 +178,12 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             return await query.ToListAsync();
         }
 
+        public IQueryable<Vehicle> Query()
+        {
+            return _context.Vehicles.AsQueryable();
+        }
+
+
 
     }
 }
