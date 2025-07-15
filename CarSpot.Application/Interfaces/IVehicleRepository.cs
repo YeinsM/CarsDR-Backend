@@ -1,5 +1,7 @@
 using CarSpot.Application.DTOs;
 using CarSpot.Domain.Entities;
+using CarSpot.Domain.Common;
+
 
 namespace CarSpot.Application.Interfaces
 {
@@ -10,7 +12,8 @@ namespace CarSpot.Application.Interfaces
         Task<Vehicle> CreateVehicleAsync(Vehicle vehicle);
         Task UpdateAsync(Vehicle vehicle);
         Task DeleteAsync(Vehicle vehicle);
-         Task<IEnumerable<Vehicle>> FilterAsync(VehicleFilterRequest request);
+         Task<PaginatedResponse<Vehicle>> FilterAsync(VehicleFilterRequest request);
+
      
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         IQueryable<Vehicle> Query();

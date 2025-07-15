@@ -1,7 +1,8 @@
-
-using Microsoft.EntityFrameworkCore;
 using CarSpot.Application.Common.Extensions;
+using CarSpot.Domain.Common;
+using Microsoft.EntityFrameworkCore;
 
+namespace CarSpot.Application.Common.Helpers;
 
 public static class PaginationHelper
 {
@@ -24,25 +25,6 @@ public static class PaginationHelper
                               .Take(pageSize)
                               .ToListAsync();
 
-        int totalPages = (int)Math.Ceiling(total / (double)pageSize);
-
-        var buildUrl = (int targetPage) =>
-            $"{baseUrl}?page={targetPage}&pageSize={pageSize}&orderBy={orderBy}&sortDir={sortDir}";
-
-        return new PaginatedResponse<T>
-        {
-            Collection = new CollectionMetadata
-            {
-                Url = buildUrl(page),
-                Count = data.Count,
-                Pages = totalPages,
-                Total = total,
-                First = buildUrl(1),
-                Last = buildUrl(totalPages),
-                Next = page < totalPages ? buildUrl(page + 1) : null,
-                Prev = page > 1 ? buildUrl(page - 1) : null
-            },
-            Data = data
-        };
+        return new PaginatedResponse<T>(data, page, pageSize, total, baseUrl);
     }
 }

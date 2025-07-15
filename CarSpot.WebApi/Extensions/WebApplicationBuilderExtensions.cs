@@ -3,7 +3,6 @@ using System.IO;
 using DotNetEnv;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
-using CarSpot.Infrastructure.Settings;
 
 namespace CarSpot.WebApi.Extensions
 {
@@ -40,11 +39,11 @@ namespace CarSpot.WebApi.Extensions
             cfg["CloudinarySettings:ApiSecret"] = Environment.GetEnvironmentVariable("CLOUDINARY_API_SECRET") ?? cfg["CloudinarySettings:ApiSecret"];
 
             // ConnectionStrings:Default
-            string server = Environment.GetEnvironmentVariable("DB_SERVER");
-            string port = Environment.GetEnvironmentVariable("DB_PORT");
-            string name = Environment.GetEnvironmentVariable("DB_NAME");
-            string user = Environment.GetEnvironmentVariable("DB_USER");
-            string pwd = Environment.GetEnvironmentVariable("DB_PASSWORD");
+            string? server = Environment.GetEnvironmentVariable("DB_SERVER");
+            string? port = Environment.GetEnvironmentVariable("DB_PORT");
+            string? name = Environment.GetEnvironmentVariable("DB_NAME");
+            string? user = Environment.GetEnvironmentVariable("DB_USER");
+            string? pwd = Environment.GetEnvironmentVariable("DB_PASSWORD");
             if (!string.IsNullOrEmpty(server)
                 && !string.IsNullOrEmpty(port)
                 && !string.IsNullOrEmpty(name)

@@ -6,6 +6,11 @@ using CarSpot.Application.Interfaces;
 using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using CarSpot.Domain.Common;
+using CarSpot.Application.Common.Helpers;
+
+
+
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -56,24 +61,25 @@ namespace CarSpot.WebApi.Controllers
         [HttpGet("{id:Guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var vehicle = await _vehicleRepository.GetByIdAsync(id);
+            Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
             return vehicle is null ? NotFound() : Ok(vehicle);
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateVehicleRequest request)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId);
-            var make = await _makeRepository.GetByIdAsync(request.MakeId);
-            var model = await _modelRepository.GetByIdAsync(request.ModelId);
-            var condition = await _conditionRepository.GetByIdAsync(request.ConditionId);
-            var color = await _colorRepository.GetByIdAsync(request.ColorId);
-            var vehicleType = await _vehicleTypeRepository.GetByIdAsync(request.VehicleTypeId);
+            User? user = await _userRepository.GetByIdAsync(request.UserId);
+            Make make = await _makeRepository.GetByIdAsync(request.MakeId);
+            Model? model = await _modelRepository.GetByIdAsync(request.ModelId);
+            Condition? condition = await _conditionRepository.GetByIdAsync(request.ConditionId);
+            Color? color = await _colorRepository.GetByIdAsync(request.ColorId);
+            VehicleType? vehicleType = await _vehicleTypeRepository.GetByIdAsync(request.VehicleTypeId);
 
 
             if (user is null || make is null || model is null || condition is null || color is null || vehicleType is null)
+            {
                 return BadRequest("One or more required entities (User, Make, Model, Condition, Color, VehicleType) were not found.");
-
+            }
             var vehicle = new Vehicle(
                 request.VIN,
                 request.UserId,
@@ -91,7 +97,7 @@ namespace CarSpot.WebApi.Controllers
                 request.Year,
                 request.Mileage,
                 request.Price,
-                request.Title,
+                request.Title!,
                 request.IsFeatured,
                 request.FeaturedUntil,
                 0,
@@ -113,11 +119,11 @@ namespace CarSpot.WebApi.Controllers
 
             var response = new VehicleResponse(
                 vehicle.Id,
-                vehicle.Title,
+                vehicle.Title!,
                 vehicle.VIN,
                 vehicle.VehicleType.Name,
                 make.Name,
-                model.Name,
+                model.Name!,
                 condition.Name,
                 color.Name,
                 vehicle.Year,
@@ -131,10 +137,11 @@ namespace CarSpot.WebApi.Controllers
         [HttpPut("{id:Guid}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateVehicleRequest request)
         {
-            var vehicle = await _vehicleRepository.GetByIdAsync(id);
+            Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
             if (vehicle is null)
+            {
                 return NotFound();
-
+            }
             vehicle.MakeId = request.MakeId;
             vehicle.ModelId = request.ModelId;
             vehicle.VehicleVersionId = request.VehicleVersionId;
@@ -159,9 +166,11 @@ namespace CarSpot.WebApi.Controllers
         [HttpDelete("{id:Guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var vehicle = await _vehicleRepository.GetByIdAsync(id);
+            Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
             if (vehicle is null)
+            {
                 return NotFound();
+            }
 
             await _vehicleRepository.DeleteAsync(vehicle);
             return NoContent();
@@ -170,9 +179,13 @@ namespace CarSpot.WebApi.Controllers
         [HttpPost("filter")]
         public async Task<IActionResult> Filter([FromBody] VehicleFilterRequest request)
         {
-            var vehicles = await _vehicleRepository.FilterAsync(request);
-            return Ok(vehicles);
+            var result = await _vehicleRepository.FilterAsync(request);
+            return Ok(result);
         }
+
+
+
+
 
         [HttpGet("paginated")]
         public async Task<IActionResult> GetPaginated(

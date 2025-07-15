@@ -27,8 +27,8 @@ namespace CarSpot.WebApi.Controllers
 
             var response = bussinesList.Select(b => new BusinessResponse(
                 b.Id,
-                b.Name,
-                b.BusinessNumber,
+                b.Name!,
+                b.BusinessNumber!,
                 b.Phone,
                 b.Extension,
                 b.Address
@@ -46,8 +46,8 @@ namespace CarSpot.WebApi.Controllers
 
             var response = new BusinessResponse(
                 business.Id,
-                business.Name,
-                business.BusinessNumber,
+                business.Name!,
+                business.BusinessNumber!,
                 business.Phone,
                 business.Extension,
                 business.Address

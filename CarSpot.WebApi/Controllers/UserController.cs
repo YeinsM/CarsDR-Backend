@@ -86,7 +86,7 @@ public class UsersController : ControllerBase
         v.Id,
         v.VIN,
         v.Price,
-        v.Title,
+        v.Title!,
         v.IsFeatured,
         v.FeaturedUntil,
         v.Mileage,
@@ -113,7 +113,7 @@ public class UsersController : ControllerBase
         c.Id,
         c.VehicleId,
         c.UserId,
-        c.Content,
+        c.Content!,
         c.CreatedAt
     )).ToList()
 ));
@@ -154,7 +154,7 @@ public class UsersController : ControllerBase
                 c.Id,
                 c.VehicleId,
                 c.UserId,
-                c.Content,
+                c.Content!,
                 c.CreatedAt
             )).ToList()
         );
@@ -234,12 +234,12 @@ public class UsersController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
-        var user = await _userRepository.GetByEmailAsync(request.EmailOrUsername);
+        User? user = await _userRepository.GetByEmailAsync(request.EmailOrUsername!);
 
         if (user == null)
-            user = await _userRepository.GetByUsernameAsync(request.EmailOrUsername);
+            user = await _userRepository.GetByUsernameAsync(request.EmailOrUsername!);
 
-        if (user == null || !user.Password.Verify(request.Password))
+        if (user == null || !user.Password.Verify(request.Password!))
             return Unauthorized(new { Status = 401, Message = "Invalid credentials" });
 
 
@@ -366,7 +366,7 @@ public class UsersController : ControllerBase
                 c.Id,
                 c.VehicleId,
                 c.UserId,
-                c.Content,
+                c.Content!,
                 c.CreatedAt
             )).ToList()
         );
