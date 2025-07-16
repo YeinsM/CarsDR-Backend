@@ -1,1 +1,1 @@
-public record UpdateCityRequest(int Id, string Name, int CountryId);
+public record UpdateCityRequest(string Name, int CountryId);

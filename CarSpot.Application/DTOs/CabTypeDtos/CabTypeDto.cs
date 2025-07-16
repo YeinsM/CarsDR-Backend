@@ -1,1 +1,1 @@
-public record CabTypeDto(int Id, string Name);
+public record CabTypeDto(string Name);

@@ -1,5 +1,6 @@
-using System.Collections.Generic;
+
 using System.Threading.Tasks;
+using CarSpot.Application.Common.Responses;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.WebApi.Controllers
@@ -16,58 +17,57 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Color>>> GetAll()
+        public async Task<IActionResult> GetAll()
         {
             var colors = await _repository.GetAllAsync();
-            return Ok(colors);
+            return Ok(ApiResponseBuilder.Success(colors, "Colors retrieved successfully."));
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<Color>> GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
             var color = await _repository.GetByIdAsync(id);
-            if (color == null)
-                return NotFound();
+            if (color is null)
+                return NotFound(ApiResponseBuilder.Fail<Color>(404, $"Color with ID {id} not found."));
 
-            return Ok(color);
+            return Ok(ApiResponseBuilder.Success(color, "Color retrieved successfully."));
         }
 
         [HttpPost]
-        public async Task<ActionResult<Color>> Create([FromBody] Color color)
+        public async Task<IActionResult> Create([FromBody] Color color)
         {
-            if (color == null || string.IsNullOrWhiteSpace(color.Name))
-                return BadRequest("Color data is required and name must not be empty.");
+            if (color is null || string.IsNullOrWhiteSpace(color.Name))
+                return BadRequest(ApiResponseBuilder.Fail<Color>(400, "Color data is required and name must not be empty."));
 
             await _repository.Add(color);
-            return CreatedAtAction(nameof(GetById), new { id = color.Id }, color);
+            return CreatedAtAction(nameof(GetById), new { id = color.Id }, ApiResponseBuilder.Success(color, "Color created successfully."));
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] Color updated)
         {
-            if (updated == null || id != updated.Id)
-                return BadRequest("ID mismatch or invalid data.");
+            if (updated is null || id != updated.Id)
+                return BadRequest(ApiResponseBuilder.Fail<Color>(400, "ID mismatch or invalid data."));
 
             var existing = await _repository.GetByIdAsync(id);
-            if (existing == null)
-                return NotFound();
+            if (existing is null)
+                return NotFound(ApiResponseBuilder.Fail<Color>(404, $"Color with ID {id} not found."));
 
             existing.Name = updated.Name;
             await _repository.UpdateAsync(existing);
 
-            return NoContent();
+            return Ok(ApiResponseBuilder.Success(existing, "Color updated successfully."));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var color = await _repository.GetByIdAsync(id);
-            if (color == null)
-                return NotFound($"Color with ID {id} does not exist.");
+            if (color is null)
+                return NotFound(ApiResponseBuilder.Fail<Color>(404, $"Color with ID {id} not found."));
 
             await _repository.DeleteAsync(color);
-            return NoContent();
+            return Ok(ApiResponseBuilder.Success(color, "Color deleted successfully."));
         }
-
     }
 }

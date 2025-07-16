@@ -1,1 +1,1 @@
-public record CylinderOptionDto(int Id, string Name);
+public record CylinderOptionDto(string Name);

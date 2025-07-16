@@ -1,10 +1,8 @@
-using CarSpot.Application.Interfaces;
+
 using CarSpot.Domain.Entities;
-using CarSpot.Infrastructure.Persistence;
 using CarSpot.Application.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using System;
 using System.Linq;
 
 
@@ -25,7 +23,7 @@ namespace CarSpot.WebApi.Controllers
         public async Task<IActionResult> GetAll()
         {
             var result = await _repository.GetAllAsync();
-            var mapped = result.Select(x => new VehicleTypeDto(x.Id, x.Name));
+            var mapped = result.Select(x => new VehicleTypeDto(x.Name));
             return Ok(mapped);
         }
 
@@ -35,7 +33,7 @@ namespace CarSpot.WebApi.Controllers
         {
             var entity = new VehicleType { Name = request.Name };
             await _repository.Add(entity);
-            return Ok(new VehicleTypeDto(entity.Id, entity.Name));
+            return Ok(new VehicleTypeDto(entity.Name));
         }
 
         [HttpPut("{id}")]
@@ -45,7 +43,7 @@ namespace CarSpot.WebApi.Controllers
             var updated = await _repository.UpdateAsync(entity);
             return updated is null
                 ? NotFound()
-                : Ok(new VehicleTypeDto(updated.Id, updated.Name));
+                : Ok(new VehicleTypeDto(updated.Name));
         }
 
 

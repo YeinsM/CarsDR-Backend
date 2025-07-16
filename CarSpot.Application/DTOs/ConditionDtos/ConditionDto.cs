@@ -1,1 +1,1 @@
-public record ConditionDto(int Id, string Name);
+public record ConditionDto(string Name);
