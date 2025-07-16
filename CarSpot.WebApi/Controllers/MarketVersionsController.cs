@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using CarSpot.Application.Common.Responses;
 
 namespace CarSpot.API.Controllers
 {
@@ -18,36 +19,60 @@ namespace CarSpot.API.Controllers
         public async Task<IActionResult> GetAll()
         {
             var items = await _repository.GetAllAsync();
-            return Ok(items);
+            return Ok(ApiResponseBuilder.Success(items, "List of market versions retrieved successfully."));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
             var item = await _repository.GetByIdAsync(id);
-            return item is null ? NotFound() : Ok(item);
+            if (item is null)
+                return NotFound(ApiResponseBuilder.Fail<MarketVersion>(404, $"Market version with ID {id} not found."));
+
+            return Ok(ApiResponseBuilder.Success(item));
         }
 
         [HttpPost]
         public async Task<IActionResult> Create(MarketVersion marketVersion)
         {
+            if (string.IsNullOrWhiteSpace(marketVersion.Name))
+                return BadRequest(ApiResponseBuilder.Fail<MarketVersion>(400, "Name is required."));
+
             await _repository.Add(marketVersion);
-            return CreatedAtAction(nameof(GetById), new { id = marketVersion.Id }, marketVersion);
+            await _repository.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetById), new { id = marketVersion.Id },
+                ApiResponseBuilder.Success(marketVersion, "Market version created successfully."));
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, MarketVersion updated)
         {
-            if (id != updated.Id) return BadRequest();
-            await _repository.UpdateAsync(updated);
-            return NoContent();
+            if (id != updated.Id)
+                return BadRequest(ApiResponseBuilder.Fail<MarketVersion>(400, "ID in route does not match ID in body."));
+
+            var existing = await _repository.GetByIdAsync(id);
+            if (existing is null)
+                return NotFound(ApiResponseBuilder.Fail<MarketVersion>(404, $"Market version with ID {id} not found."));
+
+            existing.Name = updated.Name;
+            await _repository.UpdateAsync(existing);
+            await _repository.SaveChangesAsync();
+
+            return Ok(ApiResponseBuilder.Success(existing, "Market version updated successfully."));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _repository.DeleteAsync(id);
-            return NoContent();
+            var item = await _repository.GetByIdAsync(id);
+            if (item is null)
+                return NotFound(ApiResponseBuilder.Fail<MarketVersion>(404, $"Market version with ID {id} not found."));
+
+            await _repository.DeleteAsync(item);
+            await _repository.SaveChangesAsync();
+
+            return Ok(ApiResponseBuilder.Success<MarketVersion>(null, "Market version deleted successfully."));
         }
     }
 }

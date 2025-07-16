@@ -147,39 +147,69 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .Include(v => v.VehicleVersion)
                 .Include(v => v.City);
 
+            
             if (!string.IsNullOrWhiteSpace(request.VehicleType))
-                query = query.Where(v => v.VehicleType.Name != null &&
-                    v.VehicleType.Name.ToLower().Contains(request.VehicleType.ToLower()));
+            {
+                string value = request.VehicleType.ToLower();
+                query = query.Where(v =>
+                    v.VehicleType.Name != null &&
+                    v.VehicleType.Name.ToLower().Contains(value));
+            }
 
             if (!string.IsNullOrWhiteSpace(request.Make))
-                query = query.Where(v => v.Make.Name != null &&
-                    v.Make.Name.ToLower().Contains(request.Make.ToLower()));
+            {
+                string value = request.Make.ToLower();
+                query = query.Where(v =>
+                    v.Make.Name != null &&
+                    v.Make.Name.ToLower().Contains(value));
+            }
 
             if (!string.IsNullOrWhiteSpace(request.Model))
-                query = query.Where(v => v.Model.Name != null &&
-                    v.Model.Name.ToLower().Contains(request.Model.ToLower()));
+            {
+                string value = request.Model.ToLower();
+                query = query.Where(v =>
+                    v.Model.Name != null &&
+                    v.Model.Name.ToLower().Contains(value));
+            }
 
             if (!string.IsNullOrWhiteSpace(request.Condition))
-                query = query.Where(v => v.Condition.Name != null &&
-                    v.Condition.Name.ToLower().Contains(request.Condition.ToLower()));
+            {
+                string value = request.Condition.ToLower();
+                query = query.Where(v =>
+                    v.Condition.Name != null &&
+                    v.Condition.Name.ToLower().Contains(value));
+            }
 
             if (!string.IsNullOrWhiteSpace(request.Version))
-                query = query.Where(v => v.VehicleVersion.Name != null &&
-                    v.VehicleVersion.Name.ToLower().Contains(request.Version.ToLower()));
+            {
+                string value = request.Version.ToLower();
+                query = query.Where(v =>
+                    v.VehicleVersion.Name != null &&
+                    v.VehicleVersion.Name.ToLower().Contains(value));
+            }
 
             if (!string.IsNullOrWhiteSpace(request.City))
-                query = query.Where(v => v.City.Name != null &&
-                    v.City.Name.ToLower().Contains(request.City.ToLower()));
+            {
+                string value = request.City.ToLower();
+                query = query.Where(v =>
+                    v.City.Name != null &&
+                    v.City.Name.ToLower().Contains(value));
+            }
+
+            
+            int page = request.Page <= 0 ? 1 : request.Page;
+            int pageSize = request.PageSize <= 0 ? 10 : request.PageSize;
 
             return await PaginationHelper.CreatePaginatedResponse(
                 query,
-                request.Page,
-                request.PageSize,
+                page,
+                pageSize,
                 "/api/vehicles/filter",
                 request.OrderBy,
                 request.SortDir
             );
         }
+
 
 
 

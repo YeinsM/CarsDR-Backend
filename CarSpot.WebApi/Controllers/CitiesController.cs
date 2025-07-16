@@ -1,6 +1,8 @@
-using System.Collections.Generic;
+
 using System.Linq;
 using System.Threading.Tasks;
+using CarSpot.Application.Common.Responses;
+
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,49 +20,68 @@ public class CitiesController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<CityResponse>>> GetAllAsync()
+    public async Task<IActionResult> GetAllAsync()
     {
         var cities = await _cityRepository.GetAllAsync();
         var response = cities.Select(c => new CityResponse(c.Id, c.Name, c.CountryId));
-        return Ok(response);
+        return Ok(ApiResponseBuilder.Success(response));
     }
 
     [HttpGet("{id}")]
-    public async Task<ActionResult<CityResponse>> GetById(int id)
+    public async Task<IActionResult> GetById(int id)
     {
         var city = await _cityRepository.GetByIdAsync(id);
-        if (city == null) return NotFound();
-        return Ok(new CityResponse(city.Id, city.Name, city.CountryId));
+        if (city == null)
+            return NotFound(ApiResponseBuilder.Fail<string>(404, $"City with id {id} not found."));
+
+        var response = new CityResponse(city.Id, city.Name, city.CountryId);
+        return Ok(ApiResponseBuilder.Success(response));
     }
 
     [HttpPost]
-    public async Task<ActionResult<CityResponse>> CreateAsync(CreateCityRequest request)
+    public async Task<IActionResult> CreateAsync([FromBody] CreateCityRequest request)
     {
-        var city = new City { Name = request.Name, CountryId = request.CountryId };
+        if (!ModelState.IsValid)
+            return BadRequest(ApiResponseBuilder.Fail<string>(400, "Invalid request payload."));
+
+        var city = new City
+        {
+            Name = request.Name,
+            CountryId = request.CountryId
+        };
+
         await _cityRepository.Add(city);
-        return CreatedAtAction(nameof(GetById), "Cities", new { id = city.Id }, new CityResponse(city.Id, city.Name, city.CountryId));
+
+        var response = new CityResponse(city.Id, city.Name, city.CountryId);
+
+        return CreatedAtAction(nameof(GetById), new { id = city.Id }, ApiResponseBuilder.Success(response, "City created successfully."));
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateAsync(int id, UpdateCityRequest request)
+    public async Task<IActionResult> UpdateAsync(int id, [FromBody] UpdateCityRequest request)
     {
+        if (!ModelState.IsValid)
+            return BadRequest(ApiResponseBuilder.Fail<string>(400, "Invalid request payload."));
+
         var city = await _cityRepository.GetByIdAsync(id);
-        if (city == null) return NotFound();
+        if (city == null)
+            return NotFound(ApiResponseBuilder.Fail<string>(404, $"City with id {id} not found."));
 
         city.Name = request.Name;
         city.CountryId = request.CountryId;
 
         await _cityRepository.UpdateAsync(city);
-        return NoContent();
+        return Ok(ApiResponseBuilder.Success<string>(null, "City updated successfully."));
     }
 
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAsync(int id)
     {
         var city = await _cityRepository.GetByIdAsync(id);
-        if (city == null) return NotFound();
+        if (city == null)
+            return NotFound(ApiResponseBuilder.Fail<string>(404, $"City with id {id} not found."));
 
-        await _cityRepository.DeleteAsync(id);
-        return NoContent();
+        await _cityRepository.DeleteAsync(city);
+        return Ok(ApiResponseBuilder.Success<string>(null, "City deleted successfully."));
     }
 }

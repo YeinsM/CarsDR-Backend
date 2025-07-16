@@ -1,8 +1,8 @@
-using System.Net;
+
 using System.Text.Json;
+using CarSpot.Application.Common.Responses;
 using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace CarSpot.Infrastructure.Middleware
@@ -23,29 +23,82 @@ namespace CarSpot.Infrastructure.Middleware
             try
             {
                 await _next(context);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "An unhandled exception occurred.");
 
-                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                context.Response.ContentType = "application/json";
+                if (context.Response.HasStarted)
+                    return;
 
-                var problem = new ProblemDetails
+                var statusCode = context.Response.StatusCode;
+
+                switch (statusCode)
                 {
-                    Status = context.Response.StatusCode,
-                    Type = "https://tools.ietf.org/html/rfc7231#section-6.6.1",
-                    Title = "Internal Server Error",
-                    Detail = $"{e.Message}-{e.Source}",
-                    Instance = e.StackTrace,
+                    case StatusCodes.Status405MethodNotAllowed:
+                        await WriteFormattedResponse(context, statusCode, "Método no permitido.");
+                        break;
 
-                };
+                    case StatusCodes.Status429TooManyRequests:
+                        await WriteFormattedResponse(context, statusCode, "Demasiadas peticiones. Intenta más tarde.");
+                        break;
 
-                var options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                var json = JsonSerializer.Serialize(problem, options);
+                    case StatusCodes.Status503ServiceUnavailable:
+                        await WriteFormattedResponse(context, statusCode, "Servicio no disponible temporalmente.");
+                        break;
 
-                await context.Response.WriteAsync(json);
+                    case StatusCodes.Status204NoContent:
+                        await WriteFormattedResponse(context, statusCode, "Sin contenido.");
+                        break;
+
+                    default:
+
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Excepción no controlada");
+
+                if (!context.Response.HasStarted)
+                {
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    context.Response.ContentType = "application/json";
+
+                    var errorResponse = ApiResponseBuilder.Fail(
+                        StatusCodes.Status500InternalServerError,
+                        "Error interno del servidor",
+                        $"{ex.Message} - {ex.Source}"
+                    );
+
+                    var json = JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
+                    {
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    });
+
+                    await context.Response.WriteAsync(json);
+                }
             }
         }
+
+        private async Task WriteFormattedResponse(HttpContext context, int statusCode, string message)
+        {
+            context.Response.ContentType = "application/json";
+
+            ApiResponse<object?> response;
+
+            if (statusCode == StatusCodes.Status204NoContent)
+            {
+                response = ApiResponseBuilder.Success<object?>(null, message);
+            }
+            else
+            {
+                response = ApiResponseBuilder.Fail<object?>(statusCode, message);
+            }
+
+            var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            await context.Response.WriteAsync(json);
+        }
+
     }
 }

@@ -1,7 +1,8 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CarSpot.API.Controllers
+namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
@@ -15,39 +16,58 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<ActionResult<IEnumerable<Color>>> GetAll()
         {
-            var items = await _repository.GetAllAsync();
-            return Ok(items);
+            var colors = await _repository.GetAllAsync();
+            return Ok(colors);
         }
 
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetById(int id)
+        public async Task<ActionResult<Color>> GetById(int id)
         {
-            var item = await _repository.GetByIdAsync(id);
-            return item is null ? NotFound() : Ok(item);
+            var color = await _repository.GetByIdAsync(id);
+            if (color == null)
+                return NotFound();
+
+            return Ok(color);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Color color)
+        public async Task<ActionResult<Color>> Create([FromBody] Color color)
         {
+            if (color == null || string.IsNullOrWhiteSpace(color.Name))
+                return BadRequest("Color data is required and name must not be empty.");
+
             await _repository.Add(color);
             return CreatedAtAction(nameof(GetById), new { id = color.Id }, color);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, Color updated)
+        public async Task<IActionResult> Update(int id, [FromBody] Color updated)
         {
-            if (id != updated.Id) return BadRequest();
-            await _repository.UpdateAsync(updated);
+            if (updated == null || id != updated.Id)
+                return BadRequest("ID mismatch or invalid data.");
+
+            var existing = await _repository.GetByIdAsync(id);
+            if (existing == null)
+                return NotFound();
+
+            existing.Name = updated.Name;
+            await _repository.UpdateAsync(existing);
+
             return NoContent();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _repository.DeleteAsync(id);
+            var color = await _repository.GetByIdAsync(id);
+            if (color == null)
+                return NotFound($"Color with ID {id} does not exist.");
+
+            await _repository.DeleteAsync(color);
             return NoContent();
         }
+
     }
 }

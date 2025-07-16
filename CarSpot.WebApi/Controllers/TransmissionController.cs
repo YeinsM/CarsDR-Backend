@@ -1,8 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 
+using System.Threading.Tasks;
+using CarSpot.Application.Common.Responses;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.API.Controllers
 {
@@ -18,99 +17,64 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<Transmission>), 200)]
-        [ProducesResponseType(500)]
         public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                var items = await _repository.GetAllAsync();
-                return Ok(items);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            var transmissions = await _repository.GetAllAsync();
+            return Ok(ApiResponseBuilder.Success(transmissions, "List of transmissions retrieved successfully."));
         }
 
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(Transmission), 200)]
-        [ProducesResponseType(404)]
-        [ProducesResponseType(500)]
         public async Task<IActionResult> GetById(int id)
         {
-            try
-            {
-                var item = await _repository.GetByIdAsync(id);
-                return item is null ? NotFound() : Ok(item);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            var transmission = await _repository.GetByIdAsync(id);
+            if (transmission is null)
+                return NotFound(ApiResponseBuilder.Fail<Transmission>(404, $"Transmission with ID {id} not found."));
+
+            return Ok(ApiResponseBuilder.Success(transmission));
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(Transmission), 201)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(500)]
         public async Task<IActionResult> Create([FromBody] CreateTransmissionRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Name))
+                return BadRequest(ApiResponseBuilder.Fail<Transmission>(400, "Invalid transmission name."));
 
-            try
-            {
-                var transmission = new Transmission { Name = request.Name };
-                await _repository.Add(transmission);
-                return CreatedAtAction(nameof(GetById), new { id = transmission.Id }, transmission);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            var transmission = new Transmission { Name = request.Name };
+            await _repository.Add(transmission);
+            await _repository.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetById), new { id = transmission.Id },
+                ApiResponseBuilder.Success(transmission, "Transmission created successfully."));
         }
 
         [HttpPut("{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(404)]
-        [ProducesResponseType(500)]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateTransmissionRequest request)
         {
             if (!ModelState.IsValid || id != request.Id)
-                return BadRequest(ModelState);
+                return BadRequest(ApiResponseBuilder.Fail<Transmission>(400, "Invalid data or mismatched IDs."));
 
-            try
-            {
-                var existing = await _repository.GetByIdAsync(id);
-                if (existing == null)
-                    return NotFound();
+            var existing = await _repository.GetByIdAsync(id);
+            if (existing is null)
+                return NotFound(ApiResponseBuilder.Fail<Transmission>(404, $"Transmission with ID {id} not found."));
 
-                existing.Name = request.Name;
-                await _repository.UpdateAsync(existing);
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            existing.Name = request.Name;
+            await _repository.UpdateAsync(existing);
+            await _repository.SaveChangesAsync();
+
+            return Ok(ApiResponseBuilder.Success(existing, "Transmission updated successfully."));
         }
 
         [HttpDelete("{id}")]
-        [ProducesResponseType(204)]
-        [ProducesResponseType(500)]
         public async Task<IActionResult> Delete(int id)
         {
-            try
-            {
-                await _repository.DeleteAsync(id);
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            var transmission = await _repository.GetByIdAsync(id);
+            if (transmission is null)
+                return NotFound(ApiResponseBuilder.Fail<Transmission>(404, $"Transmission with ID {id} not found."));
+
+            await _repository.DeleteAsync(transmission);
+            await _repository.SaveChangesAsync();
+
+            return Ok(ApiResponseBuilder.Success<Transmission>(null, "Transmission deleted successfully."));
         }
     }
 }

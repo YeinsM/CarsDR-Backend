@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using CarSpot.Application.Common.Responses;
 using CarSpot.Application.Interfaces.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -22,50 +23,67 @@ namespace CarSpot.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var items = await _repository.GetAllAsync();
-            return Ok(items);
+            var versions = await _repository.GetAllAsync();
+            return Ok(ApiResponseBuilder.Success(versions, "Vehicle versions retrieved successfully."));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var item = await _repository.GetByIdAsync(id);
-            return item is null ? NotFound() : Ok(item);
+            var version = await _repository.GetByIdAsync(id);
+            if (version is null)
+                return NotFound(ApiResponseBuilder.Fail<VehicleVersion>(404, $"Vehicle version with ID {id} not found."));
+            return Ok(ApiResponseBuilder.Success(version));
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] VehicleVersion vehicleVersion)
         {
-
-
             var model = await _modelRepository.GetByIdAsync(vehicleVersion.ModelId);
             if (model is null)
-                return BadRequest($"Model with ID {vehicleVersion.ModelId} does not exist.");
+                return BadRequest(ApiResponseBuilder.Fail<VehicleVersion>(400, $"Model with ID {vehicleVersion.ModelId} does not exist."));
 
             await _repository.Add(vehicleVersion);
-            return CreatedAtAction(nameof(GetById), new { id = vehicleVersion.Id }, vehicleVersion);
+            await _repository.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetById), new { id = vehicleVersion.Id },
+                ApiResponseBuilder.Success(vehicleVersion, "Vehicle version created successfully."));
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] VehicleVersion updated)
         {
             if (id != updated.Id)
-                return BadRequest("The ID in the URL does not match the ID in the payload.");
-            {
-                var model = await _modelRepository.GetByIdAsync(updated.ModelId);
-                if (model is null)
-                    return BadRequest($"Model with ID {updated.ModelId} does not exist.");
-            }
+                return BadRequest(ApiResponseBuilder.Fail<VehicleVersion>(400, "The ID in the URL does not match the ID in the payload."));
 
-            await _repository.UpdateAsync(updated);
-            return NoContent();
+            var existing = await _repository.GetByIdAsync(id);
+            if (existing is null)
+                return NotFound(ApiResponseBuilder.Fail<VehicleVersion>(404, $"Vehicle version with ID {id} not found."));
+
+            var model = await _modelRepository.GetByIdAsync(updated.ModelId);
+            if (model is null)
+                return BadRequest(ApiResponseBuilder.Fail<VehicleVersion>(400, $"Model with ID {updated.ModelId} does not exist."));
+
+            existing.Name = updated.Name;
+            existing.ModelId = updated.ModelId;
+
+            await _repository.UpdateAsync(existing);
+            await _repository.SaveChangesAsync();
+
+            return Ok(ApiResponseBuilder.Success(existing, "Vehicle version updated successfully."));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _repository.DeleteAsync(id);
-            return NoContent();
+            var version = await _repository.GetByIdAsync(id);
+            if (version is null)
+                return NotFound(ApiResponseBuilder.Fail<VehicleVersion>(404, $"Vehicle version with ID {id} not found."));
+
+            await _repository.DeleteAsync(version);
+            await _repository.SaveChangesAsync();
+
+            return Ok(ApiResponseBuilder.Success<VehicleVersion>(null, "Vehicle version deleted successfully."));
         }
     }
 }
