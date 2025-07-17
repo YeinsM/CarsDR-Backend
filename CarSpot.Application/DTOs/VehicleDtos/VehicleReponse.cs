@@ -6,7 +6,6 @@ public record VehicleResponse(
     string Make,
     string Model,
     string Condition,
-    string Color,
     int Year,
     decimal Price
 );

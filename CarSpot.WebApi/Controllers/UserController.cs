@@ -87,7 +87,7 @@ public class UsersController : ControllerBase
         v.VIN,
         v.Price,
         v.Title!,
-        v.IsFeatured,
+        v.IsFeatured ?? false,
         v.FeaturedUntil,
         v.Mileage,
         v.Year,

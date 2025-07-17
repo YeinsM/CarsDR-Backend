@@ -72,11 +72,10 @@ namespace CarSpot.WebApi.Controllers
             Make make = await _makeRepository.GetByIdAsync(request.MakeId);
             Model? model = await _modelRepository.GetByIdAsync(request.ModelId);
             Condition? condition = await _conditionRepository.GetByIdAsync(request.ConditionId);
-            Color? color = await _colorRepository.GetByIdAsync(request.ColorId!.Value);
             VehicleType? vehicleType = await _vehicleTypeRepository.GetByIdAsync(request.VehicleTypeId);
 
 
-            if (user is null || make is null || model is null || condition is null || color is null || vehicleType is null)
+            if (user is null || make is null || model is null || condition is null || vehicleType is null)
             {
                 return BadRequest("One or more required entities (User, Make, Model, Condition, Color, VehicleType) were not found.");
             }
@@ -107,8 +106,6 @@ namespace CarSpot.WebApi.Controllers
             vehicle.User = user;
             vehicle.Make = make;
             vehicle.Model = model;
-            vehicle.Condition = condition;
-            vehicle.Color = color;
             vehicle.VehicleType = vehicleType;
 
             vehicle.MediaFiles = [];
@@ -125,7 +122,6 @@ namespace CarSpot.WebApi.Controllers
                 make.Name,
                 model.Name!,
                 condition.Name,
-                color.Name,
                 vehicle.Year,
                 vehicle.Price
             );
