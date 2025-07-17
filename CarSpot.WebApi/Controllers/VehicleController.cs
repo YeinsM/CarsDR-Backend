@@ -72,7 +72,7 @@ namespace CarSpot.WebApi.Controllers
             Make make = await _makeRepository.GetByIdAsync(request.MakeId);
             Model? model = await _modelRepository.GetByIdAsync(request.ModelId);
             Condition? condition = await _conditionRepository.GetByIdAsync(request.ConditionId);
-            Color? color = await _colorRepository.GetByIdAsync(request.ColorId);
+            Color? color = await _colorRepository.GetByIdAsync(request.ColorId!.Value);
             VehicleType? vehicleType = await _vehicleTypeRepository.GetByIdAsync(request.VehicleTypeId);
 
 
@@ -97,7 +97,7 @@ namespace CarSpot.WebApi.Controllers
                 request.Year,
                 request.Mileage,
                 request.Price,
-                request.Title!,
+                request.Title,
                 request.IsFeatured,
                 request.FeaturedUntil,
                 0,

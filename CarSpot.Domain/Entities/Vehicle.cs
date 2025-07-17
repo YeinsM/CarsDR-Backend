@@ -16,31 +16,31 @@ namespace CarSpot.Domain.Entities
         public Guid ModelId { get; set; }
         public Model Model { get; set; } = null!;
 
-        public int VehicleVersionId { get; set; }
+        public int? VehicleVersionId { get; set; }
         public VehicleVersion VehicleVersion { get; set; } = null!;
         public int VehicleTypeId { get; set; }
         public VehicleType VehicleType { get; set; } = default!;
 
 
-        public int MarketVersionId { get; set; }
+        public int? MarketVersionId { get; set; }
         public MarketVersion MarketVersion { get; set; } = null!;
 
         public int TransmissionId { get; set; }
         public Transmission Transmission { get; set; } = null!;
 
-        public int DrivetrainId { get; set; }
+        public int? DrivetrainId { get; set; }
         public Drivetrain Drivetrain { get; set; } = null!;
 
-        public int CylinderOptionId { get; set; }
+        public int? CylinderOptionId { get; set; }
         public CylinderOption CylinderOption { get; set; } = null!;
 
-        public int CabTypeId { get; set; }
+        public int? CabTypeId { get; set; }
         public CabType CabType { get; set; } = null!;
 
         public int ConditionId { get; set; }
         public Condition Condition { get; set; } = null!;
 
-        public int ColorId { get; set; }
+        public int? ColorId { get; set; }
         public Color Color { get; set; } = null!;
         public int CityId { get; set; }
         public City City { get; set; } = null!;
@@ -50,8 +50,8 @@ namespace CarSpot.Domain.Entities
         public decimal Price { get; set; }
 
         public string? Title { get; set; }
-        public bool IsFeatured { get; set; }
-        public DateTime FeaturedUntil { get; set; }
+        public bool? IsFeatured { get; set; }
+        public DateTime? FeaturedUntil { get; set; }
         public int ViewCount { get; set; }
 
         public ICollection<VehicleMediaFile> MediaFiles { get; set; } = new List<VehicleMediaFile>();
@@ -64,20 +64,20 @@ namespace CarSpot.Domain.Entities
             Guid makeId,
             Guid modelId,
             int vehicleTypeId,
-            int vehicleVersionId,
-            int marketVersionId,
+            int? vehicleVersionId,
+            int? marketVersionId,
             int transmissionId,
-            int drivetrainId,
-            int cylinderOptionId,
-            int cabTypeId,
+            int? drivetrainId,
+            int? cylinderOptionId,
+            int? cabTypeId,
             int conditionId,
-            int colorId,
+            int? colorId,
             int year,
             int mileage,
             decimal price,
-            string title,
-            bool isFeatured,
-            DateTime featuredUntil,
+            string? title,
+            bool? isFeatured,
+            DateTime? featuredUntil,
             int viewCount,
             DateTime createdAt
         )
