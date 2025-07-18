@@ -12,9 +12,7 @@ namespace CarSpot.Application.Interfaces
         Task<Vehicle> CreateVehicleAsync(Vehicle vehicle);
         Task UpdateAsync(Vehicle vehicle);
         Task DeleteAsync(Vehicle vehicle);
-         Task<PaginatedResponse<Vehicle>> FilterAsync(VehicleFilterRequest request);
-
-     
+         Task<PaginatedResponse<Vehicle>> FilterAsync(VehicleFilterRequest filter, string baseUrl);
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
         IQueryable<Vehicle> Query();
 

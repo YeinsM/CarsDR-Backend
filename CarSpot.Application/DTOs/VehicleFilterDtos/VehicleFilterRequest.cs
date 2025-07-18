@@ -1,13 +1,19 @@
-public class VehicleFilterRequest
+public record VehicleFilterRequest
 {
-    public string? VehicleType { get; set; }
-    public string? Make { get; set; }
-    public string? Model { get; set; }
-    public string? Condition { get; set; }
-    public string? Version { get; set; }
-    public string? City { get; set; }
-    public int Page { get; set; } = 1;
-    public int PageSize { get; set; } = 10;
-    public string? OrderBy { get; set; }
-    public string SortDir { get; set; } = "asc";
+    public Guid? MakeId { get; init; }
+    public Guid? ModelId { get; init; }
+
+    public int? MinYear { get; init; } 
+    public int? MaxYear { get; init; }  
+
+    public int? ConditionId { get; init; }
+    public int? DrivetrainId { get; init; }
+    public int? CylinderOptionId { get; init; }
+    public int? CabTypeId { get; init; }
+
+    public int? MinMileage { get; init; }
+    public int? MaxMileage { get; init; }
+
+    public int Page { get; init; } = 1;
+    public int PageSize { get; init; } = 10;
 }

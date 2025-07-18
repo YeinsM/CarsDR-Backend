@@ -1,4 +1,4 @@
-using CarSpot.Application.Common.Helpers;
+
 using CarSpot.Domain.Common;
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
@@ -137,78 +137,57 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<PaginatedResponse<Vehicle>> FilterAsync(VehicleFilterRequest request)
+        public async Task<PaginatedResponse<Vehicle>> FilterAsync(VehicleFilterRequest filter, string baseUrl)
         {
-            IQueryable<Vehicle> query = _context.Vehicles
-                .Include(v => v.VehicleType)
+            var query = _context.Vehicles
                 .Include(v => v.Make)
                 .Include(v => v.Model)
                 .Include(v => v.Condition)
-                .Include(v => v.VehicleVersion)
-                .Include(v => v.City);
+                .Include(v => v.Drivetrain)
+                .Include(v => v.CylinderOption)
+                .Include(v => v.CabType)
+                .AsQueryable();
 
-            
-            if (!string.IsNullOrWhiteSpace(request.VehicleType))
-            {
-                string value = request.VehicleType.ToLower();
-                query = query.Where(v =>
-                    v.VehicleType.Name != null &&
-                    v.VehicleType.Name.ToLower().Contains(value));
-            }
+            if (filter.MakeId.HasValue)
+                query = query.Where(v => v.MakeId == filter.MakeId.Value);
 
-            if (!string.IsNullOrWhiteSpace(request.Make))
-            {
-                string value = request.Make.ToLower();
-                query = query.Where(v =>
-                    v.Make.Name != null &&
-                    v.Make.Name.ToLower().Contains(value));
-            }
+            if (filter.ModelId.HasValue)
+                query = query.Where(v => v.ModelId == filter.ModelId.Value);
 
-            if (!string.IsNullOrWhiteSpace(request.Model))
-            {
-                string value = request.Model.ToLower();
-                query = query.Where(v =>
-                    v.Model.Name != null &&
-                    v.Model.Name.ToLower().Contains(value));
-            }
+            if (filter.ConditionId.HasValue)
+                query = query.Where(v => v.ConditionId == filter.ConditionId.Value);
 
-            if (!string.IsNullOrWhiteSpace(request.Condition))
-            {
-                string value = request.Condition.ToLower();
-                query = query.Where(v =>
-                    v.Condition.Name != null &&
-                    v.Condition.Name.ToLower().Contains(value));
-            }
+            if (filter.DrivetrainId.HasValue)
+                query = query.Where(v => v.DrivetrainId == filter.DrivetrainId.Value);
 
-            if (!string.IsNullOrWhiteSpace(request.Version))
-            {
-                string value = request.Version.ToLower();
-                query = query.Where(v =>
-                    v.VehicleVersion.Name != null &&
-                    v.VehicleVersion.Name.ToLower().Contains(value));
-            }
+            if (filter.CylinderOptionId.HasValue)
+                query = query.Where(v => v.CylinderOptionId == filter.CylinderOptionId.Value);
 
-            if (!string.IsNullOrWhiteSpace(request.City))
-            {
-                string value = request.City.ToLower();
-                query = query.Where(v =>
-                    v.City.Name != null &&
-                    v.City.Name.ToLower().Contains(value));
-            }
+            if (filter.CabTypeId.HasValue)
+                query = query.Where(v => v.CabTypeId == filter.CabTypeId.Value);
 
-            
-            int page = request.Page <= 0 ? 1 : request.Page;
-            int pageSize = request.PageSize <= 0 ? 10 : request.PageSize;
+            if (filter.MinMileage.HasValue)
+                query = query.Where(v => v.Mileage >= filter.MinMileage.Value);
 
-            return await PaginationHelper.CreatePaginatedResponse(
-                query,
-                page,
-                pageSize,
-                "/api/vehicles/filter",
-                request.OrderBy,
-                request.SortDir
+            if (filter.MaxMileage.HasValue)
+                query = query.Where(v => v.Mileage <= filter.MaxMileage.Value);
+
+            var totalItems = await query.CountAsync();
+
+            var vehicles = await query
+                .Skip((filter.Page - 1) * filter.PageSize)
+                .Take(filter.PageSize)
+                .ToListAsync();
+
+            return new PaginatedResponse<Vehicle>(
+                data: vehicles,
+                page: filter.Page,
+                pageSize: filter.PageSize,
+                total: totalItems,
+                baseUrl: baseUrl
             );
         }
+
 
 
 

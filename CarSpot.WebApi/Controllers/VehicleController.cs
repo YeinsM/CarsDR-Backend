@@ -173,11 +173,15 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPost("filter")]
-        public async Task<IActionResult> Filter([FromBody] VehicleFilterRequest request)
+        public async Task<IActionResult> FilterVehicles([FromBody] VehicleFilterRequest request)
         {
-            var result = await _vehicleRepository.FilterAsync(request);
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+
+            var result = await _vehicleRepository.FilterAsync(request, baseUrl);
+
             return Ok(result);
         }
+
 
 
 
