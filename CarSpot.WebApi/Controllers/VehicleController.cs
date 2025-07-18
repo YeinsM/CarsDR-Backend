@@ -175,12 +175,24 @@ namespace CarSpot.WebApi.Controllers
         [HttpPost("filter")]
         public async Task<IActionResult> FilterVehicles([FromBody] VehicleFilterRequest request)
         {
+            if (request.MinMileage.HasValue && request.MaxMileage.HasValue &&
+                request.MinMileage > request.MaxMileage)
+            {
+                return BadRequest("MinMileage cannot be greater than MaxMileage.");
+            }
+
+            if (request.Page <= 0 || request.PageSize <= 0)
+            {
+                return BadRequest("Page and PageSize must be greater than 0.");
+            }
+
             var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
             var result = await _vehicleRepository.FilterAsync(request, baseUrl);
 
             return Ok(result);
         }
+
 
 
 

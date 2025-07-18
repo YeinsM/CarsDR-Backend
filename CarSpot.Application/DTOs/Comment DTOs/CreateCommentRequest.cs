@@ -1,6 +1,7 @@
-public record CreateCommentRequest
-(
-    Guid VehicleId,
+public record CreateCommentRequest(
+    string? Content,
+    Guid ListingId,
     Guid UserId,
-    string Content = null!
+    string Text,
+    Guid? ParentCommentId
 );

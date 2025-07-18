@@ -3,10 +3,15 @@ using CarSpot.Domain.Entities;
 
 public class Comment : BaseEntity
 {
-
-    public Guid VehicleId { get; set; }
-    public Guid UserId { get; set; }
     public string? Content { get; set; }
-    public Vehicle? Vehicle { get; set; }
-    public User? User { get; set; }
+    public Guid UserId { get; set; }
+    public User User { get; set; }= default!;
+
+    public Guid ListingId { get; set; }
+    public Listing? Listing { get; set; }
+    public bool IsReported { get; set; } = false;
+
+    public Guid? ParentCommentId { get; set; }
+    public Comment? ParentComment { get; set; }
+    public ICollection<Comment> Replies { get; set; } = new List<Comment>();
 }

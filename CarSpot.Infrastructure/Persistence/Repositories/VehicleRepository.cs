@@ -166,11 +166,40 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             if (filter.CabTypeId.HasValue)
                 query = query.Where(v => v.CabTypeId == filter.CabTypeId.Value);
 
-            if (filter.MinMileage.HasValue)
-                query = query.Where(v => v.Mileage >= filter.MinMileage.Value);
+            if (filter.MinMileage.HasValue && filter.MaxMileage.HasValue)
+            {
+                if (filter.MinMileage > filter.MaxMileage)
+                {
+                    throw new ArgumentException("MinMileage cannot be greater than MaxMileage.");
+                }
 
-            if (filter.MaxMileage.HasValue)
+                query = query.Where(v => v.Mileage >= filter.MinMileage.Value && v.Mileage <= filter.MaxMileage.Value);
+            }
+            else if (filter.MinMileage.HasValue)
+            {
+                query = query.Where(v => v.Mileage >= filter.MinMileage.Value);
+            }
+            else if (filter.MaxMileage.HasValue)
+            {
                 query = query.Where(v => v.Mileage <= filter.MaxMileage.Value);
+            }
+            if (filter.MinYear.HasValue && filter.MaxYear.HasValue)
+            {
+                if (filter.MinYear > filter.MaxYear)
+                {
+                    throw new ArgumentException("MinYear cannot be greater than MaxYear.");
+                }
+
+                query = query.Where(v => v.Year >= filter.MinYear.Value && v.Year <= filter.MaxYear.Value);
+            }
+            else if (filter.MinYear.HasValue)
+            {
+                query = query.Where(v => v.Year >= filter.MinYear.Value);
+            }
+            else if (filter.MaxYear.HasValue)
+            {
+                query = query.Where(v => v.Year <= filter.MaxYear.Value);
+            }
 
             var totalItems = await query.CountAsync();
 

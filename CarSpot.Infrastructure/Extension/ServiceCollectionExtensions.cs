@@ -21,6 +21,7 @@ namespace CarSpot.Infrastructure.Extensions
 
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IVehicleRepository, VehicleRepository>();
+            services.AddScoped<ICommentRepository, CommentRepository>();
             services.AddScoped<IVehicleMediaFileRepository, VehicleMediaFileRepository>();
             services.AddScoped<IPhotoService, PhotoService>();
             services.AddScoped<IEmailService, EmailService>();

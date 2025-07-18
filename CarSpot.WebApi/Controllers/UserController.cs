@@ -111,21 +111,18 @@ public class UsersController : ControllerBase
     )).ToList(),
     u.Comments.Select(c => new CommentResponse(
         c.Id,
-        c.VehicleId,
-        c.UserId,
         c.Content!,
-        c.CreatedAt
+        c.UserId,
+        c.User.FullName!,
+        c.CreatedAt,
+        c.IsReported,
+         new List<CommentResponse>()
     )).ToList()
 ));
 
 
         return Ok(response);
     }
-
-
-
-
-
 
     [HttpGet("{id:Guid}")]
     public async Task<IActionResult> GetById(Guid id)
@@ -152,22 +149,17 @@ public class UsersController : ControllerBase
             userVehicles,
             user.Comments.Select(c => new CommentResponse(
                 c.Id,
-                c.VehicleId,
-                c.UserId,
                 c.Content!,
-                c.CreatedAt
+                c.UserId,
+                c.User.FullName,
+                c.CreatedAt,
+                c.IsReported,
+                new List<CommentResponse>() 
             )).ToList()
         );
 
         return Ok(response);
     }
-
-
-
-
-
-
-
 
     [HttpPost]
     public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
@@ -364,10 +356,12 @@ public class UsersController : ControllerBase
             userVehicles,
             user.Comments.Select(c => new CommentResponse(
                 c.Id,
-                c.VehicleId,
-                c.UserId,
                 c.Content!,
-                c.CreatedAt
+                c.UserId,
+                c.User.FullName,
+                c.CreatedAt,
+                c.IsReported,
+                new List<CommentResponse>()
             )).ToList()
         );
 

@@ -30,7 +30,7 @@ namespace CarSpot.Domain.Entities
         public int ViewCount { get; set; }
 
         public ICollection<VehicleMediaFile> MediaFiles { get; set; } = new List<VehicleMediaFile>();
-
+        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
         public Listing() { }
 
         public Listing(Guid userId, Guid vehicleId, string title, string description, decimal price, Guid currencyId, int listingStatusId)

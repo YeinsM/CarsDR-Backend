@@ -1,3 +1,9 @@
-public record CommentResponse
-(Guid Id, Guid VehicleId, Guid UserId, string Content, DateTime CreatedAt);
-
+public record CommentResponse(
+    Guid Id,
+    string Content,
+    Guid UserId,  
+    string AuthorName,
+    DateTime CreatedAt,
+    bool IsReported,
+    List<CommentResponse>? Replies
+);

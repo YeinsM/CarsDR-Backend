@@ -87,20 +87,11 @@ namespace CarSpot.Infrastructure.Persistence.Configurations
                 entity.Property(c => c.Name).HasMaxLength(50).IsRequired();
             });
 
-            modelBuilder.Entity<Comment>(entity =>
-            {
-                entity.HasKey(c => c.Id);
-                entity.Property(c => c.Content).IsRequired().HasMaxLength(1000);
-                entity.Property(c => c.CreatedAt).IsRequired();
-                entity.HasOne(c => c.User)
-                      .WithMany(u => u.Comments)
-                      .HasForeignKey(c => c.UserId)
-                      .OnDelete(DeleteBehavior.Restrict);
-                entity.HasOne(c => c.Vehicle)
-                      .WithMany(v => v.Comments)
-                      .HasForeignKey(c => c.VehicleId)
-                      .OnDelete(DeleteBehavior.Cascade);
-            });
+            modelBuilder.Entity<Comment>()
+                .HasOne(c => c.ParentComment)
+                .WithMany(c => c.Replies)
+                .HasForeignKey(c => c.ParentCommentId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<VehicleMediaFile>(entity =>
             {
@@ -118,13 +109,13 @@ namespace CarSpot.Infrastructure.Persistence.Configurations
                     .IsRequired()
                     .HasMaxLength(50);
 
-       
+
                 entity.HasOne(m => m.Vehicle)
                     .WithMany(v => v.MediaFiles)
                     .HasForeignKey(m => m.VehicleId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-       
+
                 entity.HasOne(m => m.Listing)
                     .WithMany(l => l.MediaFiles)
                     .HasForeignKey(m => m.ListingId)

@@ -15,36 +15,41 @@ namespace CarSpot.Infrastructure.Repositories
 
         public async Task<IEnumerable<Comment>> GetAllAsync()
         {
-            return await _context.Comments!.ToListAsync();
-        }
-        public async Task<Comment?> GetByIdAsync(Guid id)
-        {
             return await _context.Comments!
-                .Include(c => c.UserId)
-                .Include(c => c.VehicleId)
-                .FirstOrDefaultAsync(c => c.Id == id);
-        }
-
-        public async Task<IEnumerable<Comment>> GetByVehicleIdAsync(Guid vehicleId)
-        {
-            return await _context.Comments!
-                .Where(c => c.VehicleId == vehicleId)
-                .Include(c => c.UserId)
+                .Include(c => c.User)
+                .Include(c => c.Listing)
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<Comment>> GetByCommentIdAsync(Guid userId)
+        public async Task<Comment?> GetByIdAsync(Guid id)
         {
             return await _context.Comments!
+                .Include(c => c.User)
+                .Include(c => c.Listing)
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
+        public async Task<IEnumerable<Comment>> GetByListingIdAsync(Guid listingId)
+        {
+            return await _context.Comments!
+                .Include(c => c.User)
+                .Where(c => c.ListingId == listingId)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<Comment>> GetByUserIdAsync(Guid userId)
+        {
+            return await _context.Comments!
+                .Include(c => c.Listing)
                 .Where(c => c.UserId == userId)
-                .Include(c => c.VehicleId)
+                .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
         }
 
         public async Task CreateAddAsync(Comment comment)
         {
-            _context.Comments!.Add(comment);
-            await SaveChangesAsync();
+            await _context.Comments!.AddAsync(comment);
         }
 
         public async Task DeleteAsync(Comment comment)
