@@ -4,16 +4,10 @@ using Microsoft.EntityFrameworkCore;
 
 
 namespace CarSpot.Infrastructure.Persistence.Context;
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, DomainEventsInterceptor domainEventsInterceptor) : DbContext(options)
 {
-    private readonly DomainEventsInterceptor _domainEventsInterceptor;
+    private readonly DomainEventsInterceptor _domainEventsInterceptor = domainEventsInterceptor;
 
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, DomainEventsInterceptor domainEventsInterceptor)
-    : base(options)
-    {
-        _domainEventsInterceptor = domainEventsInterceptor;
-
-    }
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.AddInterceptors(_domainEventsInterceptor);

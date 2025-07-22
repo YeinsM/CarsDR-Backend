@@ -6,18 +6,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Repositories
 {
-    public class MakeRepository : IMakeRepository
+    public class MakeRepository(ApplicationDbContext context) : IMakeRepository
     {
-        private readonly ApplicationDbContext _context;
-
-        public MakeRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public async Task<Make> GetByIdAsync(Guid id)
         {
-            var make = await _context.Makes
+            Make? make = await _context.Makes
                 .Include(m => m.Models)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -44,7 +39,7 @@ namespace CarSpot.Infrastructure.Repositories
 
         public async Task UpdateAsync(Guid id, string newName)
         {
-            var make = await _context.Makes.FindAsync(id);
+            Make? make = await _context.Makes.FindAsync(id);
 
             if (make == null)
                 throw new Exception("Make not found");
@@ -58,7 +53,7 @@ namespace CarSpot.Infrastructure.Repositories
 
         public async Task RemoveAsync(Guid id)
         {
-            var make = await _context.Makes.FindAsync(id);
+            Make? make = await _context.Makes.FindAsync(id);
 
             if (make == null)
                 throw new Exception("Make not found");

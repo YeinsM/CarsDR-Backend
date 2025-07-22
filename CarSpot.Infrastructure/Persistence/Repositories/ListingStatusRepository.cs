@@ -5,14 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
-    public class ListingStatusRepository : IListingStatusRepository
+    public class ListingStatusRepository(ApplicationDbContext context) : IListingStatusRepository
     {
-        private readonly ApplicationDbContext _context;
-
-        public ListingStatusRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public async Task<IEnumerable<ListingStatus>> GetAllAsync()
         {

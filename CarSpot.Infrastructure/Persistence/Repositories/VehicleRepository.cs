@@ -9,20 +9,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
-    public class VehicleRepository : IVehicleRepository
+    public class VehicleRepository(ApplicationDbContext context, IPhotoService photoService) : IVehicleRepository
     {
-        private readonly ApplicationDbContext _context;
-        private readonly IPhotoService _photoService;
-
-        public VehicleRepository(ApplicationDbContext context, IPhotoService photoService)
-        {
-            _context = context;
-            _photoService = photoService;
-        }
+        private readonly ApplicationDbContext _context = context;
+        private readonly IPhotoService _photoService = photoService;
 
         public async Task<IEnumerable<VehicleDto>> GetAllAsync()
         {
-            var vehicles = await _context.Vehicles
+            List<Vehicle> vehicles = await _context.Vehicles
                 .Include(v => v.MediaFiles)
                 .Include(v => v.Make)
                 .Include(v => v.Model)
@@ -38,7 +32,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .AsNoTracking()
                 .ToListAsync();
 
-            var result = vehicles.Select(v => new VehicleDto(
+            IEnumerable<VehicleDto> result = vehicles.Select(v => new VehicleDto(
                 v.Id,
                 v.VIN,
                 v.Price,
@@ -117,13 +111,13 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
 
         public async Task DeleteByIdAsync(Guid id)
         {
-            var vehicle = await _context.Vehicles
+            Vehicle? vehicle = await _context.Vehicles
                 .Include(v => v.MediaFiles)
                 .FirstOrDefaultAsync(v => v.Id == id);
 
             if (vehicle is null) return;
 
-            foreach (var med in vehicle.MediaFiles)
+            foreach (VehicleMediaFile med in vehicle.MediaFiles)
             {
                 if (med.ListingId != Guid.Empty)
                 {
@@ -139,7 +133,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
 
         public async Task<PaginatedResponse<Vehicle>> FilterAsync(VehicleFilterRequest filter, string baseUrl)
         {
-            var query = _context.Vehicles
+            IQueryable<Vehicle> query = _context.Vehicles
                 .Include(v => v.Make)
                 .Include(v => v.Model)
                 .Include(v => v.Condition)
@@ -201,9 +195,9 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 query = query.Where(v => v.Year <= filter.MaxYear.Value);
             }
 
-            var totalItems = await query.CountAsync();
+            int totalItems = await query.CountAsync();
 
-            var vehicles = await query
+            List<Vehicle> vehicles = await query
                 .Skip((filter.Page - 1) * filter.PageSize)
                 .Take(filter.PageSize)
                 .ToListAsync();

@@ -5,14 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Repositories
 {
-    public class ModelRepository : IModelRepository
+    public class ModelRepository(ApplicationDbContext context) : IModelRepository
     {
-        private readonly ApplicationDbContext _context;
-
-        public ModelRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public async Task<Model?> GetByIdAsync(Guid id)
         {
@@ -36,7 +31,7 @@ namespace CarSpot.Infrastructure.Repositories
 
         public async Task UpdateAsync(Guid id, string name, Guid makeId)
         {
-            var model = await _context.Models.FindAsync(id);
+            Model? model = await _context.Models.FindAsync(id);
             if (model is null)
                 throw new Exception("Model not found");
 
@@ -47,7 +42,7 @@ namespace CarSpot.Infrastructure.Repositories
 
         public async Task DeleteAsync(Guid id)
         {
-            var model = await _context.Models.FindAsync(id);
+            Model? model = await _context.Models.FindAsync(id);
             if (model is null)
                 throw new Exception("Model not found");
 

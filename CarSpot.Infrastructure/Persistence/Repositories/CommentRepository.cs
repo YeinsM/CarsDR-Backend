@@ -4,14 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Repositories
 {
-    public class CommentRepository : ICommentRepository
+    public class CommentRepository(ApplicationDbContext context) : ICommentRepository
     {
-        private readonly ApplicationDbContext _context;
-
-        public CommentRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public async Task<IEnumerable<Comment>> GetAllAsync()
         {

@@ -5,15 +5,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
-    public class ListingRepository : IListingRepository
+    public class ListingRepository(ApplicationDbContext context) : IListingRepository
 
     {
-        private readonly ApplicationDbContext _context;
-
-        public ListingRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public async Task<IEnumerable<Listing>> GetAllAsync()
         {
@@ -47,7 +42,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
 
         public async Task<Listing> DeleteAsync(Guid id)
         {
-            var Listing = await _context.Listings.FindAsync(id);
+            Listing? Listing = await _context.Listings.FindAsync(id);
             if (Listing == null)
                 return null!;
 

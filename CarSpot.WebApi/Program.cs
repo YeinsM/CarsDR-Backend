@@ -12,9 +12,6 @@ using CarSpot.WebApi.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Cargar configuración sensible desde .env y variables de entorno
-builder.AddEnvConfig();
-
 // Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(x =>
@@ -28,10 +25,8 @@ builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
 
 
-builder.Services.AddScoped<IPhotoService, PhotoService>();
-
-
 // Register application services
+builder.AddEnvConfig();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddSwaggerWithJwt();
@@ -57,7 +52,7 @@ var app = builder.Build();
 app.UseMiddleware<ExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();

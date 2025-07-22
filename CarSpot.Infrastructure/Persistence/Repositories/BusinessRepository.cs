@@ -5,14 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
-    public class BusinessRepository : IBusinessRepository
+    public class BusinessRepository(ApplicationDbContext context) : IBusinessRepository
     {
-        private readonly ApplicationDbContext _context;
-
-        public BusinessRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public async Task<Business?> GetByIdAsync(Guid id)
         {

@@ -3,32 +3,30 @@
 using CarSpot.Domain.Common;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
-public class DomainEventsInterceptor : SaveChangesInterceptor
+public class DomainEventsInterceptor(IDomainEventHandlerFactory handlerFactory) : SaveChangesInterceptor
 {
-    private readonly IDomainEventHandlerFactory _handlerFactory;
-    public DomainEventsInterceptor(IDomainEventHandlerFactory handlerFactory)
-    {
-        _handlerFactory = handlerFactory;
-    }
+    private readonly IDomainEventHandlerFactory _handlerFactory = handlerFactory;
+
     public override async ValueTask<InterceptionResult<int>> SavingChangesAsync(
     DbContextEventData eventData,
     InterceptionResult<int> result,
     CancellationToken cancellationToken = default)
     {
         if (eventData.Context is null) return result;
+
         var domainEntities = eventData.Context.ChangeTracker
         .Entries<BaseEntity>()
-        .Where(x => x.Entity.DomainEvents.Any())
+        .Where(x => x.Entity.DomainEvents.Count != 0)
         .ToList();
         var domainEvents = domainEntities
         .SelectMany(x => x.Entity.DomainEvents)
         .ToList();
         // Limpiar los eventos después de obtenerlos
         domainEntities.ForEach(entity => entity.Entity.ClearDomainEvents());
-        foreach (var domainEvent in domainEvents)
+        foreach (IDomainEvent? domainEvent in domainEvents)
         {
             // Use reflection to dynamically call the generic method
-            var getHandlersMethod = _handlerFactory.GetType()
+            System.Reflection.MethodInfo? getHandlersMethod = _handlerFactory.GetType()
                 .GetMethod("GetHandlers")
                 ?.MakeGenericMethod(domainEvent.GetType());
 
@@ -36,9 +34,9 @@ public class DomainEventsInterceptor : SaveChangesInterceptor
             {
                 var handlers = (IEnumerable<object>)getHandlersMethod.Invoke(_handlerFactory, null)!;
 
-                foreach (var handler in handlers)
+                foreach (object handler in handlers)
                 {
-                    var handleMethod = handler.GetType().GetMethod("HandleAsync");
+                    System.Reflection.MethodInfo? handleMethod = handler.GetType().GetMethod("HandleAsync");
                     if (handleMethod != null)
                     {
                         await (Task)handleMethod.Invoke(handler, [domainEvent])!;
