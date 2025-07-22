@@ -60,8 +60,8 @@ public class UsersController : ControllerBase
             u.CreatedAt,
             u.UpdatedAt,
             u.BusinessId,
-            new List<VehicleDto>(),
-            new List<CommentResponse>()
+            new List<VehicleDto>()
+
         ));
 
         return Ok(response);
@@ -73,56 +73,47 @@ public class UsersController : ControllerBase
         var users = await _userRepository.GetAllAsync();
 
         var response = users.Select(u => new UserDto(
-    u.Id,
-    u.Email,
-    u.Username,
-    u.Phone,
-    u.RoleId,
-    u.IsActive,
-    u.CreatedAt,
-    u.UpdatedAt,
-    u.BusinessId,
-    u.Vehicles.Select(v => new VehicleDto(
-        v.Id,
-        v.VIN,
-        v.Price,
-        v.Title!,
-        v.IsFeatured ?? false,
-        v.FeaturedUntil,
-        v.Mileage,
-        v.Year,
-        v.VehicleType?.Name ?? "N/A",
-        v.Make?.Name ?? "N/A",
-        v.Model?.Name ?? "N/A",
-        v.ModelId,
-        v.Color?.Name ?? "N/A",
-        v.Condition?.Name ?? "N/A",
-        v.Transmission?.Name ?? "N/A",
-        v.Drivetrain?.Name ?? "N/A",
-        v.CylinderOption?.Name ?? "N/A",
-        v.CabType?.Name ?? "N/A",
-        v.MarketVersion?.Name ?? "N/A",
-        v.VehicleVersion?.Name ?? "N/A",
-        v.UserId,
-        v.MediaFiles.Select(med => new VehicleMediaFileDto(
-            med.Id,
-            med.Url ?? ""
-        )).ToList()
-    )).ToList(),
-    u.Comments.Select(c => new CommentResponse(
-        c.Id,
-        c.Content!,
-        c.UserId,
-        c.User.FullName!,
-        c.CreatedAt,
-        c.IsReported,
-         new List<CommentResponse>()
-    )).ToList()
-));
-
+            u.Id,
+            u.Email,
+            u.Username,
+            u.Phone,
+            u.RoleId,
+            u.IsActive,
+            u.CreatedAt,
+            u.UpdatedAt,
+            u.BusinessId,
+            u.Vehicles.Select(v => new VehicleDto(
+                v.Id,
+                v.VIN,
+                v.Price,
+                v.Title!,
+                v.IsFeatured ?? false,
+                v.FeaturedUntil,
+                v.Mileage,
+                v.Year,
+                v.VehicleType?.Name ?? "N/A",
+                v.Make?.Name ?? "N/A",
+                v.Model?.Name ?? "N/A",
+                v.ModelId,
+                v.Color?.Name ?? "N/A",
+                v.Condition?.Name ?? "N/A",
+                v.Transmission?.Name ?? "N/A",
+                v.Drivetrain?.Name ?? "N/A",
+                v.CylinderOption?.Name ?? "N/A",
+                v.CabType?.Name ?? "N/A",
+                v.MarketVersion?.Name ?? "N/A",
+                v.VehicleVersion?.Name ?? "N/A",
+                v.UserId,
+                v.MediaFiles.Select(med => new VehicleMediaFileDto(
+                    med.Id,
+                    med.Url ?? ""
+                )).ToList()
+            )).ToList()
+        )).ToList();
 
         return Ok(response);
     }
+
 
     [HttpGet("{id:Guid}")]
     public async Task<IActionResult> GetById(Guid id)
@@ -146,17 +137,10 @@ public class UsersController : ControllerBase
             user.CreatedAt,
             user.UpdatedAt,
             user.BusinessId,
-            userVehicles,
-            user.Comments.Select(c => new CommentResponse(
-                c.Id,
-                c.Content!,
-                c.UserId,
-                c.User.FullName,
-                c.CreatedAt,
-                c.IsReported,
-                new List<CommentResponse>() 
-            )).ToList()
-        );
+            userVehicles
+
+            );
+
 
         return Ok(response);
     }
@@ -353,20 +337,12 @@ public class UsersController : ControllerBase
             user.CreatedAt,
             user.UpdatedAt,
             user.BusinessId,
-            userVehicles,
-            user.Comments.Select(c => new CommentResponse(
-                c.Id,
-                c.Content!,
-                c.UserId,
-                c.User.FullName,
-                c.CreatedAt,
-                c.IsReported,
-                new List<CommentResponse>()
-            )).ToList()
+            userVehicles
         );
 
         return Ok(response);
     }
+
 
 
 
