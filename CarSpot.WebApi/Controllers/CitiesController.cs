@@ -23,7 +23,7 @@ public class CitiesController : ControllerBase
     public async Task<IActionResult> GetAllAsync()
     {
         var cities = await _cityRepository.GetAllAsync();
-        var response = cities.Select(c => new CityResponse(c.Name, c.CountryId));
+        var response = cities.Select(c => new CityResponse(c.Id, c.Name, c.CountryId));
         return Ok(ApiResponseBuilder.Success(response));
     }
 
@@ -34,7 +34,7 @@ public class CitiesController : ControllerBase
         if (city == null)
             return NotFound(ApiResponseBuilder.Fail<string>(404, $"City with id {id} not found."));
 
-        var response = new CityResponse(city.Name, city.CountryId);
+        var response = new CityResponse(city.Id, city.Name, city.CountryId);
         return Ok(ApiResponseBuilder.Success(response));
     }
 
@@ -52,7 +52,7 @@ public class CitiesController : ControllerBase
 
         await _cityRepository.Add(city);
 
-        var response = new CityResponse(city.Name, city.CountryId);
+        var response = new CityResponse(city.Id, city.Name, city.CountryId);
 
         return CreatedAtAction(nameof(GetById), new { id = city.Id }, ApiResponseBuilder.Success(response, "City created successfully."));
     }

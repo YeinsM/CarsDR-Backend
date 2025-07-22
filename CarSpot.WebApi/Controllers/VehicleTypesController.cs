@@ -23,7 +23,7 @@ namespace CarSpot.WebApi.Controllers
         public async Task<IActionResult> GetAll()
         {
             var result = await _repository.GetAllAsync();
-            var mapped = result.Select(x => new VehicleTypeDto(x.Name));
+            var mapped = result.Select(x => new VehicleTypeDto(x.Id, x.Name));
             return Ok(mapped);
         }
 
@@ -33,7 +33,7 @@ namespace CarSpot.WebApi.Controllers
         {
             var entity = new VehicleType { Name = request.Name };
             await _repository.Add(entity);
-            return Ok(new VehicleTypeDto(entity.Name));
+            return Ok(new VehicleTypeDto(entity.Id, entity.Name));
         }
 
         [HttpPut("{id}")]
@@ -43,7 +43,7 @@ namespace CarSpot.WebApi.Controllers
             var updated = await _repository.UpdateAsync(entity);
             return updated is null
                 ? NotFound()
-                : Ok(new VehicleTypeDto(updated.Name));
+                : Ok(new VehicleTypeDto(updated.Id, updated.Name));
         }
 
 

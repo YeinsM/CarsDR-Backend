@@ -1,1 +1,1 @@
-public record DrivetrainDto(string Name);
+public record DrivetrainDto(int Id, string Name);
