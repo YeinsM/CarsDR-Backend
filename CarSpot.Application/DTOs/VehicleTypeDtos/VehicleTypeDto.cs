@@ -1,4 +1,4 @@
 namespace CarSpot.Application.DTOs
 {
-    public record VehicleTypeDto(string Name);
+    public record VehicleTypeDto(int Id, string Name);
 }

@@ -78,7 +78,6 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .Include(v => v.Condition)
                 .Include(v => v.Color)
                 .Include(v => v.MediaFiles)
-                .Include(v => v.Comments)
                 .FirstOrDefaultAsync(v => v.Id == id);
         }
 

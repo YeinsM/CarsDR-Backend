@@ -109,7 +109,6 @@ namespace CarSpot.WebApi.Controllers
             vehicle.VehicleType = vehicleType;
 
             vehicle.MediaFiles = [];
-            vehicle.Comments = [];
 
             await _vehicleRepository.CreateVehicleAsync(vehicle);
 
