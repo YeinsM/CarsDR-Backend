@@ -1,13 +1,10 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
 using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
-using CarSpot.Domain.Common;
-using CarSpot.Application.Common.Helpers;
 using Microsoft.AspNetCore.Http;
 using CarSpot.Application.Common.Responses;
 
@@ -209,31 +206,6 @@ namespace CarSpot.WebApi.Controllers
 
             return Ok(result);
         }
-
-
-
-
-
-
-
-        [HttpGet("paginated")]
-        public async Task<IActionResult> GetPaginated(
-            [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10,
-            [FromQuery] string? orderBy = null,
-            [FromQuery] string? sortDir = "asc")
-        {
-            orderBy = string.IsNullOrWhiteSpace(orderBy) ? "CreatedAt" : orderBy;
-
-            IQueryable<Vehicle> query = _vehicleRepository.Query();
-
-            string baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
-
-            PaginatedResponse<Vehicle> result = await PaginationHelper.CreatePaginatedResponse(query, page, pageSize, baseUrl, orderBy, sortDir);
-
-            return Ok(result);
-        }
-
 
 
     }
