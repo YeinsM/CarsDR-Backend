@@ -5,24 +5,19 @@ using CarSpot.Domain.Entities;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
-public class JwtTokenGenerator : IJwtTokenGenerator
+public class JwtTokenGenerator(IConfiguration configuration) : IJwtTokenGenerator
 {
-    private readonly IConfiguration _configuration;
-
-    public JwtTokenGenerator(IConfiguration configuration)
-    {
-        _configuration = configuration;
-    }
+    private readonly IConfiguration _configuration = configuration;
 
     public string GenerateToken(User user)
     {
         var tokenHandler = new JwtSecurityTokenHandler();
-        var secret = _configuration["JwtSettings:Secret"]
+        string secret = _configuration["JwtSettings:Secret"]
                 ?? throw new InvalidOperationException("JwtSettings:Secret is missing in configuration.");
 
-        var key = Encoding.UTF8.GetBytes(secret);
+        byte[] key = Encoding.UTF8.GetBytes(secret);
 
-        var now = DateTime.UtcNow;
+        DateTime now = DateTime.UtcNow;
 
         var claims = new List<Claim>
         {
@@ -33,7 +28,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        var expiryMinutes = Convert.ToInt32(_configuration["JwtSettings:ExpiryMinutes"]);
+        int expiryMinutes = Convert.ToInt32(_configuration["JwtSettings:ExpiryMinutes"]);
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
@@ -49,7 +44,7 @@ public class JwtTokenGenerator : IJwtTokenGenerator
             )
         };
 
-        var token = tokenHandler.CreateToken(tokenDescriptor);
+        SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
 }

@@ -5,14 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories;
 
-public class CurrencyRepository : ICurrencyRepository
+public class CurrencyRepository(ApplicationDbContext context) : ICurrencyRepository
 {
-    private readonly ApplicationDbContext _context;
-
-    public CurrencyRepository(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+    private readonly ApplicationDbContext _context = context;
 
     public async Task<IEnumerable<Currency>> GetAll()
     {
@@ -38,7 +33,7 @@ public class CurrencyRepository : ICurrencyRepository
 
     public async Task Delete(Guid id)
     {
-        var currency = await _context.Currencies.FindAsync(id);
+        Currency? currency = await _context.Currencies.FindAsync(id);
         if (currency != null)
         {
             _context.Currencies.Remove(currency);

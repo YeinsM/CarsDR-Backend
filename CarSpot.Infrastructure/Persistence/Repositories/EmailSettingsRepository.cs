@@ -3,14 +3,9 @@ using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
 
-public class EmailSettingsRepository : IEmailSettingsRepository
+public class EmailSettingsRepository(ApplicationDbContext context) : IEmailSettingsRepository
 {
-    private readonly ApplicationDbContext _context;
-
-    public EmailSettingsRepository(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+    private readonly ApplicationDbContext _context = context;
 
     public async Task<EmailSettings?> GetSettingsAsync()
     {
@@ -25,7 +20,7 @@ public class EmailSettingsRepository : IEmailSettingsRepository
 
     public async Task<bool> UpdateAsync(EmailSettings updatedSettings)
     {
-        var existing = await _context.EmailSettings.FirstOrDefaultAsync();
+        EmailSettings? existing = await _context.EmailSettings.FirstOrDefaultAsync();
         if (existing == null)
             return false;
 

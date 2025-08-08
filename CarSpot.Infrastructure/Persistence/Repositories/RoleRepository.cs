@@ -4,14 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Repositories
 {
-    public class RoleRepository : IRoleRepository
+    public class RoleRepository(ApplicationDbContext context) : IRoleRepository
     {
-        private readonly ApplicationDbContext _context;
-
-        public RoleRepository(ApplicationDbContext context)
-        {
-            _context = context;
-        }
+        private readonly ApplicationDbContext _context = context;
 
         public async Task<IEnumerable<Role>> GetAllAsync()
         {
@@ -38,7 +33,7 @@ namespace CarSpot.Infrastructure.Repositories
 
         public async Task DeleteAsync(Guid id)
         {
-            var role = await _context.Roles!.FindAsync(id);
+            Role? role = await _context.Roles!.FindAsync(id);
             if (role != null)
             {
                 _context.Roles.Remove(role);

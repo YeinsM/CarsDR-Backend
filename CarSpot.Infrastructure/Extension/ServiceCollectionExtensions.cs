@@ -47,6 +47,7 @@ namespace CarSpot.Infrastructure.Extensions
             services.AddScoped<IAuxiliarRepository<Country>, AuxiliarRepository<Country>>();
             services.AddScoped<IAuxiliarRepository<City>, AuxiliarRepository<City>>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+            services.AddScoped<IPhotoService, PhotoService>();
 
 
             services.AddScoped<IDomainEventHandlerFactory, DomainEventHandlerFactory>();

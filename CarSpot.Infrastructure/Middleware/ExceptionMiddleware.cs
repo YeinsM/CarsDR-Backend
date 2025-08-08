@@ -7,16 +7,10 @@ using Microsoft.Extensions.Logging;
 
 namespace CarSpot.Infrastructure.Middleware
 {
-    public class ExceptionMiddleware : IExceptionMiddleware
+    public class ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger) : IExceptionMiddleware
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ExceptionMiddleware> _logger;
-
-        public ExceptionMiddleware(RequestDelegate next, ILogger<ExceptionMiddleware> logger)
-        {
-            _next = next;
-            _logger = logger;
-        }
+        private readonly RequestDelegate _next = next;
+        private readonly ILogger<ExceptionMiddleware> _logger = logger;
 
         public async Task InvokeAsync(HttpContext context)
         {
@@ -27,7 +21,7 @@ namespace CarSpot.Infrastructure.Middleware
                 if (context.Response.HasStarted)
                     return;
 
-                var statusCode = context.Response.StatusCode;
+                int statusCode = context.Response.StatusCode;
 
                 switch (statusCode)
                 {
@@ -61,13 +55,13 @@ namespace CarSpot.Infrastructure.Middleware
                     context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                     context.Response.ContentType = "application/json";
 
-                    var errorResponse = ApiResponseBuilder.Fail(
+                    ApiResponse<string> errorResponse = ApiResponseBuilder.Fail(
                         StatusCodes.Status500InternalServerError,
                         "Error interno del servidor",
                         $"{ex.Message} - {ex.Source}"
                     );
 
-                    var json = JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
+                    string json = JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
                     {
                         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
                     });
@@ -92,7 +86,7 @@ namespace CarSpot.Infrastructure.Middleware
                 response = ApiResponseBuilder.Fail<object?>(statusCode, message);
             }
 
-            var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
+            string json = JsonSerializer.Serialize(response, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });

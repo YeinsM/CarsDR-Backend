@@ -24,14 +24,14 @@ public class PhotoService : IPhotoService
     {
         if (file.Length <= 0) return null;
 
-        await using var stream = file.OpenReadStream();
+        await using Stream stream = file.OpenReadStream();
         var uploadParams = new ImageUploadParams
         {
             File = new FileDescription(file.FileName, stream),
             Folder = "vehicle-images"
         };
 
-        var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+        ImageUploadResult uploadResult = await _cloudinary.UploadAsync(uploadParams);
 
         return new PhotoUploadResult
         {
@@ -44,14 +44,14 @@ public class PhotoService : IPhotoService
     {
         if (file.Length <= 0) return null;
 
-        await using var stream = file.OpenReadStream();
+        await using Stream stream = file.OpenReadStream();
         var uploadParams = new VideoUploadParams
         {
             File = new FileDescription(file.FileName, stream),
             Folder = "vehicle-videos"
         };
 
-        var uploadResult = await _cloudinary.UploadAsync(uploadParams);
+        VideoUploadResult uploadResult = await _cloudinary.UploadAsync(uploadParams);
 
         return new PhotoUploadResult
         {
@@ -65,7 +65,7 @@ public class PhotoService : IPhotoService
         if (string.IsNullOrWhiteSpace(publicId)) return;
 
         var deleteParams = new DeletionParams(publicId);
-        var result = await _cloudinary.DestroyAsync(deleteParams);
+        DeletionResult result = await _cloudinary.DestroyAsync(deleteParams);
 
         if (result.Result != "ok")
         {
@@ -82,7 +82,7 @@ public class PhotoService : IPhotoService
             ResourceType = ResourceType.Video
         };
 
-        var result = await _cloudinary.DestroyAsync(deleteParams);
+        DeletionResult result = await _cloudinary.DestroyAsync(deleteParams);
 
         if (result.Result != "ok")
         {

@@ -6,16 +6,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories;
 
-public class UserRepository : IUserRepository
+public class UserRepository(ApplicationDbContext context, IEmailService emailService) : IUserRepository
 {
-    private readonly ApplicationDbContext _context;
-    private readonly IEmailService _emailService;
-
-    public UserRepository(ApplicationDbContext context, IEmailService emailService)
-    {
-        _context = context;
-        _emailService = emailService;
-    }
+    private readonly ApplicationDbContext _context = context;
+    private readonly IEmailService _emailService = emailService;
 
     public async Task<IEnumerable<User>> GetAllBasicAsync()
     {
@@ -81,7 +75,7 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> ValidateCredentialsAsync(string email, HashedPassword password)
     {
-        var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
+        User? user = await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
         if (user is null || !user.Password.Verify(password.Value))
             return null;
@@ -103,7 +97,7 @@ public class UserRepository : IUserRepository
 
     public async Task<User> UpdateUserAsync(Guid id, string firstName, string lastName, string username)
     {
-        var user = await _context.Users.FindAsync(id);
+        User? user = await _context.Users.FindAsync(id);
         if (user == null)
             throw new KeyNotFoundException($"User with id {id} not found");
 
@@ -115,7 +109,7 @@ public class UserRepository : IUserRepository
 
     public async Task<User> UpdateAsync(Guid id)
     {
-        var user = await _context.Users.FindAsync(id);
+        User? user = await _context.Users.FindAsync(id);
 
         if (user == null)
             throw new KeyNotFoundException($"User with ID {id} not found.");

@@ -5,18 +5,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
-    public class MenuRepository : IMenuRepository
+    public class MenuRepository(ApplicationDbContext dbContext) : IMenuRepository
     {
-        private readonly ApplicationDbContext _dbContext;
-
-        public MenuRepository(ApplicationDbContext dbContext)
-        {
-            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
-        }
+        private readonly ApplicationDbContext _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
 
         public async Task<Menu> GetByIdAsync(Guid id)
         {
-            var menu = await _dbContext!.Menus
+            Menu? menu = await _dbContext!.Menus
                 .Include(c => c.Children)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -48,7 +43,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
 
         public async Task DeleteAsync(Guid id)
         {
-            var menu = await GetByIdAsync(id);
+            Menu menu = await GetByIdAsync(id);
             if (menu != null)
             {
                 _dbContext.Menus.Remove(menu);

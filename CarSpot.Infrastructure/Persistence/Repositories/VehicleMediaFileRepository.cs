@@ -1,15 +1,9 @@
-using CarSpot.Application.Interfaces;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
-public class VehicleMediaFileRepository : IVehicleMediaFileRepository
+public class VehicleMediaFileRepository(ApplicationDbContext context) : IVehicleMediaFileRepository
 {
-    private readonly ApplicationDbContext _context;
-
-    public VehicleMediaFileRepository(ApplicationDbContext context)
-    {
-        _context = context;
-    }
+    private readonly ApplicationDbContext _context = context;
 
     public async Task<VehicleMediaFile?> GetByIdAsync(Guid id)
         => await _context.VehicleMediaFiles.FirstOrDefaultAsync(m => m.Id == id);
@@ -24,7 +18,7 @@ public class VehicleMediaFileRepository : IVehicleMediaFileRepository
 
     public async Task DeleteAsync(Guid id)
     {
-        var media = await GetByIdAsync(id);
+        VehicleMediaFile? media = await GetByIdAsync(id);
         if (media != null)
         {
             _context.VehicleMediaFiles.Remove(media);

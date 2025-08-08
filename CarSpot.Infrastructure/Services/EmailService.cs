@@ -2,16 +2,13 @@ using System.Net;
 using System.Net.Mail;
 using CarSpot.Application.Interfaces;
 
-public class EmailService : IEmailService
+public class EmailService(IEmailSettingsRepository emailSettingsRepository) : IEmailService
 {
-    private readonly IEmailSettingsRepository _emailSettingsRepository;
-    public EmailService(IEmailSettingsRepository emailSettingsRepository)
-    {
-        _emailSettingsRepository = emailSettingsRepository;
-    }
+    private readonly IEmailSettingsRepository _emailSettingsRepository = emailSettingsRepository;
+
     public async Task SendEmailAsync<T>(string to, string subject, EmailTemplateType templateType, T entity, string? nickName = null)
     {
-        var emailSettings = await _emailSettingsRepository.GetSettingsByNickNameAsync(nickName);
+        CarSpot.Domain.Entities.EmailSettings? emailSettings = await _emailSettingsRepository.GetSettingsByNickNameAsync(nickName);
         if (emailSettings == null)
             throw new InvalidOperationException($"Email settings with nickName '{nickName}' not found.");
         var smtpClient = new SmtpClient(emailSettings.SmtpServer)
@@ -33,7 +30,7 @@ public class EmailService : IEmailService
     }
     private static string GenerateEmailBody<T>(EmailTemplateType templateType, T entity)
     {
-        var bodyBuilder = EmailBodyBuilderFactory.GetBuilder<T>(templateType);
+        IEmailBodyBuilder<T> bodyBuilder = EmailBodyBuilderFactory.GetBuilder<T>(templateType);
         string content = bodyBuilder.Build(entity);
         string year = DateTime.Now.Year.ToString();
         return $@"
