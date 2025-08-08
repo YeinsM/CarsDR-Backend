@@ -1,9 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using CarSpot.Application.DTOs;
 using CarSpot.Application.DTOs.MakeDtos;
 using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
+using CarSpot.Application.Common.Responses;
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -37,26 +39,47 @@ namespace CarSpot.WebApi.Controllers
         {
             var make = new Make(request.Name);
             await _repository.Add(make);
-            return CreatedAtAction(nameof(GetById), new { id = make.Id }, make);
+
+            var dto = new MakeDto(make.Id, make.Name);
+
+            return Ok(ApiResponseBuilder.Success(dto, "Make created successfully"));
         }
 
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] string newName)
+
+
+        [HttpPut]
+        public async Task<IActionResult> Update([FromBody] UpdateMakeRequest request)
         {
-            var existing = await _repository.GetByIdAsync(id);
-            if (existing is null) return NotFound();
+            var existingMake = await _repository.GetByIdAsync(request.Id);
+            if (existingMake == null)
+            {
+                return NotFound(ApiResponseBuilder.Fail<MakeDto>(404, "Make not found"));
+            }
 
-            existing.Update(newName);
-            await _repository.UpdateAsync(id, newName);
-            return NoContent();
+            await _repository.UpdateAsync(request.Id, request.Name);
+
+            return Ok(ApiResponseBuilder.Success(200, "Make updated successfully"));
         }
+
+
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
+            var make = await _repository.GetByIdAsync(id);
+            if (make is null)
+            {
+                return NotFound(ApiResponseBuilder.Fail<string>(404, "Make not found"));
+            }
+
             await _repository.RemoveAsync(id);
-            return NoContent();
+
+            return Ok(ApiResponseBuilder.Success("Make deleted successfully"));
         }
+
+
+
     }
 }

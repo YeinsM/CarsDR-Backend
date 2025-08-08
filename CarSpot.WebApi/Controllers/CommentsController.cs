@@ -44,7 +44,7 @@ namespace CarSpot.WebApi.Controllers
             var comment = new Comment
             {
                 Id = Guid.NewGuid(),
-                Content = request.Content,
+                Content = request.Text,
                 UserId = request.UserId,
                 ListingId = request.ListingId,
                 CreatedAt = DateTime.UtcNow

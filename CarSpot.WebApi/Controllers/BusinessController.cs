@@ -75,7 +75,12 @@ namespace CarSpot.WebApi.Controllers
                 await _businessRepository.Add(business);
                 await _businessRepository.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetById), new { id = business.Id }, null);
+                return CreatedAtAction(nameof(GetById), new { id = business.Id }, new
+                {
+                    message = "Business created successfully!",
+                    id = business.Id
+                });
+
             }
             catch (Exception ex)
             {
@@ -104,7 +109,7 @@ namespace CarSpot.WebApi.Controllers
             _businessRepository.Update(bussines);
             await _businessRepository.SaveChangesAsync();
 
-            return NoContent();
+             return Ok(new { message = "Business updated successfully" });
         }
 
         [HttpDelete("{id}")]
@@ -116,7 +121,7 @@ namespace CarSpot.WebApi.Controllers
             _businessRepository.Delete(bussines);
             await _businessRepository.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(new { message = "Business deleted successfully." });
         }
     }
 }

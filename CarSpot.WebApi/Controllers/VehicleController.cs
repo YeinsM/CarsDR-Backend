@@ -8,6 +8,8 @@ using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Domain.Common;
 using CarSpot.Application.Common.Helpers;
+using Microsoft.AspNetCore.Http;
+using CarSpot.Application.Common.Responses;
 
 
 
@@ -74,11 +76,14 @@ namespace CarSpot.WebApi.Controllers
             Condition? condition = await _conditionRepository.GetByIdAsync(request.ConditionId);
             VehicleType? vehicleType = await _vehicleTypeRepository.GetByIdAsync(request.VehicleTypeId);
 
-
             if (user is null || make is null || model is null || condition is null || vehicleType is null)
             {
-                return BadRequest("One or more required entities (User, Make, Model, Condition, Color, VehicleType) were not found.");
+                return StatusCode(StatusCodes.Status400BadRequest,
+                    ApiResponseBuilder.Fail<object?>(
+                        StatusCodes.Status400BadRequest,
+                        "One or more required entities (User, Make, Model, Condition, VehicleType) were not found."));
             }
+
             var vehicle = new Vehicle(
                 request.VIN,
                 request.UserId,
@@ -107,11 +112,9 @@ namespace CarSpot.WebApi.Controllers
             vehicle.Make = make;
             vehicle.Model = model;
             vehicle.VehicleType = vehicleType;
-
             vehicle.MediaFiles = [];
 
             await _vehicleRepository.CreateVehicleAsync(vehicle);
-
 
             var response = new VehicleResponse(
                 vehicle.Id,
@@ -125,8 +128,10 @@ namespace CarSpot.WebApi.Controllers
                 vehicle.Price
             );
 
-            return CreatedAtAction(nameof(GetById), new { id = vehicle.Id }, response);
+            return StatusCode(StatusCodes.Status201Created,
+                ApiResponseBuilder.Success(response, "Vehicle created successfully."));
         }
+
 
 
         [HttpPut("{id:Guid}")]
@@ -135,8 +140,12 @@ namespace CarSpot.WebApi.Controllers
             Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
             if (vehicle is null)
             {
-                return NotFound();
+                return StatusCode(StatusCodes.Status404NotFound,
+                    ApiResponseBuilder.Fail<object?>(
+                        StatusCodes.Status404NotFound,
+                        $"Vehicle with ID {id} does not exist."));
             }
+
             vehicle.MakeId = request.MakeId;
             vehicle.ModelId = request.ModelId;
             vehicle.VehicleVersionId = request.VehicleVersionId;
@@ -155,8 +164,11 @@ namespace CarSpot.WebApi.Controllers
             vehicle.FeaturedUntil = request.FeaturedUntil;
 
             await _vehicleRepository.UpdateAsync(vehicle);
-            return NoContent();
+
+            return StatusCode(StatusCodes.Status204NoContent,
+                ApiResponseBuilder.Success<object?>(null, "Vehicle updated successfully."));
         }
+
 
         [HttpDelete("{id:Guid}")]
         public async Task<IActionResult> Delete(Guid id)
@@ -164,12 +176,18 @@ namespace CarSpot.WebApi.Controllers
             Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
             if (vehicle is null)
             {
-                return NotFound();
+                return StatusCode(StatusCodes.Status404NotFound,
+                    ApiResponseBuilder.Fail<object?>(
+                        StatusCodes.Status404NotFound,
+                        $"Vehicle with ID {id} does not exist."));
             }
 
             await _vehicleRepository.DeleteAsync(vehicle);
-            return NoContent();
+
+            return StatusCode(StatusCodes.Status204NoContent,
+                ApiResponseBuilder.Success<object?>(null, "Vehicle deleted successfully."));
         }
+
 
         [HttpPost("filter")]
         public async Task<IActionResult> FilterVehicles([FromBody] VehicleFilterRequest request)

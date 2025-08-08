@@ -49,7 +49,6 @@ public class UserRepository : IUserRepository
                 .ThenInclude(v => v.VehicleVersion)
             .Include(u => u.Vehicles)
                 .ThenInclude(v => v.MediaFiles)
-            .Include(u => u.Comments)
             .ToListAsync();
     }
 
@@ -60,7 +59,6 @@ public class UserRepository : IUserRepository
         return await _context.Users
             .Include(u => u.Role)
             .Include(u => u.Vehicles)
-            .Include(u => u.Comments)
             .FirstOrDefaultAsync(u => u.Id == id);
     }
 

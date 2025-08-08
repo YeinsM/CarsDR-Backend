@@ -1,11 +1,13 @@
 using CarSpot.Application.Interfaces;
 using CarSpot.Application.Interfaces.Repositories;
+using CarSpot.Application.Interfaces.Services;
 using CarSpot.Application.Services;
 using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 using CarSpot.Domain.Events;
 using CarSpot.Infrastructure.Persistence.Repositories;
 using CarSpot.Infrastructure.Repositories;
+using CarSpot.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -47,6 +49,9 @@ namespace CarSpot.Infrastructure.Extensions
             services.AddScoped<IAuxiliarRepository<Country>, AuxiliarRepository<Country>>();
             services.AddScoped<IAuxiliarRepository<City>, AuxiliarRepository<City>>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
+            services.AddScoped<IPaginationService, PaginationService>();
+
+
 
 
             services.AddScoped<IDomainEventHandlerFactory, DomainEventHandlerFactory>();
