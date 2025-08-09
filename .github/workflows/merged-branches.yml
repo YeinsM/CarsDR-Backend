@@ -22,6 +22,34 @@ jobs:
           persist-credentials: true
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Get most recent merged-branches.md content
+        run: |
+          echo "🔍 Looking for the most recent version of merged-branches.md..."
+          
+          # First check if update branch exists and get its content
+          if git ls-remote --heads origin update/merged-branches | grep -q update/merged-branches; then
+            echo "📦 Found existing update/merged-branches branch, fetching its content..."
+            git fetch origin update/merged-branches
+            
+            # Get the file from the update branch if it exists there
+            if git show origin/update/merged-branches:merged-branches.md > /tmp/update-merged-branches.md 2>/dev/null; then
+              echo "📄 Using merged-branches.md from update branch (most recent)"
+              cp /tmp/update-merged-branches.md merged-branches.md
+            else
+              echo "📄 No merged-branches.md in update branch, using base branch version"
+            fi
+          else
+            echo "📄 No update branch exists, using base branch version"
+          fi
+          
+          # Show what we're starting with
+          if [ -f "merged-branches.md" ]; then
+            echo "🔍 Starting with this content:"
+            cat merged-branches.md
+          else
+            echo "📄 No merged-branches.md file exists yet"
+          fi
+
       - name: ✅ Repo checked out
         run: echo "✅ Repository successfully checked out."
 
@@ -144,6 +172,7 @@ jobs:
 
       - name: Create or update Pull Request
         if: steps.check_changes.outputs.has_changes == 'true'
+        id: create_pr
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -161,8 +190,33 @@ jobs:
             **PR Number:** #${{ github.event.pull_request.number }}
             
             This PR will be automatically created after each merge to keep track of all merged branches.
-          delete-branch: false
+            
+            ---
+            🤖 This PR will be auto-merged to avoid conflicts with subsequent merges.
+          delete-branch: true
           assignees: ${{ github.event.pull_request.user.login }}
+
+      - name: Auto-merge the update PR
+        if: steps.check_changes.outputs.has_changes == 'true' && steps.create_pr.outputs.pull-request-number
+        run: |
+          PR_NUMBER=${{ steps.create_pr.outputs.pull-request-number }}
+          echo "🔄 Auto-merging PR #$PR_NUMBER..."
+          
+          # Wait a moment for the PR to be fully created
+          sleep 5
+          
+          # Merge the PR automatically
+          curl -X PUT \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Accept: application/vnd.github.v3+json" \
+            "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/merge" \
+            -d '{
+              "commit_title": "📝 Auto-merge: Update merged-branches.md",
+              "commit_message": "Automatically merged branch tracking update to prevent conflicts",
+              "merge_method": "squash"
+            }'
+          
+          echo "✅ PR #$PR_NUMBER auto-merged successfully"
 
       - name: ✅ Workflow complete
         run: |
