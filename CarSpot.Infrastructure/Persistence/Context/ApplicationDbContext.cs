@@ -1,11 +1,5 @@
-using CarSpot.Domain;
 using CarSpot.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using CarSpot.Domain.ValueObjects;
-using System.Text.Json;
-using System.ComponentModel.DataAnnotations.Schema;
 using CarSpot.Infrastructure.Persistence.Configurations;
 
 
@@ -20,6 +14,7 @@ public class ApplicationDbContext : DbContext
         _domainEventsInterceptor = domainEventsInterceptor;
 
     }
+    // Configure the DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.AddInterceptors(_domainEventsInterceptor);
