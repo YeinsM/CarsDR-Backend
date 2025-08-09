@@ -12,6 +12,7 @@ public class AuxiliarRepository<T> : IAuxiliarRepository<T> where T : BaseAuxili
         _context = context;
     }
 
+    // Get all entities
     public async Task<IEnumerable<T>> GetAllAsync()
     {
         return await _context.Set<T>().ToListAsync();
