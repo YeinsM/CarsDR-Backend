@@ -3,12 +3,16 @@ using CarSpot.Domain.Entities;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
-
 namespace CarSpot.Infrastructure.Repositories
 {
     public class MakeRepository(ApplicationDbContext context) : IMakeRepository
     {
         private readonly ApplicationDbContext _context = context;
+
+        public IQueryable<Make> Query()
+        {
+            return _context.Makes.AsNoTracking();
+        }
 
         public async Task<Make> GetByIdAsync(Guid id)
         {
@@ -21,8 +25,6 @@ namespace CarSpot.Infrastructure.Repositories
 
             return make;
         }
-
-
 
         public async Task<IEnumerable<Make>> GetAllAsync()
         {
@@ -50,7 +52,6 @@ namespace CarSpot.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-
         public async Task RemoveAsync(Guid id)
         {
             Make? make = await _context.Makes.FindAsync(id);
@@ -61,7 +62,6 @@ namespace CarSpot.Infrastructure.Repositories
             _context.Makes.Remove(make);
             await _context.SaveChangesAsync();
         }
-
 
         public async Task<bool> ExistsAsync(Guid id)
         {

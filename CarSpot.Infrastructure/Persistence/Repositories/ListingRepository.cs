@@ -1,14 +1,27 @@
-using CarSpot.Application.Interfaces;
+
 using CarSpot.Domain.Entities;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.Infrastructure.Persistence.Repositories
 {
-    public class ListingRepository(ApplicationDbContext context) : IListingRepository
-
+    public class ListingRepository : IListingRepository
     {
-        private readonly ApplicationDbContext _context = context;
+        private readonly ApplicationDbContext _context;
+
+        public ListingRepository(ApplicationDbContext context)
+        {
+            _context = context;
+        }
+
+        public IQueryable<Listing> Query()
+        {
+            // Devuelve el IQueryable para poder paginar y hacer proyecciones en controlador
+            return _context.Listings
+                .Include(p => p.User)
+                .Include(p => p.Vehicle)
+                .AsQueryable();
+        }
 
         public async Task<IEnumerable<Listing>> GetAllAsync()
         {
@@ -26,29 +39,27 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
-        public async Task<Listing> Add(Listing Listing)
+        public async Task<Listing> Add(Listing listing)
         {
-            _context.Listings.Add(Listing);
+            _context.Listings.Add(listing);
             await _context.SaveChangesAsync();
-            return Listing;
+            return listing;
         }
 
-        public async Task<Listing> UpdateAsync(Listing Listing)
+        public async Task UpdateAsync(Listing listing)
         {
-            _context.Listings.Update(Listing);
+            _context.Listings.Update(listing);
             await _context.SaveChangesAsync();
-            return Listing;
         }
 
-        public async Task<Listing> DeleteAsync(Guid id)
+        public async Task DeleteAsync(Guid id)
         {
-            Listing? Listing = await _context.Listings.FindAsync(id);
-            if (Listing == null)
-                return null!;
-
-            _context.Listings.Remove(Listing);
-            await _context.SaveChangesAsync();
-            return Listing;
+            var listing = await _context.Listings.FindAsync(id);
+            if (listing != null)
+            {
+                _context.Listings.Remove(listing);
+                await _context.SaveChangesAsync();
+            }
         }
 
         public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

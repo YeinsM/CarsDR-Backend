@@ -2,9 +2,20 @@ using CarSpot.Domain.Common;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
-public class AuxiliarRepository<T>(ApplicationDbContext context) : IAuxiliarRepository<T> where T : BaseAuxiliar
+
+public class AuxiliarRepository<T> : IAuxiliarRepository<T> where T : BaseAuxiliar
 {
-    private readonly ApplicationDbContext _context = context;
+    private readonly ApplicationDbContext _context;
+
+    public AuxiliarRepository(ApplicationDbContext context)
+    {
+        _context = context;
+    }
+
+    public IQueryable<T> Query()
+    {
+        return _context.Set<T>().AsQueryable();
+    }
 
     public async Task<IEnumerable<T>> GetAllAsync()
     {
@@ -30,14 +41,12 @@ public class AuxiliarRepository<T>(ApplicationDbContext context) : IAuxiliarRepo
         return entity;
     }
 
-
     public async Task<T> DeleteAsync(T entity)
     {
         _context.Set<T>().Remove(entity);
         await _context.SaveChangesAsync();
         return entity;
     }
-
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

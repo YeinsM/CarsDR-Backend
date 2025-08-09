@@ -1,6 +1,8 @@
 using System;
 using System.Threading.Tasks;
+using CarSpot.Application.Common.Responses;
 using CarSpot.Application.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.API.Controllers
@@ -35,23 +37,42 @@ namespace CarSpot.API.Controllers
             await _repository.CreateAsync(role);
             await _repository.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetById), new { id = role.Id }, role);
+            return StatusCode(StatusCodes.Status201Created,
+                ApiResponseBuilder.Success(role, "Role created successfully."));
         }
 
 
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, Role updated)
+        public async Task<IActionResult> Update(Guid id, [FromBody] Role updated)
         {
-            if (id != updated.Id) return BadRequest();
+            if (id != updated.Id)
+            {
+                return StatusCode(StatusCodes.Status400BadRequest,
+                    ApiResponseBuilder.Fail<object?>(StatusCodes.Status400BadRequest, "URL ID does not match body ID."));
+            }
+
             await _repository.UpdateAsync(updated);
-            return NoContent();
+
+            return StatusCode(StatusCodes.Status204NoContent,
+                ApiResponseBuilder.Success<object?>(null, "Role updated successfully."));
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
+            var role = await _repository.GetByIdAsync(id);
+            if (role is null)
+            {
+                return StatusCode(StatusCodes.Status404NotFound,
+                    ApiResponseBuilder.Fail<object?>(StatusCodes.Status404NotFound, $"Role with ID {id} does not exist."));
+            }
+
             await _repository.DeleteAsync(id);
-            return NoContent();
+
+            return StatusCode(StatusCodes.Status204NoContent,
+                ApiResponseBuilder.Success<object?>(null, "Role deleted successfully."));
         }
+
     }
 }

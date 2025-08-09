@@ -1,1 +1,1 @@
-public record TransmissionDto(string Name);
+public record TransmissionDto(int Id, string Name);

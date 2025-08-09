@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Common.Responses;
@@ -16,11 +18,39 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
         {
-            var items = await _repository.GetAllAsync();
-            return Ok(ApiResponseBuilder.Success(items, "List of cylinder options retrieved successfully."));
+            const int maxPageSize = 100;
+
+            if (pageNumber <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
+
+            if (pageSize <= 0)
+                pageSize = 1;
+            else if (pageSize > maxPageSize)
+                pageSize = maxPageSize;
+
+            var allItems = await _repository.GetAllAsync();
+            var totalItems = allItems.Count();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var items = allItems
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var paginatedResponse = new
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = totalPages,
+                Items = items
+            };
+
+            return Ok(ApiResponseBuilder.Success(paginatedResponse, "List of cylinder options retrieved successfully."));
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)

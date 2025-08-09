@@ -55,7 +55,7 @@ namespace CarSpot.Domain.Entities
         public int ViewCount { get; set; }
 
         public ICollection<VehicleMediaFile> MediaFiles { get; set; } = new List<VehicleMediaFile>();
-        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
+
 
         public Vehicle() { }
         public Vehicle(
@@ -128,11 +128,6 @@ namespace CarSpot.Domain.Entities
         public void AddImage(VehicleMediaFile mediaFile)
         {
             MediaFiles.Add(mediaFile);
-        }
-
-        public void AddComment(Comment comment)
-        {
-            Comments.Add(comment);
         }
 
         public void RaiseCreatedEvent()

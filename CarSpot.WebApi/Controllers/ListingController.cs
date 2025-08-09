@@ -3,124 +3,159 @@ using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Application.DTOs;
 using CarSpot.Application.DTOS;
-using CarSpot.Application.Interfaces;
+using CarSpot.Application.Interfaces.Services;
+using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
-
-[ApiController]
-[Route("api/[controller]")]
-public class ListingsController : ControllerBase
+namespace CarSpot.WebApi.Controllers
 {
-    private readonly IListingRepository _repository;
-
-    public ListingsController(IListingRepository repository)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ListingsController : ControllerBase
     {
-        _repository = repository;
-    }
+        private readonly IListingRepository _listingRepository;
+        private readonly IPaginationService _paginationService;
 
-    [HttpGet]
-    public async Task<IActionResult> GetAll()
-    {
-        var listings = await _repository.GetAllAsync();
-
-        var response = listings.Select(listing => new ListingResponse
+        public ListingsController(IListingRepository listingRepository, IPaginationService paginationService)
         {
-            Id = listing.Id,
-            Title = listing.Title,
-            Description = listing.Description,
-            Price = listing.Price,
-            CurrencyId = listing.CurrencyId,
-            ListingStatusId = listing.ListingStatusId,
-            ExpiresAt = listing.ExpiresAt,
-            IsFeatured = listing.IsFeatured,
-            FeaturedUntil = listing.FeaturedUntil,
-            UserId = listing.UserId,
-            VehicleId = listing.VehicleId
+            _listingRepository = listingRepository;
+            _paginationService = paginationService;
+        }
 
-        });
-
-        return Ok(response);
-    }
-
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(Guid id)
-    {
-        var listing = await _repository.GetByIdAsync(id);
-        if (listing == null)
-            return NotFound();
-
-        return Ok(listing);
-    }
-
-
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateListingRequest request)
-    {
-        if (request == null)
-            return BadRequest("Request cannot be null");
-
-        var listing = new Listing
+        [HttpGet]
+        public async Task<ActionResult<PaginatedResponse<ListingResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
-            UserId = request.UserId,
-            VehicleId = request.VehicleId,
-            Title = request.Title,
-            Description = request.Description,
-            Price = request.Price,
-            ListingPrice = request.ListingPrice,
-            CurrencyId = request.CurrencyId,
-            ListingStatusId = request.ListingStatusId,
-            ExpiresAt = request.ExpiresAt,
-            IsFeatured = request.IsFeatured,
-            FeaturedUntil = request.FeaturedUntil,
-            ViewCount = 0,
+            const int maxPageSize = 100;
 
-        };
+            
+            if (pagination.PageNumber <= 0)
+                return BadRequest("PageNumber must be greater than zero.");
 
-        var savedListing = await _repository.Add(listing);
+            
+            int pageSize = pagination.PageSize;
+            if (pageSize <= 0)
+                pageSize = 1; 
+            else if (pageSize > maxPageSize)
+                pageSize = maxPageSize;
 
-        return Ok(new
+            var query = _listingRepository.Query();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query.Select(listing => new ListingResponse
+                {
+                    Id = listing.Id,
+                    Title = listing.Title,
+                    Description = listing.Description,
+                    Price = listing.Price,
+                    CurrencyId = listing.CurrencyId,
+                    ListingStatusId = listing.ListingStatusId,
+                    ExpiresAt = listing.ExpiresAt,
+                    IsFeatured = listing.IsFeatured,
+                    FeaturedUntil = listing.FeaturedUntil,
+                    UserId = listing.UserId,
+                    VehicleId = listing.VehicleId
+                }),
+                pagination.PageNumber,
+                pageSize,
+                baseUrl
+            );
+
+            return Ok(paginatedResult);
+        }
+
+
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ListingResponse>> GetById(Guid id)
         {
-            Message = "Listing created successfully",
-            ListingId = savedListing.Id
-        });
-    }
+            var listing = await _listingRepository.GetByIdAsync(id);
+            if (listing == null) return NotFound();
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateListing(Guid id, [FromBody] UpdateListingRequest request)
-    {
-        var existingListing = await _repository.GetByIdAsync(id);
-        if (existingListing == null)
-            return NotFound();
+            var response = new ListingResponse
+            {
+                Id = listing.Id,
+                Title = listing.Title,
+                Description = listing.Description,
+                Price = listing.Price,
+                CurrencyId = listing.CurrencyId,
+                ListingStatusId = listing.ListingStatusId,
+                ExpiresAt = listing.ExpiresAt,
+                IsFeatured = listing.IsFeatured,
+                FeaturedUntil = listing.FeaturedUntil,
+                UserId = listing.UserId,
+                VehicleId = listing.VehicleId
+            };
+
+            return Ok(response);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateListingRequest request)
+        {
+            if (request == null)
+                return BadRequest("Request cannot be null");
+
+            var listing = new Listing
+            {
+                UserId = request.UserId,
+                VehicleId = request.VehicleId,
+                Title = request.Title,
+                Description = request.Description,
+                Price = request.Price,
+                ListingPrice = request.ListingPrice,
+                CurrencyId = request.CurrencyId,
+                ListingStatusId = request.ListingStatusId,
+                ExpiresAt = request.ExpiresAt,
+                IsFeatured = request.IsFeatured,
+                FeaturedUntil = request.FeaturedUntil,
+                ViewCount = 0,
+            };
+
+            var savedListing = await _listingRepository.Add(listing);
 
 
-        existingListing.Title = request.Title;
-        existingListing.Description = request.Description;
-        existingListing.Price = request.Price;
-        existingListing.ListingPrice = request.ListingPrice;
-        existingListing.CurrencyId = request.CurrencyId;
-        existingListing.ListingStatusId = request.ListingStatusId;
-        existingListing.ExpiresAt = request.ExpiresAt;
-        existingListing.IsFeatured = request.IsFeatured;
-        existingListing.FeaturedUntil = request.FeaturedUntil;
+            return CreatedAtAction(nameof(GetById), new { id = savedListing.Id }, new
+            {
+                Message = "Listing created successfully",
+                ListingId = savedListing.Id
+            });
+        }
 
-        existingListing.UpdatedAt = DateTime.UtcNow;
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(Guid id, [FromBody] UpdateListingRequest request)
+        {
+            var existingListing = await _listingRepository.GetByIdAsync(id);
+            if (existingListing == null)
+                return NotFound();
 
-        await _repository.UpdateAsync(existingListing);
-        return Ok("Listing updated successfully");
+            existingListing.Title = request.Title;
+            existingListing.Description = request.Description;
+            existingListing.Price = request.Price;
+            existingListing.ListingPrice = request.ListingPrice;
+            existingListing.CurrencyId = request.CurrencyId;
+            existingListing.ListingStatusId = request.ListingStatusId;
+            existingListing.ExpiresAt = request.ExpiresAt;
+            existingListing.IsFeatured = request.IsFeatured;
+            existingListing.FeaturedUntil = request.FeaturedUntil;
+            existingListing.UpdatedAt = DateTime.UtcNow;
 
-    }
+            await _listingRepository.UpdateAsync(existingListing);
 
+            return Ok(new { Message = "Listing updated successfully" });
+        }
 
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var listing = await _listingRepository.GetByIdAsync(id);
+            if (listing == null)
+                return NotFound();
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        var listing = await _repository.GetByIdAsync(id);
-        if (listing is null) return NotFound();
+            await _listingRepository.DeleteAsync(id);
 
-        await _repository.DeleteAsync(id);
-        return NoContent();
+            return NoContent();
+        }
     }
 }

@@ -4,7 +4,8 @@ using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Common.Responses;
-
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.API.Controllers
 {
@@ -20,11 +21,41 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
         {
-            var items = await _repository.GetAllAsync();
-            return Ok(ApiResponseBuilder.Success(items, "List of conditions retrieved successfully."));
+            const int maxPageSize = 100;
+
+            if (pageNumber <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
+
+            if (pageSize <= 0)
+                pageSize = 1;
+            else if (pageSize > maxPageSize)
+                pageSize = maxPageSize;
+
+            var query = _repository.Query();
+
+            var totalItems = await query.CountAsync();
+
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var paginatedResponse = new
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = totalPages,
+                Items = items
+            };
+
+            return Ok(ApiResponseBuilder.Success(paginatedResponse, "List of conditions retrieved successfully."));
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
@@ -45,7 +76,7 @@ namespace CarSpot.API.Controllers
             {
                 await _repository.Add(condition);
                 await _repository.SaveChangesAsync();
-                return CreatedAtAction(nameof(GetById), new { id = condition.Id }, 
+                return CreatedAtAction(nameof(GetById), new { id = condition.Id },
                     ApiResponseBuilder.Success(condition, "Condition created successfully."));
             }
             catch (Exception ex)

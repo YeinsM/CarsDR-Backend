@@ -3,46 +3,64 @@ using CarSpot.Domain.Entities;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
-namespace CarSpot.Infrastructure.Persistence.Repositories;
-
-public class CurrencyRepository(ApplicationDbContext context) : ICurrencyRepository
+namespace CarSpot.Infrastructure.Persistence.Repositories
 {
-    private readonly ApplicationDbContext _context = context;
-
-    public async Task<IEnumerable<Currency>> GetAll()
+    public class CurrencyRepository : ICurrencyRepository
     {
-        return await _context.Currencies.ToListAsync();
-    }
+        private readonly ApplicationDbContext _context;
 
-    public async Task<Currency?> GetById(Guid id)
-    {
-        return await _context.Currencies.FindAsync(id);
-    }
-
-    public async Task Add(Currency currency)
-    {
-        await _context.Currencies.AddAsync(currency);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task Update(Currency currency)
-    {
-        _context.Currencies.Update(currency);
-        await _context.SaveChangesAsync();
-    }
-
-    public async Task Delete(Guid id)
-    {
-        Currency? currency = await _context.Currencies.FindAsync(id);
-        if (currency != null)
+        public CurrencyRepository(ApplicationDbContext context)
         {
-            _context.Currencies.Remove(currency);
-            await _context.SaveChangesAsync();
+            _context = context;
         }
-    }
 
-    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
-    {
-        return await _context.SaveChangesAsync(cancellationToken);
+        public async Task<IEnumerable<Currency>> GetAll()
+        {
+            return await _context.Currencies.ToListAsync();
+        }
+
+        public async Task<Currency?> GetById(Guid id)
+        {
+            return await _context.Currencies.FindAsync(id);
+        }
+
+        public async Task Add(Currency currency)
+        {
+            await _context.Currencies.AddAsync(currency);
+        }
+
+        public Task Update(Currency currency)
+        {
+            _context.Currencies.Update(currency);
+            return Task.CompletedTask;
+        }
+
+        public async Task Delete(Guid id)
+        {
+            var currency = await _context.Currencies.FindAsync(id);
+            if (currency != null)
+            {
+                _context.Currencies.Remove(currency);
+            }
+        }
+
+        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            return await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task<(IEnumerable<Currency> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize)
+        {
+            var query = _context.Currencies.AsQueryable();
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
     }
 }

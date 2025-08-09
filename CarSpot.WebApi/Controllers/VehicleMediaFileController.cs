@@ -69,9 +69,24 @@ public class VehicleMediaController : ControllerBase
     }
 
     [HttpGet("vehicle/{vehicleId}")]
-    public async Task<IActionResult> GetByVehicle(Guid vehicleId)
+    public async Task<IActionResult> GetByVehicle(Guid vehicleId, [FromQuery] int page = 1, [FromQuery] int pageSize = 100)
     {
-        var media = await _repository.GetByVehicleIdAsync(vehicleId);
-        return Ok(media);
+        const int maxPageSize = 100;
+
+        if (page <= 0)
+            return BadRequest("Page must be greater than zero.");
+
+        if (pageSize <= 0)
+            pageSize = 1;
+        else if (pageSize > maxPageSize)
+            pageSize = maxPageSize;
+
+        var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+
+        var result = await _repository.GetByVehicleIdPagedAsync(vehicleId, page, pageSize, baseUrl);
+
+        return Ok(result);
     }
+
+
 }

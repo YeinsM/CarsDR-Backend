@@ -1,8 +1,10 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Common.Responses;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.API.Controllers
 {
@@ -18,12 +20,42 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
         {
-            var countries = await _repository.GetAllAsync();
-            var response = countries.Select(c => new CountryResponse(c.Id, c.Name, c.Abbreviation));
-            return Ok(ApiResponseBuilder.Success(response, "List of countries retrieved successfully."));
+            const int maxPageSize = 100;
+
+            if (pageNumber <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
+
+            if (pageSize <= 0)
+                pageSize = 1;
+            else if (pageSize > maxPageSize)
+                pageSize = maxPageSize;
+
+            var query = _repository.Query();
+
+            var totalItems = await query.CountAsync();
+
+            var countries = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(c => new CountryResponse(c.Id, c.Name, c.Abbreviation))
+                .ToListAsync();
+
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var paginatedResponse = new
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = totalPages,
+                Items = countries
+            };
+
+            return Ok(ApiResponseBuilder.Success(paginatedResponse, "List of countries retrieved successfully."));
         }
+
 
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)

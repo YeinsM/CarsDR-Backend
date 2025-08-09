@@ -10,7 +10,7 @@ public record UserDto(
     DateTime CreatedAt,
     DateTime? UpdatedAt,
     Guid? BusinessId,
-    List<VehicleDto> Vehicles,
-    List<CommentResponse> Comments
+    List<VehicleDto> Vehicles
+    
 );
 
