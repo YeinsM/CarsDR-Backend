@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces;
