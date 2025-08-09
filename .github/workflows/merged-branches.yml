@@ -20,14 +20,15 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: ✅ Repo checked out
         run: echo "✅ Repository successfully checked out."
 
       - name: Set up Git
         run: |
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
           echo "✅ Git user configured."
 
       - name: Update merged-branches.md
@@ -36,68 +37,119 @@ jobs:
           FILE="merged-branches.md"
           BRANCH_NAME="${{ github.head_ref }}"
           PR_TITLE="${{ github.event.pull_request.title }}"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
 
           echo "🔀 Current branch: $BRANCH_NAME"
+          echo "🗒️ PR title: $PR_TITLE"
+          echo "🔢 PR number: $PR_NUMBER"
+
+          # Skip if this is the update branch itself
           if [ "$BRANCH_NAME" = "update/merged-branches" ]; then
             echo "⏭️ Skipping logging for the update branch itself."
             exit 0
           fi
 
-          echo "🗒️ PR title: $PR_TITLE"
+          # Generate new entry
           MERGE_DATE=$(date "+%Y/%m/%d")
           MERGE_TIME=$(date "+%H:%M")
-          NEW_ENTRY="Merged on $MERGE_DATE\n[$MERGE_TIME] - $BRANCH_NAME — $PR_TITLE"
+          NEW_ENTRY="[$MERGE_TIME] - $BRANCH_NAME — $PR_TITLE (PR #$PR_NUMBER)"
 
-          echo "📝 New entry will be:"
-          echo -e "$NEW_ENTRY"
-          echo "📂 Checking for existing file..."
+          echo "📝 New entry: $NEW_ENTRY"
 
+          # Create or update the file
           if [ ! -f "$FILE" ]; then
-            echo "📄 File not found. Creating $FILE with initial structure."
-            echo "Last" > "$FILE"
-            echo "---------------------------" >> "$FILE"
-            echo -e "$NEW_ENTRY" >> "$FILE"
-            echo "" >> "$FILE"
-            echo "Previous" >> "$FILE"
-            echo "---------------------------" >> "$FILE"
+            echo "📄 Creating new $FILE"
+            cat > "$FILE" << EOF
+          # Merged Branches History
+
+          ## Last
+          ---------------------------
+          Merged on $MERGE_DATE
+          $NEW_ENTRY
+
+          ## Previous
+          ---------------------------
+          EOF
           else
-            echo "📄 File exists. Capturing all old entries..."
-            ALL_BLOCKS=$(grep -E -A1 '^Merged on' "$FILE" 2>/dev/null || true)
-            echo "🔍 Captured entries:"
-            echo "$ALL_BLOCKS"
+            echo "📄 Updating existing $FILE"
+            
+            # Extract current Last section content (excluding headers)
+            CURRENT_LAST=$(awk '/^## Last/,/^## Previous/ {
+              if ($0 ~ /^## Previous/) exit;
+              if ($0 !~ /^## Last/ && $0 !~ /^--*$/) print $0
+            }' "$FILE" | sed '/^$/d')
 
-            echo "🗑️ Filtering out update/merged-branches entries and separators..."
-            FILTERED=$(echo "$ALL_BLOCKS" \
-              | sed '/update\/merged-branches/d' \
-              | sed '/^--$/d')
-            echo "✅ Filtered entries:"
-            echo "$FILTERED"
+            # Extract Previous section content (excluding headers)
+            CURRENT_PREVIOUS=$(awk '/^## Previous/,EOF {
+              if ($0 !~ /^## Previous/ && $0 !~ /^--*$/) print $0
+            }' "$FILE")
 
-            echo "✏️ Writing combined content back to $FILE..."
-            {
-              echo "Last"
-              echo "---------------------------"
-              echo -e "$NEW_ENTRY"
-              echo
-              echo "Previous"
-              echo "---------------------------"
-              echo -e "$FILTERED"
-            } > "$FILE"
+            # Create updated file
+            cat > "$FILE" << EOF
+          # Merged Branches History
+
+          ## Last
+          ---------------------------
+          Merged on $MERGE_DATE
+          $NEW_ENTRY
+
+          ## Previous
+          ---------------------------
+          EOF
+
+            # Add previous Last to Previous section if it exists
+            if [ -n "$CURRENT_LAST" ]; then
+              echo "$CURRENT_LAST" >> "$FILE"
+              echo "" >> "$FILE"
+            fi
+
+            # Add existing Previous content if it exists
+            if [ -n "$CURRENT_PREVIOUS" ]; then
+              echo "$CURRENT_PREVIOUS" >> "$FILE"
+            fi
           fi
 
           echo "✅ merged-branches.md updated successfully."
+          echo "📄 Final content:"
+          cat "$FILE"
+
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet merged-branches.md; then
+            echo "No changes detected in merged-branches.md"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in merged-branches.md"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+          fi
 
       - name: Create or update Pull Request
+        if: steps.check_changes.outputs.has_changes == 'true'
         uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "📝 Update merged-branches.md after PR #${{ github.event.pull_request.number }}"
+          commit-message: "📝 Update merged-branches.md after merging PR #${{ github.event.pull_request.number }}"
           branch: update/merged-branches
           base: ${{ github.event.pull_request.base.ref }}
-          title: "chore: update merged-branches.md"
+          title: "chore: update merged-branches.md with latest merge"
           body: |
-            Este PR va acumulando en `merged-branches.md` todos los PRs mergeados hasta ahora.
+            🤖 **Automated Update**
+            
+            This PR updates `merged-branches.md` with the latest merged branch information.
+            
+            **Merged Branch:** `${{ github.head_ref }}`
+            **PR Title:** ${{ github.event.pull_request.title }}
+            **PR Number:** #${{ github.event.pull_request.number }}
+            
+            This PR will be automatically created after each merge to keep track of all merged branches.
           delete-branch: false
+          assignees: ${{ github.event.pull_request.user.login }}
 
-      - name: ✅ PR creation/update step complete
-        run: echo "✅ Pull request for update/merged-branches created or updated."
+      - name: ✅ Workflow complete
+        run: |
+          if [ "${{ steps.check_changes.outputs.has_changes }}" = "true" ]; then
+            echo "✅ Pull request created/updated for merged-branches.md"
+          else
+            echo "✅ No changes needed for merged-branches.md"
+          fi
