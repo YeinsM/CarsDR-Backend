@@ -73,21 +73,31 @@ jobs:
           else
             echo "📄 Updating existing $FILE"
             
+            # Show current file content for debugging
+            echo "🔍 Current file content:"
+            cat "$FILE"
+            echo "🔍 ==============================================="
+            
             # Extract current Last section content (everything between "## Last" and "## Previous")
+            # This includes the "Merged on" line and the actual entry
             CURRENT_LAST=$(awk '/^## Last/,/^## Previous/ {
               if ($0 ~ /^## Previous/) exit;
-              if ($0 !~ /^## Last/ && $0 !~ /^--*$/ && $0 !~ /^$/) print $0
+              if ($0 !~ /^## Last/ && $0 !~ /^--*$/) print $0
             }' "$FILE")
 
-            # Extract Previous section content (everything after "## Previous")
+            # Extract Previous section content (everything after "## Previous", excluding the line separator)
             CURRENT_PREVIOUS=$(awk '/^## Previous/,EOF {
               if ($0 !~ /^## Previous/ && $0 !~ /^--*$/) print $0
             }' "$FILE")
 
             echo "🔍 Debug - Current Last content:"
+            echo "<<<LAST_START>>>"
             echo "$CURRENT_LAST"
+            echo "<<<LAST_END>>>"
             echo "🔍 Debug - Current Previous content:"
+            echo "<<<PREVIOUS_START>>>"
             echo "$CURRENT_PREVIOUS"
+            echo "<<<PREVIOUS_END>>>"
 
             # Create updated file with new structure
             {
@@ -101,16 +111,16 @@ jobs:
               echo "## Previous"
               echo "---------------------------"
               
-              # Add previous Last content to Previous section (if it exists and is not empty)
+              # Add previous Last content to Previous section first (what used to be in Last)
               if [ -n "$CURRENT_LAST" ] && [ "$CURRENT_LAST" != "" ]; then
                 echo "$CURRENT_LAST"
-                # Add blank line only if there will be more content below
+                # Add separator line if there's also previous content
                 if [ -n "$CURRENT_PREVIOUS" ] && [ "$CURRENT_PREVIOUS" != "" ]; then
                   echo ""
                 fi
               fi
 
-              # Add existing Previous content if it exists
+              # Add existing Previous content below (what was already in Previous)
               if [ -n "$CURRENT_PREVIOUS" ] && [ "$CURRENT_PREVIOUS" != "" ]; then
                 echo "$CURRENT_PREVIOUS"
               fi
