@@ -112,8 +112,17 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
 
         public IQueryable<Vehicle> Query()
         {
-            return _context.Vehicles.AsQueryable();
+            return _context.Vehicles
+                .Include(v => v.Make)
+                .Include(v => v.Model)
+                .Include(v => v.Condition)
+                .Include(v => v.Drivetrain)
+                .Include(v => v.CylinderOption)
+                .Include(v => v.CabType)
+                .Include(v => v.MediaFiles)
+                .AsNoTracking();
         }
+
 
         public async Task<PaginatedResponse<VehicleDto>> FilterAsync(VehicleFilterRequest filter, string baseUrl)
         {

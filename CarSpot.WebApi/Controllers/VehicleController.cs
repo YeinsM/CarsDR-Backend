@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using CarSpot.Application.Common.Responses;
 using System.Collections.Generic;
+using CarSpot.Domain.Common;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -48,25 +51,32 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
         {
-            var vehicles = await _vehicleRepository.GetAllAsync();
-            return Ok(ApiResponseBuilder.Success(vehicles, "All vehicles retrieved successfully."));
-        }
+            const int maxPageSize = 100;
 
-       
-        [HttpGet("paged")]
-        public async Task<IActionResult> GetPaged([FromQuery] VehicleFilterRequest filter)
-        {
-            if (filter.Page <= 0 || filter.PageSize <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page and PageSize must be greater than zero."));
+            if (page <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page must be greater than zero."));
+
+            if (pageSize <= 0 || pageSize > maxPageSize)
+                pageSize = maxPageSize;
+
+            var query = _vehicleRepository.Query();
+
+            var totalItems = await query.CountAsync();
+
+            var vehicles = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
 
             var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var pagedResult = await _vehicleRepository.FilterAsync(filter, baseUrl);
+            var paginatedResponse = new PaginatedResponse<Vehicle>(vehicles, page, pageSize, totalItems, baseUrl);
 
-            return Ok(ApiResponseBuilder.Success(pagedResult, "Paged vehicles retrieved successfully."));
+            return Ok(ApiResponseBuilder.Success(paginatedResponse, "Paged vehicles retrieved successfully."));
         }
+
 
         [HttpGet("{id:Guid}")]
         public async Task<IActionResult> GetById(Guid id)
@@ -180,7 +190,7 @@ namespace CarSpot.WebApi.Controllers
             return NoContent();
         }
 
-        
+
         [HttpPost("filter")]
         public async Task<IActionResult> FilterVehicles([FromBody] VehicleFilterRequest request)
         {

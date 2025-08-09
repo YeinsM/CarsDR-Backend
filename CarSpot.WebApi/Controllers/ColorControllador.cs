@@ -2,6 +2,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Application.Common.Responses;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -17,15 +18,26 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
         {
+            const int maxPageSize = 100;
+
+            if (pageNumber <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
+
+            if (pageSize <= 0)
+                pageSize = 1;
+            else if (pageSize > maxPageSize)
+                pageSize = maxPageSize;
+
             var query = _repository.Query();
 
-            var totalRecords = query.Count();
-            var colors = query
+            var totalRecords = await query.CountAsync();
+
+            var colors = await query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .ToList();
+                .ToListAsync();
 
             var pagedResponse = new
             {
@@ -37,6 +49,7 @@ namespace CarSpot.WebApi.Controllers
 
             return Ok(ApiResponseBuilder.Success(pagedResponse, "Colors retrieved successfully."));
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)

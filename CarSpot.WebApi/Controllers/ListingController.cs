@@ -26,6 +26,19 @@ namespace CarSpot.WebApi.Controllers
         [HttpGet]
         public async Task<ActionResult<PaginatedResponse<ListingResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
+            const int maxPageSize = 100;
+
+            
+            if (pagination.PageNumber <= 0)
+                return BadRequest("PageNumber must be greater than zero.");
+
+            
+            int pageSize = pagination.PageSize;
+            if (pageSize <= 0)
+                pageSize = 1; 
+            else if (pageSize > maxPageSize)
+                pageSize = maxPageSize;
+
             var query = _listingRepository.Query();
 
             var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
@@ -46,12 +59,13 @@ namespace CarSpot.WebApi.Controllers
                     VehicleId = listing.VehicleId
                 }),
                 pagination.PageNumber,
-                pagination.PageSize,
+                pageSize,
                 baseUrl
             );
 
             return Ok(paginatedResult);
         }
+
 
         [HttpGet("{id}")]
         public async Task<ActionResult<ListingResponse>> GetById(Guid id)

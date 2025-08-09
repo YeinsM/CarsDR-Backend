@@ -69,10 +69,17 @@ public class VehicleMediaController : ControllerBase
     }
 
     [HttpGet("vehicle/{vehicleId}")]
-    public async Task<IActionResult> GetByVehicle(Guid vehicleId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetByVehicle(Guid vehicleId, [FromQuery] int page = 1, [FromQuery] int pageSize = 100)
     {
-        if (page <= 0 || pageSize <= 0)
-            return BadRequest("Page and pageSize must be greater than zero.");
+        const int maxPageSize = 100;
+
+        if (page <= 0)
+            return BadRequest("Page must be greater than zero.");
+
+        if (pageSize <= 0)
+            pageSize = 1;
+        else if (pageSize > maxPageSize)
+            pageSize = maxPageSize;
 
         var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
@@ -80,5 +87,6 @@ public class VehicleMediaController : ControllerBase
 
         return Ok(result);
     }
+
 
 }

@@ -25,10 +25,16 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
         {
+            const int maxPageSize = 100;
+
             if (page <= 0 || pageSize <= 0)
                 return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page and pageSize must be greater than zero."));
+
+            
+            if (pageSize > maxPageSize)
+                pageSize = maxPageSize;
 
             var query = _repository.Query();
 
@@ -51,6 +57,7 @@ namespace CarSpot.API.Controllers
 
             return Ok(ApiResponseBuilder.Success(paginatedResponse, "Vehicle versions retrieved successfully."));
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)

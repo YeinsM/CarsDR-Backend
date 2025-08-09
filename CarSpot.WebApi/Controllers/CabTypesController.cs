@@ -19,20 +19,33 @@ namespace CarSpot.API.Controllers
             _repository = repository;
             _paginationService = paginationService;
         }
-
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
         {
+            const int maxPageSize = 100;
+
+            if (pageNumber <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
+
+            if (pageSize <= 0)
+                pageSize = 1;
+            else if (pageSize > maxPageSize)
+                pageSize = maxPageSize;
+
             var query = _repository.Query();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+
             var paginatedResult = await _paginationService.PaginateAsync(
                 query,
                 pageNumber,
                 pageSize,
-                $"{Request.Scheme}://{Request.Host}{Request.Path}"
+                baseUrl
             );
 
-            return Ok(paginatedResult);
+            return Ok(ApiResponseBuilder.Success(paginatedResult));
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)

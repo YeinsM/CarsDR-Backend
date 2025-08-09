@@ -28,6 +28,17 @@ namespace CarSpot.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] PaginationParameters pagination)
         {
+            const int maxPageSize = 100;
+
+            if (pagination.PageNumber <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "PageNumber must be greater than zero."));
+
+            int pageSize = pagination.PageSize;
+            if (pageSize <= 0)
+                pageSize = 1; 
+            else if (pageSize > maxPageSize)
+                pageSize = maxPageSize;
+
             var query = _modelRepository.Query();
 
             var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
@@ -39,12 +50,13 @@ namespace CarSpot.API.Controllers
                     m.MakeId
                 )),
                 pagination.PageNumber,
-                pagination.PageSize,
+                pageSize,
                 baseUrl
             );
 
-            return Ok(paginatedResult);
+            return Ok(ApiResponseBuilder.Success(paginatedResult, "List of models retrieved successfully."));
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)

@@ -16,12 +16,18 @@ namespace CarSpot.API.Controllers
         {
             _repository = repository;
         }
-
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
         {
-            if (pageNumber <= 0 || pageSize <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number and size must be greater than zero."));
+            const int maxPageSize = 100;
+
+            if (pageNumber <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
+
+            if (pageSize <= 0)
+                pageSize = 1;
+            else if (pageSize > maxPageSize)
+                pageSize = maxPageSize;
 
             var allItems = await _repository.GetAllAsync();
             var totalItems = allItems.Count();

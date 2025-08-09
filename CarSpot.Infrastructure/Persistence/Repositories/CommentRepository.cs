@@ -48,7 +48,6 @@ namespace CarSpot.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        // Paginación en BD para comentarios por Listing
         public async Task<IEnumerable<Comment>> GetByListingIdPagedAsync(Guid listingId, int pageNumber, int pageSize)
         {
             return await _context.Comments!
@@ -81,6 +80,33 @@ namespace CarSpot.Infrastructure.Repositories
         {
             return await _context.Comments!
                 .CountAsync(c => c.UserId == userId);
+        }
+
+        public IQueryable<Comment> Query()
+        {
+            return _context.Comments!
+                .Include(c => c.User)
+                .Include(c => c.Listing)
+                .OrderByDescending(c => c.CreatedAt)
+                .AsQueryable();
+        }
+
+        public IQueryable<Comment> QueryByListingId(Guid listingId)
+        {
+            return _context.Comments!
+                .Include(c => c.User)
+                .Where(c => c.ListingId == listingId)
+                .OrderByDescending(c => c.CreatedAt)
+                .AsQueryable();
+        }
+
+        public IQueryable<Comment> QueryByUserId(Guid userId)
+        {
+            return _context.Comments!
+                .Include(c => c.Listing)
+                .Where(c => c.UserId == userId)
+                .OrderByDescending(c => c.CreatedAt)
+                .AsQueryable();
         }
 
         public async Task CreateAddAsync(Comment comment)

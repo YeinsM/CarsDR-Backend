@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using CarSpot.Application.Common.Responses;
 using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -66,26 +67,33 @@ namespace CarSpot.WebApi.Controllers
         public async Task<IActionResult> GetByListing(
             Guid listingId,
             [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10)
+            [FromQuery] int pageSize = 100)
         {
-            var comments = (await _commentRepository.GetByListingIdAsync(listingId)).ToList();
+            const int maxPageSize = 100;
 
-            var total = comments.Count;
             if (pageNumber <= 0) pageNumber = 1;
-            if (pageSize <= 0) pageSize = 10;
+            if (pageSize <= 0) pageSize = 1;
+            else if (pageSize > maxPageSize) pageSize = maxPageSize;
 
-            var paged = comments
+            var query = _commentRepository.QueryByListingId(listingId);
+
+            var total = await query.CountAsync();
+
+            var pagedComments = await query
+                .OrderBy(c => c.CreatedAt)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Select(c => new CommentResponse(
-                    c.Id,
-                    c.Content ?? "",
-                    c.UserId,
-                    c.User?.FullName ?? "Unknown",
-                    c.CreatedAt,
-                    c.IsReported,
-                    new List<CommentResponse>()))
-                .ToList();
+                .ToListAsync();
+
+            var paged = pagedComments.Select(c => new CommentResponse(
+                c.Id,
+                c.Content ?? "",
+                c.UserId,
+                c.User?.FullName ?? "Unknown",
+                c.CreatedAt,
+                c.IsReported,
+                new List<CommentResponse>()
+            )).ToList();
 
             var result = new
             {
@@ -98,41 +106,51 @@ namespace CarSpot.WebApi.Controllers
             return Ok(ApiResponseBuilder.Success(result, "Comments retrieved successfully"));
         }
 
+
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetByUser(
             Guid userId,
             [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 10)
+            [FromQuery] int pageSize = 100)
         {
-            var comments = (await _commentRepository.GetByUserIdAsync(userId)).ToList();
-
-            var total = comments.Count;
             if (pageNumber <= 0) pageNumber = 1;
             if (pageSize <= 0) pageSize = 10;
+            else if (pageSize > 100) pageSize = 100; 
 
-            var paged = comments
+        
+            var query = _commentRepository.QueryByUserId(userId);
+
+          
+            var totalRecords = await query.CountAsync();
+
+            
+            var pagedComments = await query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
-                .Select(c => new CommentResponse(
-                    c.Id,
-                    c.Content ?? "",
-                    c.UserId,
-                    c.Listing?.Title ?? "Unknown listing",
-                    c.CreatedAt,
-                    c.IsReported,
-                    new List<CommentResponse>()))
-                .ToList();
+                .ToListAsync();
+
+            var responseItems = pagedComments.Select(c => new CommentResponse(
+                c.Id,
+                c.Content ?? "",
+                c.UserId,
+                c.Listing?.Title ?? "Unknown listing",
+                c.CreatedAt,
+                c.IsReported,
+                new List<CommentResponse>()
+            ));
 
             var result = new
             {
-                TotalRecords = total,
+                TotalRecords = totalRecords,
                 PageNumber = pageNumber,
                 PageSize = pageSize,
-                Data = paged
+                Data = responseItems
             };
 
             return Ok(ApiResponseBuilder.Success(result, "User comments retrieved successfully"));
         }
+
+
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
