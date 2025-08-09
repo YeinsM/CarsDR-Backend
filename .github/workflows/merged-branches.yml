@@ -73,40 +73,48 @@ jobs:
           else
             echo "📄 Updating existing $FILE"
             
-            # Extract current Last section content (excluding headers)
+            # Extract current Last section content (everything between "## Last" and "## Previous")
             CURRENT_LAST=$(awk '/^## Last/,/^## Previous/ {
               if ($0 ~ /^## Previous/) exit;
-              if ($0 !~ /^## Last/ && $0 !~ /^--*$/) print $0
-            }' "$FILE" | sed '/^$/d')
+              if ($0 !~ /^## Last/ && $0 !~ /^--*$/ && $0 !~ /^$/) print $0
+            }' "$FILE")
 
-            # Extract Previous section content (excluding headers)
+            # Extract Previous section content (everything after "## Previous")
             CURRENT_PREVIOUS=$(awk '/^## Previous/,EOF {
               if ($0 !~ /^## Previous/ && $0 !~ /^--*$/) print $0
             }' "$FILE")
 
-            # Create updated file
-            cat > "$FILE" << EOF
-          # Merged Branches History
+            echo "🔍 Debug - Current Last content:"
+            echo "$CURRENT_LAST"
+            echo "🔍 Debug - Current Previous content:"
+            echo "$CURRENT_PREVIOUS"
 
-          ## Last
-          ---------------------------
-          Merged on $MERGE_DATE
-          $NEW_ENTRY
+            # Create updated file with new structure
+            {
+              echo "# Merged Branches History"
+              echo ""
+              echo "## Last"
+              echo "---------------------------"
+              echo "Merged on $MERGE_DATE"
+              echo "$NEW_ENTRY"
+              echo ""
+              echo "## Previous"
+              echo "---------------------------"
+              
+              # Add previous Last content to Previous section (if it exists and is not empty)
+              if [ -n "$CURRENT_LAST" ] && [ "$CURRENT_LAST" != "" ]; then
+                echo "$CURRENT_LAST"
+                # Add blank line only if there will be more content below
+                if [ -n "$CURRENT_PREVIOUS" ] && [ "$CURRENT_PREVIOUS" != "" ]; then
+                  echo ""
+                fi
+              fi
 
-          ## Previous
-          ---------------------------
-          EOF
-
-            # Add previous Last to Previous section if it exists
-            if [ -n "$CURRENT_LAST" ]; then
-              echo "$CURRENT_LAST" >> "$FILE"
-              echo "" >> "$FILE"
-            fi
-
-            # Add existing Previous content if it exists
-            if [ -n "$CURRENT_PREVIOUS" ]; then
-              echo "$CURRENT_PREVIOUS" >> "$FILE"
-            fi
+              # Add existing Previous content if it exists
+              if [ -n "$CURRENT_PREVIOUS" ] && [ "$CURRENT_PREVIOUS" != "" ]; then
+                echo "$CURRENT_PREVIOUS"
+              fi
+            } > "$FILE"
           fi
 
           echo "✅ merged-branches.md updated successfully."
