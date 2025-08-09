@@ -20,6 +20,7 @@ public class ApplicationDbContext : DbContext
         _domainEventsInterceptor = domainEventsInterceptor;
 
     }
+    // Configure the DbContext
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         optionsBuilder.AddInterceptors(_domainEventsInterceptor);
