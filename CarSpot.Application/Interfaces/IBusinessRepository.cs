@@ -6,6 +6,7 @@ namespace CarSpot.Application.Interfaces.Repositories
     {
         Task<Business?> GetByIdAsync(Guid id);
         Task<IEnumerable<Business>> GetAllAsync();
+        IQueryable<Business> Query();
         Task Add(Business bussines);
         void Update(Business bussines);
         void Delete(Business bussines);

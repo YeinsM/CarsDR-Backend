@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Domain.Entities;
@@ -18,11 +19,31 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var countries = await _repository.GetAllAsync();
-            var response = countries.Select(c => new CountryResponse(c.Id, c.Name, c.Abbreviation));
-            return Ok(ApiResponseBuilder.Success(response, "List of countries retrieved successfully."));
+            if (pageNumber <= 0 || pageSize <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number and size must be greater than zero."));
+
+            var allCountries = await _repository.GetAllAsync();
+            var totalItems = allCountries.Count();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var countries = allCountries
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(c => new CountryResponse(c.Id, c.Name, c.Abbreviation))
+                .ToList();
+
+            var paginatedResponse = new
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = totalPages,
+                Items = countries
+            };
+
+            return Ok(ApiResponseBuilder.Success(paginatedResponse, "List of countries retrieved successfully."));
         }
 
         [HttpGet("{id:int}")]

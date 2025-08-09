@@ -1,7 +1,11 @@
 using System.Threading.Tasks;
 using CarSpot.Application.Common.Responses;
 using CarSpot.Application.Interfaces.Repositories;
+using CarSpot.Domain.Common;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+
 
 namespace CarSpot.API.Controllers
 {
@@ -21,10 +25,31 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var versions = await _repository.GetAllAsync();
-            return Ok(ApiResponseBuilder.Success(versions, "Vehicle versions retrieved successfully."));
+            if (page <= 0 || pageSize <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page and pageSize must be greater than zero."));
+
+            var query = _repository.Query();
+
+            var totalItems = await query.CountAsync();
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+
+            var paginatedResponse = new PaginatedResponse<VehicleVersion>(
+                data: items,
+                page: page,
+                pageSize: pageSize,
+                total: totalItems,
+                baseUrl: baseUrl
+            );
+
+            return Ok(ApiResponseBuilder.Success(paginatedResponse, "Vehicle versions retrieved successfully."));
         }
 
         [HttpGet("{id}")]

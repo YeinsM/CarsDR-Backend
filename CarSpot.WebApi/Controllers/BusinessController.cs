@@ -1,9 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces.Repositories;
+using CarSpot.Application.Interfaces.Services;
+using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,27 +15,38 @@ namespace CarSpot.WebApi.Controllers
     public class BusinessController : ControllerBase
     {
         private readonly IBusinessRepository _businessRepository;
+        private readonly IPaginationService _paginationService;
 
-        public BusinessController(IBusinessRepository businessRepository)
+        public BusinessController(IBusinessRepository businessRepository, IPaginationService paginationService)
         {
             _businessRepository = businessRepository;
+            _paginationService = paginationService;
         }
 
+        
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BusinessResponse>>> GetAll()
+        public async Task<ActionResult<PaginatedResponse<BusinessResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
-            var bussinesList = await _businessRepository.GetAllAsync();
+            
+            var query = _businessRepository.Query();
 
-            var response = bussinesList.Select(b => new BusinessResponse(
-                b.Id,
-                b.Name!,
-                b.BusinessNumber!,
-                b.Phone,
-                b.Extension,
-                b.Address
-            ));
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            return Ok(response);
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query.Select(b => new BusinessResponse(
+                    b.Id,
+                    b.Name!,
+                    b.BusinessNumber!,
+                    b.Phone,
+                    b.Extension,
+                    b.Address
+                )),
+                pagination.PageNumber,
+                pagination.PageSize,
+                baseUrl
+            );
+
+            return Ok(paginatedResult);
         }
 
         [HttpGet("{id}")]
@@ -80,7 +92,6 @@ namespace CarSpot.WebApi.Controllers
                     message = "Business created successfully!",
                     id = business.Id
                 });
-
             }
             catch (Exception ex)
             {
@@ -91,7 +102,6 @@ namespace CarSpot.WebApi.Controllers
                 });
             }
         }
-
 
         [HttpPut("{id}")]
         public async Task<ActionResult> Update(Guid id, UpdateBusinessRequest request)
@@ -109,7 +119,7 @@ namespace CarSpot.WebApi.Controllers
             _businessRepository.Update(bussines);
             await _businessRepository.SaveChangesAsync();
 
-             return Ok(new { message = "Business updated successfully" });
+            return Ok(new { message = "Business updated successfully" });
         }
 
         [HttpDelete("{id}")]

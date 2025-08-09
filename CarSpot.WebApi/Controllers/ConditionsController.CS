@@ -4,7 +4,7 @@ using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Common.Responses;
-
+using System.Linq;
 
 namespace CarSpot.API.Controllers
 {
@@ -20,10 +20,30 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var items = await _repository.GetAllAsync();
-            return Ok(ApiResponseBuilder.Success(items, "List of conditions retrieved successfully."));
+            if (pageNumber <= 0 || pageSize <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number and size must be greater than zero."));
+
+            var allItems = await _repository.GetAllAsync();
+            var totalItems = allItems.Count();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            var items = allItems
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var paginatedResponse = new
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = totalPages,
+                Items = items
+            };
+
+            return Ok(ApiResponseBuilder.Success(paginatedResponse, "List of conditions retrieved successfully."));
         }
 
         [HttpGet("{id}")]
@@ -45,7 +65,7 @@ namespace CarSpot.API.Controllers
             {
                 await _repository.Add(condition);
                 await _repository.SaveChangesAsync();
-                return CreatedAtAction(nameof(GetById), new { id = condition.Id }, 
+                return CreatedAtAction(nameof(GetById), new { id = condition.Id },
                     ApiResponseBuilder.Success(condition, "Condition created successfully."));
             }
             catch (Exception ex)

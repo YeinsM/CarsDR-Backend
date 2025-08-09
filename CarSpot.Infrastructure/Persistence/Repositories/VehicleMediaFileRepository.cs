@@ -1,4 +1,4 @@
-using CarSpot.Application.Interfaces;
+using CarSpot.Domain.Common;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +21,38 @@ public class VehicleMediaFileRepository : IVehicleMediaFileRepository
     {
         await _context.VehicleMediaFiles.AddAsync(media);
     }
+
+    public async Task<PaginatedResponse<VehicleMediaFile>> GetByVehicleIdPagedAsync(
+    Guid vehicleId, int page, int pageSize, string baseUrl)
+    {
+        
+        if (page <= 0) page = 1;
+        if (pageSize <= 0) pageSize = 10;
+
+     
+        var query = _context.VehicleMediaFiles
+            .Where(m => m.VehicleId == vehicleId)
+            .AsNoTracking();
+
+        
+        var totalItems = await query.CountAsync();
+
+      
+        var items = await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        
+        return new PaginatedResponse<VehicleMediaFile>(
+            data: items,
+            page: page,
+            pageSize: pageSize,
+            total: totalItems,
+            baseUrl: baseUrl
+        );
+    }
+
 
     public async Task DeleteAsync(Guid id)
     {

@@ -1,7 +1,9 @@
-
+using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Application.Common.Responses;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace CarSpot.API.Controllers
 {
@@ -17,11 +19,32 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var transmissions = await _repository.GetAllAsync();
-            return Ok(ApiResponseBuilder.Success(transmissions, "List of transmissions retrieved successfully."));
+            if (pageNumber <= 0 || pageSize <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number and page size must be greater than zero."));
+
+            var query = _repository.Query();
+
+            var totalItems = await query.CountAsync();
+
+            var transmissions = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var response = new
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = (int)System.Math.Ceiling(totalItems / (double)pageSize),
+                Items = transmissions
+            };
+
+            return Ok(ApiResponseBuilder.Success(response, "List of transmissions retrieved successfully."));
         }
+
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)

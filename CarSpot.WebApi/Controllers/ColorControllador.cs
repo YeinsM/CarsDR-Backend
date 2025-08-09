@@ -1,4 +1,4 @@
-
+using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Application.Common.Responses;
 using Microsoft.AspNetCore.Mvc;
@@ -17,10 +17,25 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public IActionResult GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var colors = await _repository.GetAllAsync();
-            return Ok(ApiResponseBuilder.Success(colors, "Colors retrieved successfully."));
+            var query = _repository.Query();
+
+            var totalRecords = query.Count();
+            var colors = query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var pagedResponse = new
+            {
+                TotalRecords = totalRecords,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                Data = colors
+            };
+
+            return Ok(ApiResponseBuilder.Success(pagedResponse, "Colors retrieved successfully."));
         }
 
         [HttpGet("{id}")]

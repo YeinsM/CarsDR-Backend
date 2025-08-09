@@ -7,9 +7,7 @@ using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using CarSpot.Application.Common.Responses;
-
-
-
+using System.Collections.Generic;
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -26,7 +24,6 @@ namespace CarSpot.WebApi.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IVehicleMediaFileRepository _vehicleMediaRepository;
         private readonly IPhotoService _photoService;
-
 
         public VehicleController(
             IVehicleRepository vehicleRepository,
@@ -54,32 +51,45 @@ namespace CarSpot.WebApi.Controllers
         public async Task<IActionResult> GetAll()
         {
             var vehicles = await _vehicleRepository.GetAllAsync();
-            return Ok(vehicles);
+            return Ok(ApiResponseBuilder.Success(vehicles, "All vehicles retrieved successfully."));
+        }
+
+       
+        [HttpGet("paged")]
+        public async Task<IActionResult> GetPaged([FromQuery] VehicleFilterRequest filter)
+        {
+            if (filter.Page <= 0 || filter.PageSize <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page and PageSize must be greater than zero."));
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+
+            var pagedResult = await _vehicleRepository.FilterAsync(filter, baseUrl);
+
+            return Ok(ApiResponseBuilder.Success(pagedResult, "Paged vehicles retrieved successfully."));
         }
 
         [HttpGet("{id:Guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
             Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
-            return vehicle is null ? NotFound() : Ok(vehicle);
+            return vehicle is null
+                ? NotFound(ApiResponseBuilder.Fail<object>(404, $"Vehicle with ID {id} not found."))
+                : Ok(ApiResponseBuilder.Success(vehicle, "Vehicle retrieved successfully."));
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateVehicleRequest request)
         {
             User? user = await _userRepository.GetByIdAsync(request.UserId);
-            Make make = await _makeRepository.GetByIdAsync(request.MakeId);
+            Make? make = await _makeRepository.GetByIdAsync(request.MakeId);
             Model? model = await _modelRepository.GetByIdAsync(request.ModelId);
             Condition? condition = await _conditionRepository.GetByIdAsync(request.ConditionId);
             VehicleType? vehicleType = await _vehicleTypeRepository.GetByIdAsync(request.VehicleTypeId);
 
             if (user is null || make is null || model is null || condition is null || vehicleType is null)
-            {
-                return StatusCode(StatusCodes.Status400BadRequest,
-                    ApiResponseBuilder.Fail<object?>(
-                        StatusCodes.Status400BadRequest,
-                        "One or more required entities (User, Make, Model, Condition, VehicleType) were not found."));
-            }
+                return BadRequest(ApiResponseBuilder.Fail<object>(
+                    400,
+                    "One or more required entities (User, Make, Model, Condition, VehicleType) were not found."));
 
             var vehicle = new Vehicle(
                 request.VIN,
@@ -109,7 +119,7 @@ namespace CarSpot.WebApi.Controllers
             vehicle.Make = make;
             vehicle.Model = model;
             vehicle.VehicleType = vehicleType;
-            vehicle.MediaFiles = [];
+            vehicle.MediaFiles = new List<VehicleMediaFile>();
 
             await _vehicleRepository.CreateVehicleAsync(vehicle);
 
@@ -129,19 +139,12 @@ namespace CarSpot.WebApi.Controllers
                 ApiResponseBuilder.Success(response, "Vehicle created successfully."));
         }
 
-
-
         [HttpPut("{id:Guid}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateVehicleRequest request)
         {
             Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
             if (vehicle is null)
-            {
-                return StatusCode(StatusCodes.Status404NotFound,
-                    ApiResponseBuilder.Fail<object?>(
-                        StatusCodes.Status404NotFound,
-                        $"Vehicle with ID {id} does not exist."));
-            }
+                return NotFound(ApiResponseBuilder.Fail<object>(404, $"Vehicle with ID {id} does not exist."));
 
             vehicle.MakeId = request.MakeId;
             vehicle.ModelId = request.ModelId;
@@ -162,51 +165,36 @@ namespace CarSpot.WebApi.Controllers
 
             await _vehicleRepository.UpdateAsync(vehicle);
 
-            return StatusCode(StatusCodes.Status204NoContent,
-                ApiResponseBuilder.Success<object?>(null, "Vehicle updated successfully."));
+            return NoContent();
         }
-
 
         [HttpDelete("{id:Guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
             if (vehicle is null)
-            {
-                return StatusCode(StatusCodes.Status404NotFound,
-                    ApiResponseBuilder.Fail<object?>(
-                        StatusCodes.Status404NotFound,
-                        $"Vehicle with ID {id} does not exist."));
-            }
+                return NotFound(ApiResponseBuilder.Fail<object>(404, $"Vehicle with ID {id} does not exist."));
 
             await _vehicleRepository.DeleteAsync(vehicle);
 
-            return StatusCode(StatusCodes.Status204NoContent,
-                ApiResponseBuilder.Success<object?>(null, "Vehicle deleted successfully."));
+            return NoContent();
         }
 
-
+        
         [HttpPost("filter")]
         public async Task<IActionResult> FilterVehicles([FromBody] VehicleFilterRequest request)
         {
-            if (request.MinMileage.HasValue && request.MaxMileage.HasValue &&
-                request.MinMileage > request.MaxMileage)
-            {
-                return BadRequest("MinMileage cannot be greater than MaxMileage.");
-            }
+            if (request.MinMileage.HasValue && request.MaxMileage.HasValue && request.MinMileage > request.MaxMileage)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "MinMileage cannot be greater than MaxMileage."));
 
             if (request.Page <= 0 || request.PageSize <= 0)
-            {
-                return BadRequest("Page and PageSize must be greater than 0.");
-            }
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page and PageSize must be greater than 0."));
 
             var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
             var result = await _vehicleRepository.FilterAsync(request, baseUrl);
 
-            return Ok(result);
+            return Ok(ApiResponseBuilder.Success(result, "Filtered vehicles retrieved successfully."));
         }
-
-
     }
 }

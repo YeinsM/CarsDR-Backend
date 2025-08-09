@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Common.Responses;
-
+using CarSpot.Application.Interfaces.Services;
 
 namespace CarSpot.API.Controllers
 {
@@ -10,17 +10,28 @@ namespace CarSpot.API.Controllers
     public class CabTypesController : ControllerBase
     {
         private readonly IAuxiliarRepository<CabType> _repository;
+        private readonly IPaginationService _paginationService;
 
-        public CabTypesController(IAuxiliarRepository<CabType> repository)
+        public CabTypesController(
+            IAuxiliarRepository<CabType> repository,
+            IPaginationService paginationService)
         {
             _repository = repository;
+            _paginationService = paginationService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var items = await _repository.GetAllAsync();
-            return Ok(items);
+            var query = _repository.Query();
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query,
+                pageNumber,
+                pageSize,
+                $"{Request.Scheme}://{Request.Host}{Request.Path}"
+            );
+
+            return Ok(paginatedResult);
         }
 
         [HttpGet("{id}")]
@@ -34,7 +45,6 @@ namespace CarSpot.API.Controllers
             return Ok(ApiResponseBuilder.Success(item, "Item found successfully."));
         }
 
-
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CabType cabType)
         {
@@ -47,7 +57,6 @@ namespace CarSpot.API.Controllers
 
             return CreatedAtAction(nameof(GetById), new { id = cabType.Id }, response);
         }
-
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, CabType updated)
@@ -66,8 +75,6 @@ namespace CarSpot.API.Controllers
             return Ok(ApiResponseBuilder.Success<string>(null, "Cab type updated successfully."));
         }
 
-
-
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -80,6 +87,5 @@ namespace CarSpot.API.Controllers
 
             return Ok(ApiResponseBuilder.Success<string>(null, "Cab type deleted successfully."));
         }
-
     }
 }

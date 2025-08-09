@@ -1,4 +1,4 @@
-using CarSpot.Application.Interfaces.Repositories;
+using CarSpot.Application.Interfaces;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,6 +18,7 @@ namespace CarSpot.Infrastructure.Repositories
             return await _context.Comments!
                 .Include(c => c.User)
                 .Include(c => c.Listing)
+                .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
         }
 
@@ -45,6 +46,41 @@ namespace CarSpot.Infrastructure.Repositories
                 .Where(c => c.UserId == userId)
                 .OrderByDescending(c => c.CreatedAt)
                 .ToListAsync();
+        }
+
+        // Paginación en BD para comentarios por Listing
+        public async Task<IEnumerable<Comment>> GetByListingIdPagedAsync(Guid listingId, int pageNumber, int pageSize)
+        {
+            return await _context.Comments!
+                .Include(c => c.User)
+                .Where(c => c.ListingId == listingId)
+                .OrderByDescending(c => c.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<int> CountByListingIdAsync(Guid listingId)
+        {
+            return await _context.Comments!
+                .CountAsync(c => c.ListingId == listingId);
+        }
+
+        public async Task<IEnumerable<Comment>> GetByUserIdPagedAsync(Guid userId, int pageNumber, int pageSize)
+        {
+            return await _context.Comments!
+                .Include(c => c.Listing)
+                .Where(c => c.UserId == userId)
+                .OrderByDescending(c => c.CreatedAt)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<int> CountByUserIdAsync(Guid userId)
+        {
+            return await _context.Comments!
+                .CountAsync(c => c.UserId == userId);
         }
 
         public async Task CreateAddAsync(Comment comment)

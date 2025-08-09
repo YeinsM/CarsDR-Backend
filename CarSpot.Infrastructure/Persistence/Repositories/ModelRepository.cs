@@ -3,6 +3,7 @@ using CarSpot.Domain.Entities;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace CarSpot.Infrastructure.Repositories
 {
     public class ModelRepository : IModelRepository
@@ -12,6 +13,11 @@ namespace CarSpot.Infrastructure.Repositories
         public ModelRepository(ApplicationDbContext context)
         {
             _context = context;
+        }
+
+        public IQueryable<Model> Query()
+        {
+            return _context.Models.Include(m => m.Make).AsQueryable();
         }
 
         public async Task<Model?> GetByIdAsync(Guid id)
@@ -44,7 +50,6 @@ namespace CarSpot.Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-
         public async Task DeleteAsync(Guid id)
         {
             var model = await _context.Models.FindAsync(id);
@@ -54,7 +59,6 @@ namespace CarSpot.Infrastructure.Repositories
             _context.Models.Remove(model);
             await _context.SaveChangesAsync();
         }
-
 
         public async Task<bool> ExistsAsync(Guid id)
         {

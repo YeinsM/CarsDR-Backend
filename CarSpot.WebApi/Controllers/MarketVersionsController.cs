@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Common.Responses;
@@ -16,10 +18,29 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var items = await _repository.GetAllAsync();
-            return Ok(ApiResponseBuilder.Success(items, "List of market versions retrieved successfully."));
+            if (pageNumber <= 0 || pageSize <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number and size must be greater than zero."));
+
+            var allItems = await _repository.GetAllAsync();
+            var totalItems = allItems.Count();
+
+            var items = allItems
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            var paginatedResponse = new
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalItems = totalItems,
+                TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
+                Items = items
+            };
+
+            return Ok(ApiResponseBuilder.Success(paginatedResponse, "List of market versions retrieved successfully."));
         }
 
         [HttpGet("{id}")]
