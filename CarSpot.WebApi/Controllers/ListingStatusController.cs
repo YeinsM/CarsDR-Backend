@@ -4,10 +4,10 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-
-
-[ApiController]
-[Route("api/[controller]")]
+namespace CarSpot.WebApi.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
     public class ListingStatusController : ControllerBase
     {
         private readonly IListingStatusRepository _repository;
@@ -24,3 +24,4 @@ using System.Threading.Tasks;
             return Ok(statuses);
         }
     }
+}
