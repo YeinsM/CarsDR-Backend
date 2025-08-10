@@ -3,10 +3,13 @@
 ## Last
 ---------------------------
 Merged on 2025/08/10
-[00:03] - test_3 — Remove unused using directive in ListingStatusController (PR #30)
+[00:07] - test_3 — Fix formatting and structure in ListingStatusController (PR #32)
 
 ## Previous
 ---------------------------
+Merged on 2025/08/10
+[00:03] - test_3 — Remove unused using directive in ListingStatusController (PR #30)
+
 Merged on 2025/08/10
 [00:00] - test_2 — Remove unnecessary using directive in CabTypesController (PR #29)
 
