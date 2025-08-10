@@ -3,10 +3,16 @@
 ## Last
 ---------------------------
 Merged on 2025/08/10
-[00:07] - test_3 — Fix formatting and structure in ListingStatusController (PR #32)
+[00:52] - test_2 — Refactor project structure and enhance user management features (PR #36)
 
 ## Previous
 ---------------------------
+Merged on 2025/08/10
+[00:50] - test_1 — Remove unused using directive in CommentsController (PR #34)
+
+Merged on 2025/08/10
+[00:07] - test_3 — Fix formatting and structure in ListingStatusController (PR #32)
+
 Merged on 2025/08/10
 [00:03] - test_3 — Remove unused using directive in ListingStatusController (PR #30)
 
