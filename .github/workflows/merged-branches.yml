@@ -193,30 +193,8 @@ jobs:
             
             ---
             🤖 This PR will be auto-merged to avoid conflicts with subsequent merges.
-          delete-branch: true
+          delete-branch: false
           assignees: ${{ github.event.pull_request.user.login }}
-
-      - name: Auto-merge the update PR
-        if: steps.check_changes.outputs.has_changes == 'true' && steps.create_pr.outputs.pull-request-number
-        run: |
-          PR_NUMBER=${{ steps.create_pr.outputs.pull-request-number }}
-          echo "🔄 Auto-merging PR #$PR_NUMBER..."
-          
-          # Wait a moment for the PR to be fully created
-          sleep 5
-          
-          # Merge the PR automatically
-          curl -X PUT \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/${{ github.repository }}/pulls/$PR_NUMBER/merge" \
-            -d '{
-              "commit_title": "📝 Auto-merge: Update merged-branches.md",
-              "commit_message": "Automatically merged branch tracking update to prevent conflicts",
-              "merge_method": "squash"
-            }'
-          
-          echo "✅ PR #$PR_NUMBER auto-merged successfully"
 
       - name: ✅ Workflow complete
         run: |
