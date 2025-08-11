@@ -5,7 +5,8 @@ using CarSpot.Domain.Entities;
 public class Role : BaseEntity
 {
 
-    public string? Description { get; set; }
+    public string Description { get; set; } = string.Empty;
+
     [JsonIgnore]
     public ICollection<User>? Users { get; set; }
 }

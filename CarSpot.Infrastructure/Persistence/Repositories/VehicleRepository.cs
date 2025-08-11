@@ -34,36 +34,38 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .Include(v => v.CabType)
                 .Include(v => v.MarketVersion)
                 .Include(v => v.VehicleVersion)
+                .Include(v => v.User)
                 .AsNoTracking()
                 .ToListAsync();
 
             return vehicles.Select(v => new VehicleDto(
-                v.Id,
-                v.VIN,
-                v.Price,
-                v.Title ?? "",
-                v.IsFeatured ?? false,
-                v.FeaturedUntil,
-                v.Mileage,
-                v.Year,
-                v.VehicleType?.Name ?? "N/A",
-                v.Make.Name,
-                v.Model.Name ?? "",
-                v.Model.Id,
-                v.Color.Name,
-                v.Condition.Name,
-                v.Transmission.Name,
-                v.Drivetrain.Name,
-                v.CylinderOption.Name,
-                v.CabType.Name,
-                v.MarketVersion.Name,
-                v.VehicleVersion.Name,
-                v.UserId,
-                v.MediaFiles.Select(med => new VehicleMediaFileDto(
-                    med.Id,
-                    med.Url ?? ""
-                )).ToList()
-            ));
+         v.Id,
+         v.VIN,
+         v.Price,
+         v.Title ?? "",
+         v.IsFeatured ?? false,
+         v.FeaturedUntil,
+         v.Mileage,
+         v.Year,
+         v.VehicleType?.Name ?? "N/A",
+         v.Make?.Name ?? "",
+         v.Model?.Name ?? "",
+         v.Model?.Id ?? Guid.Empty,
+         v.Color?.Name ?? "",
+         v.Condition?.Name ?? "",
+         v.Transmission?.Name ?? "",
+         v.Drivetrain?.Name ?? "",
+         v.CylinderOption?.Name ?? "",
+         v.CabType?.Name ?? "",
+         v.MarketVersion?.Name ?? "",
+         v.VehicleVersion?.Name ?? "",
+         v.UserId,
+         v.MediaFiles?.Select(med => new VehicleMediaFileDto(
+             med.Id,
+             med.Url ?? ""
+         )).ToList() ?? new List<VehicleMediaFileDto>()
+     ));
+
         }
 
         public async Task<Vehicle?> GetByIdAsync(Guid id)
