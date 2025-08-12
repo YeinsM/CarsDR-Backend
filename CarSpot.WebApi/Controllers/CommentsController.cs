@@ -5,11 +5,10 @@ using System.Collections.Generic;
 using CarSpot.Application.Common.Responses;
 using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using CarSpot.Application.Common.Extensions;
-
-
+using CarSpot.Application.Interfaces.Services;
+using CarSpot.Domain.Common;
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -20,16 +19,21 @@ namespace CarSpot.WebApi.Controllers
         private readonly ICommentRepository _commentRepository;
         private readonly IUserRepository _userRepository;
         private readonly IListingRepository _listingRepository;
+        private readonly IPaginationService _paginationService;
 
         public CommentsController(
             ICommentRepository commentRepository,
             IUserRepository userRepository,
-            IListingRepository listingRepository)
+            IListingRepository listingRepository,
+            IPaginationService paginationService)
         {
             _commentRepository = commentRepository;
             _userRepository = userRepository;
             _listingRepository = listingRepository;
+            _paginationService = paginationService;
+
         }
+
 
         [HttpPost]
         [Authorize]
@@ -69,97 +73,81 @@ namespace CarSpot.WebApi.Controllers
             return Ok(ApiResponseBuilder.Success(response, "Comment created successfully"));
         }
 
-
         [HttpGet("listing/{listingId}")]
-        public async Task<IActionResult> GetByListing(
-            Guid listingId,
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 100)
+        public async Task<ActionResult<PaginatedResponse<CommentResponse>>> GetByListing(
+    Guid listingId,
+    [FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            if (pageNumber <= 0) pageNumber = 1;
-            if (pageSize <= 0) pageSize = 1;
-            else if (pageSize > maxPageSize) pageSize = maxPageSize;
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
             var query = _commentRepository.QueryByListingId(listingId);
 
-            var total = await query.CountAsync();
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var pagedComments = await query
-                .OrderBy(c => c.CreatedAt)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query
+                    .OrderBy(c => c.CreatedAt)
+                    .Select(c => new CommentResponse(
+                        c.Id,
+                        c.Content ?? "",
+                        c.UserId,
+                        c.User != null ? c.User.FullName : "Unknown",
+                        c.CreatedAt,
+                        c.IsReported,
+                        new List<CommentResponse>()
+                    )),
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
 
-            var paged = pagedComments.Select(c => new CommentResponse(
-                c.Id,
-                c.Content ?? "",
-                c.UserId,
-                c.User?.FullName ?? "Unknown",
-                c.CreatedAt,
-                c.IsReported,
-                new List<CommentResponse>()
-            )).ToList();
-
-            var result = new
-            {
-                TotalRecords = total,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                Data = paged
-            };
-
-            return Ok(ApiResponseBuilder.Success(result, "Comments retrieved successfully"));
+            return Ok(paginatedResult);
         }
 
 
-        [HttpGet("user/{userId}")]
-        public async Task<IActionResult> GetByUser(
-            Guid userId,
-            [FromQuery] int pageNumber = 1,
-            [FromQuery] int pageSize = 100)
-        {
-            if (pageNumber <= 0) pageNumber = 1;
-            if (pageSize <= 0) pageSize = 10;
-            else if (pageSize > 100) pageSize = 100;
 
+        [HttpGet("user/{userId}")]
+        [Authorize]
+        public async Task<ActionResult<PaginatedResponse<CommentResponse>>> GetByUser(
+    Guid userId,
+    [FromQuery] PaginationParameters pagination)
+        {
+            const int maxPageSize = 100;
+
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
             var query = _commentRepository.QueryByUserId(userId);
 
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var totalRecords = await query.CountAsync();
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query
+                    .OrderBy(c => c.CreatedAt)
+                    .Select(c => new CommentResponse(
+                        c.Id,
+                        c.Content ?? "",
+                        c.UserId,
+                        c.Listing != null ? c.Listing.Title : "Unknown listing",
+                        c.CreatedAt,
+                        c.IsReported,
+                        new List<CommentResponse>()
+                    )),
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
 
-
-            var pagedComments = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var responseItems = pagedComments.Select(c => new CommentResponse(
-                c.Id,
-                c.Content ?? "",
-                c.UserId,
-                c.Listing?.Title ?? "Unknown listing",
-                c.CreatedAt,
-                c.IsReported,
-                new List<CommentResponse>()
-            ));
-
-            var result = new
-            {
-                TotalRecords = totalRecords,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                Data = responseItems
-            };
-
-            return Ok(ApiResponseBuilder.Success(result, "User comments retrieved successfully"));
+            return Ok(paginatedResult);
         }
 
 
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOrOwner")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var comment = await _commentRepository.GetByIdAsync(id);
@@ -173,6 +161,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPatch("{id}")]
+        [Authorize(Policy = "AdminOrOwner")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCommentRequest request)
         {
             var comment = await _commentRepository.GetByIdAsync(id);
@@ -198,6 +187,5 @@ namespace CarSpot.WebApi.Controllers
 
             return Ok(ApiResponseBuilder.Success<string>(null, "Comment reported successfully"));
         }
-
     }
 }

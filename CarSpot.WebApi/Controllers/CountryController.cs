@@ -1,10 +1,13 @@
-using System;
+
 using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Common.Responses;
-using Microsoft.EntityFrameworkCore;
+using CarSpot.Domain.Common;
+using CarSpot.Application.Interfaces.Services;
+
 
 namespace CarSpot.API.Controllers
 {
@@ -13,50 +16,45 @@ namespace CarSpot.API.Controllers
     public class CountryController : ControllerBase
     {
         private readonly IAuxiliarRepository<Country> _repository;
+        private readonly IPaginationService _paginationService;
 
-        public CountryController(IAuxiliarRepository<Country> repository)
+        public CountryController(IAuxiliarRepository<Country> repository, IPaginationService paginationService)
         {
             _repository = repository;
+            _paginationService = paginationService;
         }
 
+
+        [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
+        public async Task<ActionResult<PaginatedResponse<CountryResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            if (pageNumber <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
-
-            if (pageSize <= 0)
-                pageSize = 1;
-            else if (pageSize > maxPageSize)
-                pageSize = maxPageSize;
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
             var query = _repository.Query();
 
-            var totalItems = await query.CountAsync();
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var countries = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .Select(c => new CountryResponse(c.Id, c.Name, c.Abbreviation))
-                .ToListAsync();
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query.Select(c => new CountryResponse(
+                    c.Id,
+                    c.Name,
+                    c.Abbreviation
+                )),
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
 
-            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-
-            var paginatedResponse = new
-            {
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalItems = totalItems,
-                TotalPages = totalPages,
-                Items = countries
-            };
-
-            return Ok(ApiResponseBuilder.Success(paginatedResponse, "List of countries retrieved successfully."));
+            return Ok(ApiResponseBuilder.Success(paginatedResult, "List of countries retrieved successfully."));
         }
 
 
+
+        [Authorize]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -66,6 +64,8 @@ namespace CarSpot.API.Controllers
                 : Ok(ApiResponseBuilder.Success(new CountryResponse(country.Id, country.Name, country.Abbreviation)));
         }
 
+
+        [Authorize(Policy = "AdminOnly")]
         [HttpPost]
         public async Task<IActionResult> Create(CreateCountryRequest request)
         {
@@ -85,6 +85,8 @@ namespace CarSpot.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = country.Id }, ApiResponseBuilder.Success(response, "Country created successfully."));
         }
 
+
+        [Authorize(Policy = "AdminOnly")]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, UpdateCountryRequest request)
         {
@@ -104,6 +106,7 @@ namespace CarSpot.API.Controllers
             return Ok(ApiResponseBuilder.Success(new CountryResponse(country.Id, country.Name, country.Abbreviation), "Country updated successfully."));
         }
 
+        [Authorize(Policy = "AdminOnly")]
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> Delete(int id)
         {

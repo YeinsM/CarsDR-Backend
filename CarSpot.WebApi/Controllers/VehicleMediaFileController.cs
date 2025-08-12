@@ -1,7 +1,9 @@
 using System;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-
+using Microsoft.AspNetCore.Authorization;
+using CarSpot.Domain.Common;
+using CarSpot.Application.Interfaces.Services;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -9,13 +11,17 @@ public class VehicleMediaController : ControllerBase
 {
     private readonly IVehicleMediaFileRepository _repository;
     private readonly IPhotoService _photoService;
+    private readonly IPaginationService _paginationService;
 
-    public VehicleMediaController(IVehicleMediaFileRepository repository, IPhotoService photoService)
+    public VehicleMediaController(IVehicleMediaFileRepository repository, IPhotoService photoService, IPaginationService paginationService)
     {
         _repository = repository;
         _photoService = photoService;
+        _paginationService = paginationService;
     }
 
+
+    [Authorize(Policy = "AdminOrCompany")]
     [HttpPost("upload")]
     public async Task<IActionResult> Upload([FromForm] UploadVehicleMediaFileRequest request)
     {
@@ -50,6 +56,8 @@ public class VehicleMediaController : ControllerBase
         return Ok("Media uploaded successfully.");
     }
 
+
+    [Authorize(Policy = "AdminOrCompany")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
@@ -68,25 +76,27 @@ public class VehicleMediaController : ControllerBase
         return Ok("Media deleted successfully.");
     }
 
+    [AllowAnonymous]
     [HttpGet("vehicle/{vehicleId}")]
-    public async Task<IActionResult> GetByVehicle(Guid vehicleId, [FromQuery] int page = 1, [FromQuery] int pageSize = 100)
+    public async Task<ActionResult<PaginatedResponse<Comment>>> GetByVehicle(Guid vehicleId, [FromQuery] PaginationParameters pagination)
     {
         const int maxPageSize = 100;
 
-        if (page <= 0)
-            return BadRequest("Page must be greater than zero.");
+        int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+        int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
-        if (pageSize <= 0)
-            pageSize = 1;
-        else if (pageSize > maxPageSize)
-            pageSize = maxPageSize;
+        var query = _repository.Query();
 
         var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-        var result = await _repository.GetByVehicleIdPagedAsync(vehicleId, page, pageSize, baseUrl);
+        var paginatedResult = await _paginationService.PaginateAsync(
+            query,
+            pageNumber,
+            pageSize,
+            baseUrl
+        );
 
-        return Ok(result);
+        return Ok(paginatedResult);
     }
-
 
 }

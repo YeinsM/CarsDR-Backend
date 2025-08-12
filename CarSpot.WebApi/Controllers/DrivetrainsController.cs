@@ -1,8 +1,11 @@
-using System;
+
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Common.Responses;
+using CarSpot.Application.Interfaces.Services;
+using CarSpot.Domain.Common;
 
 namespace CarSpot.API.Controllers
 {
@@ -11,47 +14,46 @@ namespace CarSpot.API.Controllers
     public class DrivetrainsController : ControllerBase
     {
         private readonly IAuxiliarRepository<Drivetrain> _repository;
+        private readonly IPaginationService _paginationService;
 
-        public DrivetrainsController(IAuxiliarRepository<Drivetrain> repository)
+        public DrivetrainsController(IAuxiliarRepository<Drivetrain> repository, IPaginationService paginationService)
         {
             _repository = repository;
+            _paginationService = paginationService;
         }
 
+
+        [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
+        public async Task<ActionResult<PaginatedResponse<DrivetrainDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            if (pageNumber <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
-            if (pageSize <= 0)
-                pageSize = 1;
-            else if (pageSize > maxPageSize)
-                pageSize = maxPageSize;
+            var query = _repository.Query();
 
-            var allItems = await _repository.GetAllAsync();
-            var totalItems = allItems.Count();
-            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var items = allItems
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query.Select(d => new DrivetrainDto(
+                    d.Id,
+                    d.Name
+                )),
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
 
-            var paginatedResponse = new
-            {
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalItems = totalItems,
-                TotalPages = totalPages,
-                Items = items
-            };
-
-            return Ok(ApiResponseBuilder.Success(paginatedResponse, "List of drivetrains retrieved successfully."));
+            return Ok(paginatedResult);
         }
 
 
+
+
+
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -62,6 +64,7 @@ namespace CarSpot.API.Controllers
             return Ok(ApiResponseBuilder.Success(item));
         }
 
+        [Authorize(Policy = "AdminOrCompany")]
         [HttpPost]
         public async Task<IActionResult> Create(Drivetrain drivetrain)
         {
@@ -75,6 +78,8 @@ namespace CarSpot.API.Controllers
                 ApiResponseBuilder.Success(drivetrain, "Drivetrain created successfully."));
         }
 
+
+        [Authorize(Policy = "AdminOnly")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, Drivetrain updated)
         {
@@ -92,6 +97,8 @@ namespace CarSpot.API.Controllers
             return Ok(ApiResponseBuilder.Success(existing, "Drivetrain updated successfully."));
         }
 
+
+        [Authorize(Policy = "AdminOnly")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

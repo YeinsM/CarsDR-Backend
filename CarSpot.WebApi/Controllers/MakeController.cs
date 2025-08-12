@@ -7,7 +7,9 @@ using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Application.Interfaces.Services;
 using CarSpot.Domain.Entities;
 using CarSpot.Application.Common.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CarSpot.Domain.Common;
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -25,41 +27,40 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationParameters pagination)
+        [Authorize(Policy = "AdminOrCompany")]
+        public async Task<ActionResult<PaginatedResponse<MakeDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            if (pagination.PageNumber <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "PageNumber must be greater than zero."));
-
-            int pageSize = pagination.PageSize;
-            if (pageSize <= 0)
-                pageSize = 1; 
-            else if (pageSize > maxPageSize)
-                pageSize = maxPageSize;
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
             var query = _repository.Query();
 
             var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
             var paginatedResult = await _paginationService.PaginateAsync(
-                query.Select(m => new MakeDto(m.Id, m.Name)),
-                pagination.PageNumber,
+                query.Select(m => new MakeDto(m.Id, m.Name!)),
+                pageNumber,
                 pageSize,
                 baseUrl
             );
 
-            return Ok(ApiResponseBuilder.Success(paginatedResult, "List of makes retrieved successfully."));
+            return Ok(paginatedResult);
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var item = await _repository.GetByIdAsync(id);
-            return item is null ? NotFound(ApiResponseBuilder.Fail<MakeDto>(404, "Make not found")) : Ok(ApiResponseBuilder.Success(new MakeDto(item.Id, item.Name)));
+            return item is null
+                ? NotFound(ApiResponseBuilder.Fail<MakeDto>(404, "Make not found"))
+                : Ok(ApiResponseBuilder.Success(new MakeDto(item.Id, item.Name)));
         }
 
         [HttpPost]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> Create([FromBody] CreateMakeRequest request)
         {
             var make = new Make(request.Name);
@@ -71,6 +72,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPut]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> Update([FromBody] UpdateMakeRequest request)
         {
             var existingMake = await _repository.GetByIdAsync(request.Id);
@@ -83,6 +85,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var make = await _repository.GetByIdAsync(id);

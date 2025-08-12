@@ -24,9 +24,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             return await _context.Business.ToListAsync();
         }
 
-        /// <summary>
-        /// Devuelve un IQueryable para usar en paginación o filtrado.
-        /// </summary>
+        
         public IQueryable<Business> Query()
         {
             return _context.Business.AsQueryable();

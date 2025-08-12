@@ -4,8 +4,11 @@ using System.Threading.Tasks;
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
 using CarSpot.Application.Common.Responses;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Domain.Entities;
+using CarSpot.Domain.Common;
+using CarSpot.Application.Interfaces.Services;
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -14,43 +17,44 @@ namespace CarSpot.WebApi.Controllers
     public class CurrenciesController : ControllerBase
     {
         private readonly ICurrencyRepository _repository;
+        private readonly IPaginationService _paginationService;
 
-        public CurrenciesController(ICurrencyRepository repository)
+        public CurrenciesController(ICurrencyRepository repository, IPaginationService paginationService)
         {
             _repository = repository;
+            _paginationService = paginationService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
+        public async Task<ActionResult<PaginatedResponse<CurrencyResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            if (pageNumber <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
-            if (pageSize <= 0)
-                pageSize = 1;
-            else if (pageSize > maxPageSize)
-                pageSize = maxPageSize;
+            var query = _repository.Query();
 
-            var (items, totalItems) = await _repository.GetPagedAsync(pageNumber, pageSize);
-            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var responseItems = items.Select(c => new CurrencyResponse(c.Id, c.Name, c.Code, c.Symbol));
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query.Select(c => new CurrencyResponse(
+                    c.Id,
+                    c.Name,
+                    c.Code,
+                    c.Symbol
+                )),
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
 
-            var paginatedResponse = new
-            {
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalItems = totalItems,
-                TotalPages = totalPages,
-                Items = responseItems
-            };
-
-            return Ok(ApiResponseBuilder.Success(paginatedResponse, "List of currencies retrieved successfully."));
+            return Ok(paginatedResult);
         }
 
 
+
+        [Authorize]
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -60,6 +64,8 @@ namespace CarSpot.WebApi.Controllers
                 : Ok(ApiResponseBuilder.Success(new CurrencyResponse(currency.Id, currency.Name, currency.Code, currency.Symbol)));
         }
 
+
+        [Authorize(Policy = "AdminOnly")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCurrencyRequest request)
         {
@@ -80,6 +86,8 @@ namespace CarSpot.WebApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id = currency.Id }, ApiResponseBuilder.Success(response, "Currency created successfully."));
         }
 
+
+        [Authorize(Policy = "AdminOnly")]
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCurrencyRequest request)
         {
@@ -95,6 +103,7 @@ namespace CarSpot.WebApi.Controllers
             return Ok(ApiResponseBuilder.Success(new CurrencyResponse(existing.Id, existing.Name, existing.Code, existing.Symbol), "Currency updated successfully."));
         }
 
+        [Authorize(Policy = "AdminOnly")]
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {

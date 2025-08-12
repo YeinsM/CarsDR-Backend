@@ -38,13 +38,21 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("RequireAdminRole", policy =>
         policy.RequireRole("Admin"));
 
-    // Solo dealers
-    options.AddPolicy("RequireDealerRole", policy =>
-        policy.RequireRole("Dealer"));
+    // Solo Company
+    options.AddPolicy("RequireCompanyRole", policy =>
+        policy.RequireRole("Company"));
 
-    // Admin o Dealer
-    options.AddPolicy("RequireAdminOrDealerRole", policy =>
-        policy.RequireRole("Admin", "Dealer"));
+    // Admin o Company
+    options.AddPolicy("RequireAdminOrCompanyRole", policy =>
+        policy.RequireRole("Admin", "Company"));
+
+    // Admin o Company o User
+    options.AddPolicy("RequireAdminOrCompanyOrUserRole", policy =>
+        policy.RequireRole("Admin", "Company", "User"));
+
+        
+
+    
 });
 
 // Registrar servicios de aplicación

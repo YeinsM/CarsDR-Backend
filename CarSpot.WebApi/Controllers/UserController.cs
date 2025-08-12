@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using CarSpot.Application.Common.Responses;
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
 using CarSpot.Application.Interfaces.Services;
+using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 using CarSpot.Domain.ValueObjects;
 using Microsoft.AspNetCore.Authorization;
@@ -49,46 +49,42 @@ namespace CarSpot.WebApi.Controllers
 
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationParameters pagination)
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<ActionResult<PaginatedResponse<UserDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            if (pagination.PageNumber <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "PageNumber must be greater than zero."));
-
-            int pageSize = pagination.PageSize;
-            if (pageSize <= 0)
-                pageSize = 1;
-            else if (pageSize > maxPageSize)
-                pageSize = maxPageSize;
-
-            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
             var query = _userRepository.Query();
 
-            var projectedQuery = query.Select(u => new UserDto(
-                u.Id,
-                u.Email,
-                u.Username,
-                u.Phone,
-                u.RoleId,
-                u.IsActive,
-                u.CreatedAt,
-                u.UpdatedAt,
-                u.BusinessId,
-                new List<VehicleDto>()
-            ));
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
             var paginatedResult = await _paginationService.PaginateAsync(
-                projectedQuery,
-                pagination.PageNumber,
+                query.Select(u => new UserDto(
+                    u.Id,
+                    u.Email,
+                    u.Username,
+                    u.Phone,
+                    u.RoleId,
+                    u.IsActive,
+                    u.CreatedAt,
+                    u.UpdatedAt,
+                    u.BusinessId,
+                    new List<VehicleDto>()
+                )),
+                pageNumber,
                 pageSize,
-                baseUrl);
+                baseUrl
+            );
 
-            return Ok(ApiResponseBuilder.Success(paginatedResult, "List of users retrieved successfully."));
+            return Ok(paginatedResult);
         }
 
 
+
+        [Authorize(Policy = "AdminOnly")]
         [HttpGet("basic")]
         public async Task<IActionResult> GetAllBasic()
         {
@@ -110,6 +106,8 @@ namespace CarSpot.WebApi.Controllers
             return Ok(response);
         }
 
+
+        [Authorize(Policy = "AdminOnly")]
         [HttpGet("{id:Guid}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -136,6 +134,8 @@ namespace CarSpot.WebApi.Controllers
             return Ok(response);
         }
 
+
+        [AllowAnonymous]
         [HttpPost]
         public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
         {
@@ -198,6 +198,8 @@ namespace CarSpot.WebApi.Controllers
             }
         }
 
+
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
@@ -221,6 +223,8 @@ namespace CarSpot.WebApi.Controllers
             });
         }
 
+
+        [Authorize(Policy = "AdminOrCompany")]
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
         {
@@ -239,6 +243,8 @@ namespace CarSpot.WebApi.Controllers
             return Ok(new { Status = 200, Message = "User updated successfully", User = new { user.Id, user.Username } });
         }
 
+
+        [Authorize(Policy = "AdminOrCompany")]
         [HttpPatch("{id:Guid}/change-password")]
         public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangePasswordRequest request)
         {
@@ -259,6 +265,8 @@ namespace CarSpot.WebApi.Controllers
             }
         }
 
+
+        [Authorize(Policy = "AdminOnly")]
         [HttpPatch("{id:Guid}/deactivate")]
         public async Task<IActionResult> Deactivate(Guid id)
         {
@@ -271,6 +279,8 @@ namespace CarSpot.WebApi.Controllers
             return NoContent();
         }
 
+
+        [Authorize(Policy = "AdminOnly")]
         [HttpPatch("{id:Guid}/activate")]
         public async Task<IActionResult> Activate(Guid id)
         {
@@ -283,6 +293,8 @@ namespace CarSpot.WebApi.Controllers
             return NoContent();
         }
 
+
+        [Authorize(Policy = "AdminOnly")]
         [HttpGet("test-connection")]
         public async Task<IActionResult> TestConnection()
         {
@@ -298,7 +310,8 @@ namespace CarSpot.WebApi.Controllers
             }
         }
 
-        [Authorize]
+
+        [Authorize(Policy = "Authenticated")]
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile()
         {

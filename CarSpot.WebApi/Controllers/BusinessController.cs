@@ -6,12 +6,14 @@ using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Application.Interfaces.Services;
 using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize] 
     public class BusinessController : ControllerBase
     {
         private readonly IBusinessRepository _businessRepository;
@@ -22,7 +24,6 @@ namespace CarSpot.WebApi.Controllers
             _businessRepository = businessRepository;
             _paginationService = paginationService;
         }
-
 
         [HttpGet]
         public async Task<ActionResult<PaginatedResponse<BusinessResponse>>> GetAll([FromQuery] PaginationParameters pagination)
@@ -53,7 +54,6 @@ namespace CarSpot.WebApi.Controllers
             return Ok(paginatedResult);
         }
 
-
         [HttpGet("{id}")]
         public async Task<ActionResult<BusinessResponse>> GetById(Guid id)
         {
@@ -74,6 +74,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> Create(CreateBusinessRequest request)
         {
             try
@@ -109,6 +110,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> Update(Guid id, UpdateBusinessRequest request)
         {
             if (id != request.Id) return BadRequest();
@@ -128,6 +130,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> Delete(Guid id)
         {
             var bussines = await _businessRepository.GetByIdAsync(id);

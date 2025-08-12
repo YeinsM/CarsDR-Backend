@@ -6,6 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Common.Responses;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using CarSpot.Domain.Common;
+using Microsoft.AspNetCore.Authorization;
+using CarSpot.Application.DTOs;
+using CarSpot.Application.Interfaces.Services;
 
 namespace CarSpot.API.Controllers
 {
@@ -14,49 +18,45 @@ namespace CarSpot.API.Controllers
     public class ConditionsController : ControllerBase
     {
         private readonly IAuxiliarRepository<Condition> _repository;
+        private readonly IPaginationService _paginationService;
 
-        public ConditionsController(IAuxiliarRepository<Condition> repository)
+        public ConditionsController(IAuxiliarRepository<Condition> repository, IPaginationService paginationService)
         {
             _repository = repository;
+            _paginationService = paginationService;
+
         }
 
+
+        [Authorize]
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
+        public async Task<ActionResult<PaginatedResponse<ConditionDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            if (pageNumber <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
-
-            if (pageSize <= 0)
-                pageSize = 1;
-            else if (pageSize > maxPageSize)
-                pageSize = maxPageSize;
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
             var query = _repository.Query();
 
-            var totalItems = await query.CountAsync();
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var items = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query.Select(c => new ConditionDto(
+                    c.Id,
+                    c.Name
+                )),
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
 
-            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
-
-            var paginatedResponse = new
-            {
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalItems = totalItems,
-                TotalPages = totalPages,
-                Items = items
-            };
-
-            return Ok(ApiResponseBuilder.Success(paginatedResponse, "List of conditions retrieved successfully."));
+            return Ok(ApiResponseBuilder.Success(paginatedResult, "List of conditions retrieved successfully."));
         }
 
 
+
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -66,6 +66,8 @@ namespace CarSpot.API.Controllers
                 : Ok(ApiResponseBuilder.Success(condition));
         }
 
+
+        [Authorize(Policy = "AdminOnly")]
         [HttpPost]
         public async Task<IActionResult> Create(Condition condition)
         {
@@ -85,6 +87,8 @@ namespace CarSpot.API.Controllers
             }
         }
 
+
+        [Authorize(Policy = "AdminOnly")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, Condition updated)
         {
@@ -109,6 +113,7 @@ namespace CarSpot.API.Controllers
             }
         }
 
+        [Authorize(Policy = "AdminOnly")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

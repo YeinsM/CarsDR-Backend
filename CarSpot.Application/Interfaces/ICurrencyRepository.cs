@@ -4,7 +4,8 @@ namespace CarSpot.Application.Interfaces;
 
 public interface ICurrencyRepository
 {
-    Task<(IEnumerable<Currency> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize);
+    
+     IQueryable<Currency> Query();
     Task<Currency?> GetById(Guid id);
     Task Add(Currency currency);
     Task Update(Currency currency);

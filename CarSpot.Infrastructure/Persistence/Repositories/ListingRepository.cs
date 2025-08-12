@@ -16,7 +16,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
 
         public IQueryable<Listing> Query()
         {
-            // Devuelve el IQueryable para poder paginar y hacer proyecciones en controlador
+     
             return _context.Listings
                 .Include(p => p.User)
                 .Include(p => p.Vehicle)

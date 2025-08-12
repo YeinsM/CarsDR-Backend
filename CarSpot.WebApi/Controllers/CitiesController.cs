@@ -1,9 +1,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Application.Common.Responses;
+using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using CarSpot.Application.Interfaces.Services;
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -12,48 +14,43 @@ namespace CarSpot.WebApi.Controllers
     public class CitiesController : ControllerBase
     {
         private readonly IAuxiliarRepository<City> _cityRepository;
+        private readonly IPaginationService _paginationService;
 
-        public CitiesController(IAuxiliarRepository<City> cityRepository)
+        public CitiesController(IAuxiliarRepository<City> cityRepository, IPaginationService paginationService)
         {
             _cityRepository = cityRepository;
+            _paginationService = paginationService;
         }
 
+
         [HttpGet]
-        public async Task<IActionResult> GetPaged([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
+        [AllowAnonymous]
+        public async Task<ActionResult<PaginatedResponse<CityResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            if (pageNumber <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
-            if (pageSize <= 0)
-                pageSize = 1;
-            else if (pageSize > maxPageSize)
-                pageSize = maxPageSize;
+            var query = _cityRepository.Query()
+                .Select(c => new CityResponse(c.Id, c.Name, c.CountryId));
 
-            var query = _cityRepository.Query();
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var totalRecords = await query.CountAsync();
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query,
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
 
-            var cities = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .Select(c => new CityResponse(c.Id, c.Name, c.CountryId))
-                .ToListAsync();
-
-            var pagedResponse = new
-            {
-                TotalRecords = totalRecords,
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                Data = cities
-            };
-
-            return Ok(ApiResponseBuilder.Success(pagedResponse));
+            return Ok(ApiResponseBuilder.Success(paginatedResult));
         }
 
 
+
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)
         {
             var city = await _cityRepository.GetByIdAsync(id);
@@ -64,7 +61,9 @@ namespace CarSpot.WebApi.Controllers
             return Ok(ApiResponseBuilder.Success(response));
         }
 
+
         [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> CreateAsync([FromBody] CreateCityRequest request)
         {
             if (!ModelState.IsValid)
@@ -77,13 +76,16 @@ namespace CarSpot.WebApi.Controllers
             };
 
             await _cityRepository.Add(city);
+            await _cityRepository.SaveChangesAsync();
 
             var response = new CityResponse(city.Id, city.Name, city.CountryId);
 
             return CreatedAtAction(nameof(GetById), new { id = city.Id }, ApiResponseBuilder.Success(response, "City created successfully."));
         }
 
+
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> UpdateAsync(int id, [FromBody] UpdateCityRequest request)
         {
             if (!ModelState.IsValid)
@@ -97,10 +99,14 @@ namespace CarSpot.WebApi.Controllers
             city.CountryId = request.CountryId;
 
             await _cityRepository.UpdateAsync(city);
+            await _cityRepository.SaveChangesAsync();
+
             return Ok(ApiResponseBuilder.Success<string>(null, "City updated successfully."));
         }
 
+
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
             var city = await _cityRepository.GetByIdAsync(id);
@@ -108,6 +114,8 @@ namespace CarSpot.WebApi.Controllers
                 return NotFound(ApiResponseBuilder.Fail<string>(404, $"City with id {id} not found."));
 
             await _cityRepository.DeleteAsync(city);
+            await _cityRepository.SaveChangesAsync();
+
             return Ok(ApiResponseBuilder.Success<string>(null, "City deleted successfully."));
         }
     }

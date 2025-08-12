@@ -5,7 +5,9 @@ using CarSpot.Application.Common.Responses;
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Application.Interfaces.Services;
+using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.API.Controllers
@@ -26,18 +28,13 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationParameters pagination)
+        [Authorize]
+        public async Task<ActionResult<PaginatedResponse<ModelDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            if (pagination.PageNumber <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "PageNumber must be greater than zero."));
-
-            int pageSize = pagination.PageSize;
-            if (pageSize <= 0)
-                pageSize = 1; 
-            else if (pageSize > maxPageSize)
-                pageSize = maxPageSize;
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
             var query = _modelRepository.Query();
 
@@ -49,16 +46,16 @@ namespace CarSpot.API.Controllers
                     m.Name!,
                     m.MakeId
                 )),
-                pagination.PageNumber,
+                pageNumber,
                 pageSize,
                 baseUrl
             );
 
-            return Ok(ApiResponseBuilder.Success(paginatedResult, "List of models retrieved successfully."));
+            return Ok(paginatedResult);
         }
 
-
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var model = await _modelRepository.GetByIdAsync(id);
@@ -69,6 +66,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> Create([FromBody] Model model)
         {
             var make = await _makeRepository.GetByIdAsync(model.MakeId);
@@ -82,6 +80,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateModelRequest updated)
         {
             if (id != updated.Id)
@@ -101,6 +100,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "OnlyAdmin")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var model = await _modelRepository.GetByIdAsync(id);

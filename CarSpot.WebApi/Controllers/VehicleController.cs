@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Http;
 using CarSpot.Application.Common.Responses;
 using System.Collections.Generic;
 using CarSpot.Domain.Common;
-using System.Linq;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using CarSpot.Application.Interfaces.Services;
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -27,6 +27,7 @@ namespace CarSpot.WebApi.Controllers
         private readonly IUserRepository _userRepository;
         private readonly IVehicleMediaFileRepository _vehicleMediaRepository;
         private readonly IPhotoService _photoService;
+        private readonly IPaginationService _paginationService;
 
         public VehicleController(
             IVehicleRepository vehicleRepository,
@@ -37,7 +38,9 @@ namespace CarSpot.WebApi.Controllers
             IAuxiliarRepository<Color> colorRepository,
             IAuxiliarRepository<VehicleType> vehicleTypeRepository,
             IVehicleMediaFileRepository vehicleMediaFileRepository,
-            IPhotoService photoService)
+            IPhotoService photoService,
+            IPaginationService paginationService
+        )
         {
             _vehicleRepository = vehicleRepository;
             _userRepository = userRepository;
@@ -48,37 +51,37 @@ namespace CarSpot.WebApi.Controllers
             _vehicleTypeRepository = vehicleTypeRepository;
             _vehicleMediaRepository = vehicleMediaFileRepository;
             _photoService = photoService;
+            _paginationService = paginationService;
         }
 
+
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
+        [AllowAnonymous]
+        public async Task<ActionResult<PaginatedResponse<Vehicle>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            if (page <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page must be greater than zero."));
-
-            if (pageSize <= 0 || pageSize > maxPageSize)
-                pageSize = maxPageSize;
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
             var query = _vehicleRepository.Query();
 
-            var totalItems = await query.CountAsync();
-
-            var vehicles = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
             var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var paginatedResponse = new PaginatedResponse<Vehicle>(vehicles, page, pageSize, totalItems, baseUrl);
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query,
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
 
-            return Ok(ApiResponseBuilder.Success(paginatedResponse, "Paged vehicles retrieved successfully."));
+            return Ok(paginatedResult);
         }
 
 
+
         [HttpGet("{id:Guid}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById(Guid id)
         {
             Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
@@ -88,6 +91,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> Create([FromBody] CreateVehicleRequest request)
         {
             User? user = await _userRepository.GetByIdAsync(request.UserId);
@@ -150,6 +154,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPut("{id:Guid}")]
+        [Authorize(Policy = "AdminOrOwner")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateVehicleRequest request)
         {
             Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
@@ -178,7 +183,9 @@ namespace CarSpot.WebApi.Controllers
             return NoContent();
         }
 
+
         [HttpDelete("{id:Guid}")]
+        [Authorize(Policy = "AdminOrOwner")]
         public async Task<IActionResult> Delete(Guid id)
         {
             Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
@@ -192,6 +199,7 @@ namespace CarSpot.WebApi.Controllers
 
 
         [HttpPost("filter")]
+        [AllowAnonymous]
         public async Task<IActionResult> FilterVehicles([FromBody] VehicleFilterRequest request)
         {
             if (request.MinMileage.HasValue && request.MaxMileage.HasValue && request.MinMileage > request.MaxMileage)

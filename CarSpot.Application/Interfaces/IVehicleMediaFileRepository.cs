@@ -1,6 +1,5 @@
 
 
-using CarSpot.Domain.Common;
 
 public interface IVehicleMediaFileRepository
 {
@@ -8,7 +7,8 @@ public interface IVehicleMediaFileRepository
     Task AddAsync(VehicleMediaFile media);
     Task DeleteAsync(Guid id);
     Task<IEnumerable<VehicleMediaFile>> GetByVehicleIdAsync(Guid vehicleId);
-    Task<PaginatedResponse<VehicleMediaFile>> GetByVehicleIdPagedAsync(Guid vehicleId, int page, int pageSize, string baseUrl);
+     IQueryable<VehicleMediaFile> Query();
+   
 
     Task SaveChangesAsync();
 }

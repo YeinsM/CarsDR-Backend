@@ -1,8 +1,11 @@
-using System;
+
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Common.Responses;
+using CarSpot.Application.Interfaces.Services;
+using CarSpot.Domain.Common;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.API.Controllers
 {
@@ -11,45 +14,44 @@ namespace CarSpot.API.Controllers
     public class MarketVersionsController : ControllerBase
     {
         private readonly IAuxiliarRepository<MarketVersion> _repository;
+        private readonly IPaginationService _paginationService;
 
-        public MarketVersionsController(IAuxiliarRepository<MarketVersion> repository)
+        public MarketVersionsController(IAuxiliarRepository<MarketVersion> repository, IPaginationService paginationService)
         {
             _repository = repository;
+            _paginationService = paginationService;
         }
+
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
+        [Authorize]
+        public async Task<ActionResult<PaginatedResponse<MarketVersionDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            if (pageNumber <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
-            if (pageSize <= 0)
-                pageSize = 1;
-            else if (pageSize > maxPageSize)
-                pageSize = maxPageSize;
+            var query = _repository.Query();
 
-            var allItems = await _repository.GetAllAsync();
-            var totalItems = allItems.Count();
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var items = allItems
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query.Select(mv => new MarketVersionDto(
+                    mv.Id,
+                    mv.Name!
+                )),
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
 
-            var paginatedResponse = new
-            {
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalItems = totalItems,
-                TotalPages = (int)Math.Ceiling(totalItems / (double)pageSize),
-                Items = items
-            };
-
-            return Ok(ApiResponseBuilder.Success(paginatedResponse, "List of market versions retrieved successfully."));
+            return Ok(paginatedResult);
         }
 
+
+
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> GetById(int id)
         {
             var item = await _repository.GetByIdAsync(id);
@@ -60,7 +62,8 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(MarketVersion marketVersion)
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> Create([FromBody] MarketVersion marketVersion)
         {
             if (string.IsNullOrWhiteSpace(marketVersion.Name))
                 return BadRequest(ApiResponseBuilder.Fail<MarketVersion>(400, "Name is required."));
@@ -72,8 +75,10 @@ namespace CarSpot.API.Controllers
                 ApiResponseBuilder.Success(marketVersion, "Market version created successfully."));
         }
 
+
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, MarketVersion updated)
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> Update(int id, [FromBody] MarketVersion updated)
         {
             if (id != updated.Id)
                 return BadRequest(ApiResponseBuilder.Fail<MarketVersion>(400, "ID in route does not match ID in body."));
@@ -90,6 +95,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id)
         {
             var item = await _repository.GetByIdAsync(id);

@@ -6,12 +6,14 @@ using CarSpot.Application.DTOS;
 using CarSpot.Application.Interfaces.Services;
 using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class ListingsController : ControllerBase
     {
         private readonly IListingRepository _listingRepository;
@@ -23,21 +25,15 @@ namespace CarSpot.WebApi.Controllers
             _paginationService = paginationService;
         }
 
+        
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<ListingResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            
-            if (pagination.PageNumber <= 0)
-                return BadRequest("PageNumber must be greater than zero.");
-
-            
-            int pageSize = pagination.PageSize;
-            if (pageSize <= 0)
-                pageSize = 1; 
-            else if (pageSize > maxPageSize)
-                pageSize = maxPageSize;
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
             var query = _listingRepository.Query();
 
@@ -58,7 +54,7 @@ namespace CarSpot.WebApi.Controllers
                     UserId = listing.UserId,
                     VehicleId = listing.VehicleId
                 }),
-                pagination.PageNumber,
+                pageNumber,
                 pageSize,
                 baseUrl
             );
@@ -66,12 +62,14 @@ namespace CarSpot.WebApi.Controllers
             return Ok(paginatedResult);
         }
 
-
+        
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<ListingResponse>> GetById(Guid id)
         {
             var listing = await _listingRepository.GetByIdAsync(id);
-            if (listing == null) return NotFound();
+            if (listing == null)
+                return NotFound(new { Message = $"Listing with ID {id} not found." });
 
             var response = new ListingResponse
             {
@@ -91,11 +89,13 @@ namespace CarSpot.WebApi.Controllers
             return Ok(response);
         }
 
+       
         [HttpPost]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> Create([FromBody] CreateListingRequest request)
         {
             if (request == null)
-                return BadRequest("Request cannot be null");
+                return BadRequest(new { Message = "Request body cannot be null." });
 
             var listing = new Listing
             {
@@ -115,7 +115,6 @@ namespace CarSpot.WebApi.Controllers
 
             var savedListing = await _listingRepository.Add(listing);
 
-
             return CreatedAtAction(nameof(GetById), new { id = savedListing.Id }, new
             {
                 Message = "Listing created successfully",
@@ -123,12 +122,14 @@ namespace CarSpot.WebApi.Controllers
             });
         }
 
+       
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateListingRequest request)
         {
             var existingListing = await _listingRepository.GetByIdAsync(id);
             if (existingListing == null)
-                return NotFound();
+                return NotFound(new { Message = $"Listing with ID {id} not found." });
 
             existingListing.Title = request.Title;
             existingListing.Description = request.Description;
@@ -147,11 +148,12 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var listing = await _listingRepository.GetByIdAsync(id);
             if (listing == null)
-                return NotFound();
+                return NotFound(new { Message = $"Listing with ID {id} not found." });
 
             await _listingRepository.DeleteAsync(id);
 

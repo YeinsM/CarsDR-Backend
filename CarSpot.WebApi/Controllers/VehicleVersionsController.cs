@@ -3,9 +3,10 @@ using CarSpot.Application.Common.Responses;
 using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Domain.Common;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
 using System.Linq;
-
+using CarSpot.Application.DTOs;
+using CarSpot.Application.Interfaces.Services;
 
 namespace CarSpot.API.Controllers
 {
@@ -15,60 +16,65 @@ namespace CarSpot.API.Controllers
     {
         private readonly IAuxiliarRepository<VehicleVersion> _repository;
         private readonly IModelRepository _modelRepository;
+        private readonly IPaginationService _paginationService;
 
         public VehicleVersionsController(
             IAuxiliarRepository<VehicleVersion> repository,
-            IModelRepository modelRepository)
+            IModelRepository modelRepository,
+            IPaginationService paginationService
+        )
         {
             _repository = repository;
             _modelRepository = modelRepository;
+            _paginationService = paginationService;
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 100)
+        [Authorize(Policy = "AdminOrCompanyOrUser")]
+        public async Task<ActionResult<PaginatedResponse<VehicleVersionDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            if (page <= 0 || pageSize <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page and pageSize must be greater than zero."));
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
-            
-            if (pageSize > maxPageSize)
-                pageSize = maxPageSize;
+            if (pageNumber <= 0)
+                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
 
             var query = _repository.Query();
 
-            var totalItems = await query.CountAsync();
-
-            var items = await query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
             var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var paginatedResponse = new PaginatedResponse<VehicleVersion>(
-                data: items,
-                page: page,
-                pageSize: pageSize,
-                total: totalItems,
-                baseUrl: baseUrl
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query.Select(vv => new VehicleVersionDto(
+                    vv.Id,
+                    vv.Name!,
+                    vv.ModelId
+                )),
+                pageNumber,
+                pageSize,
+                baseUrl
             );
 
-            return Ok(ApiResponseBuilder.Success(paginatedResponse, "Vehicle versions retrieved successfully."));
+            return Ok(paginatedResult);
         }
 
 
+
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> GetById(int id)
         {
             var version = await _repository.GetByIdAsync(id);
             if (version is null)
                 return NotFound(ApiResponseBuilder.Fail<VehicleVersion>(404, $"Vehicle version with ID {id} not found."));
+
             return Ok(ApiResponseBuilder.Success(version));
         }
 
+
         [HttpPost]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> Create([FromBody] VehicleVersion vehicleVersion)
         {
             var model = await _modelRepository.GetByIdAsync(vehicleVersion.ModelId);
@@ -83,6 +89,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Update(int id, [FromBody] VehicleVersion updated)
         {
             if (id != updated.Id)
@@ -105,7 +112,9 @@ namespace CarSpot.API.Controllers
             return Ok(ApiResponseBuilder.Success(existing, "Vehicle version updated successfully."));
         }
 
+
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id)
         {
             var version = await _repository.GetByIdAsync(id);

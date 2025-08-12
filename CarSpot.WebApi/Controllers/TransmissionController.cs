@@ -1,9 +1,11 @@
-using System.Linq;
+
 using System.Threading.Tasks;
 using CarSpot.Application.Common.Responses;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-
+using Microsoft.AspNetCore.Authorization;
+using CarSpot.Application.Interfaces.Services;
+using System.Linq;
+using CarSpot.Domain.Common;
 
 namespace CarSpot.API.Controllers
 {
@@ -12,49 +14,45 @@ namespace CarSpot.API.Controllers
     public class TransmissionsController : ControllerBase
     {
         private readonly IAuxiliarRepository<Transmission> _repository;
+        private readonly IPaginationService _paginationService;
 
-        public TransmissionsController(IAuxiliarRepository<Transmission> repository)
+        public TransmissionsController(IAuxiliarRepository<Transmission> repository, IPaginationService paginationService)
         {
             _repository = repository;
+            _paginationService = paginationService;
         }
 
+
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 100)
+        [Authorize(Policy = "AdminOrCompany")]
+        public async Task<ActionResult<PaginatedResponse<TransmissionDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
-            if (pageNumber <= 0)
-                return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
-
-            if (pageSize <= 0)
-                pageSize = 1;
-            else if (pageSize > maxPageSize)
-                pageSize = maxPageSize;
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
             var query = _repository.Query();
 
-            var totalItems = await query.CountAsync();
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var transmissions = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query.Select(t => new TransmissionDto(
+                    t.Id,
+                    t.Name
+                )),
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
 
-            var response = new
-            {
-                PageNumber = pageNumber,
-                PageSize = pageSize,
-                TotalItems = totalItems,
-                TotalPages = (int)System.Math.Ceiling(totalItems / (double)pageSize),
-                Items = transmissions
-            };
-
-            return Ok(ApiResponseBuilder.Success(response, "List of transmissions retrieved successfully."));
+            return Ok(paginatedResult);
         }
 
 
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> GetById(int id)
         {
             var transmission = await _repository.GetByIdAsync(id);
@@ -64,7 +62,9 @@ namespace CarSpot.API.Controllers
             return Ok(ApiResponseBuilder.Success(transmission));
         }
 
+
         [HttpPost]
+        [Authorize(Policy = "AdminOrCompany")]
         public async Task<IActionResult> Create([FromBody] CreateTransmissionRequest request)
         {
             if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Name))
@@ -78,7 +78,9 @@ namespace CarSpot.API.Controllers
                 ApiResponseBuilder.Success(transmission, "Transmission created successfully."));
         }
 
+
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateTransmissionRequest request)
         {
             if (!ModelState.IsValid || id != request.Id)
@@ -95,7 +97,9 @@ namespace CarSpot.API.Controllers
             return Ok(ApiResponseBuilder.Success(existing, "Transmission updated successfully."));
         }
 
+
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id)
         {
             var transmission = await _repository.GetByIdAsync(id);

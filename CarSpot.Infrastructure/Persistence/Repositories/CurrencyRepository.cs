@@ -49,18 +49,11 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             return await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task<(IEnumerable<Currency> Items, int TotalCount)> GetPagedAsync(int pageNumber, int pageSize)
+         public IQueryable<Currency> Query()
         {
-            var query = _context.Currencies.AsQueryable();
-
-            var totalCount = await query.CountAsync();
-
-            var items = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return (items, totalCount);
+            return _context.Currencies.AsQueryable();
         }
+
+
     }
 }
