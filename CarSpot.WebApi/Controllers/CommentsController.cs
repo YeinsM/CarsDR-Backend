@@ -6,6 +6,10 @@ using CarSpot.Application.Common.Responses;
 using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Authorization;
+using CarSpot.Application.Common.Extensions;
+
+
 
 namespace CarSpot.WebApi.Controllers
 {
@@ -28,11 +32,13 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> Create([FromBody] CreateCommentRequest request)
         {
-            var user = await _userRepository.GetByIdAsync(request.UserId);
+            var userId = User.GetUserId();
+            var user = await _userRepository.GetByIdAsync(userId);
             if (user is null)
-                return NotFound(ApiResponseBuilder.Fail<string>(404, "User not found"));
+                return Unauthorized(ApiResponseBuilder.Fail<string>(401, "Invalid user"));
 
             var listing = await _listingRepository.GetByIdAsync(request.ListingId);
             if (listing is null)
@@ -42,7 +48,7 @@ namespace CarSpot.WebApi.Controllers
             {
                 Id = Guid.NewGuid(),
                 Content = request.Text,
-                UserId = request.UserId,
+                UserId = userId,
                 ListingId = request.ListingId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -62,6 +68,7 @@ namespace CarSpot.WebApi.Controllers
 
             return Ok(ApiResponseBuilder.Success(response, "Comment created successfully"));
         }
+
 
         [HttpGet("listing/{listingId}")]
         public async Task<IActionResult> GetByListing(
@@ -115,15 +122,15 @@ namespace CarSpot.WebApi.Controllers
         {
             if (pageNumber <= 0) pageNumber = 1;
             if (pageSize <= 0) pageSize = 10;
-            else if (pageSize > 100) pageSize = 100; 
+            else if (pageSize > 100) pageSize = 100;
 
-        
+
             var query = _commentRepository.QueryByUserId(userId);
 
-          
+
             var totalRecords = await query.CountAsync();
 
-            
+
             var pagedComments = await query
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
@@ -177,5 +184,20 @@ namespace CarSpot.WebApi.Controllers
 
             return Ok(ApiResponseBuilder.Success<string>(null, "Comment updated successfully"));
         }
+
+        [HttpPatch("{id}/report")]
+        [Authorize]
+        public async Task<IActionResult> Report(Guid id)
+        {
+            var comment = await _commentRepository.GetByIdAsync(id);
+            if (comment is null)
+                return NotFound(ApiResponseBuilder.Fail<string>(404, "Comment not found."));
+
+            comment.IsReported = true;
+            await _commentRepository.SaveChangesAsync();
+
+            return Ok(ApiResponseBuilder.Success<string>(null, "Comment reported successfully"));
+        }
+
     }
 }

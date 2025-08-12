@@ -60,8 +60,6 @@ namespace CarSpot.Domain.Entities
             RoleId = roleId;
             CreatedAt = DateTime.UtcNow;
 
-            // El evento se disparará desde el repositorio después de guardar
-            // AddDomainEvent(new UserRegisteredEvent(Email, FullName));
 
         }
 
