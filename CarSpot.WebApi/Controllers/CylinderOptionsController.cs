@@ -23,8 +23,9 @@ namespace CarSpot.API.Controllers
         }
 
 
-        [Authorize]
+        
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<CylinderOptionDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
@@ -50,8 +51,9 @@ namespace CarSpot.API.Controllers
         }
 
 
-        [Authorize]
+        
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(int id)
         {
             var item = await _repository.GetByIdAsync(id);
@@ -62,8 +64,9 @@ namespace CarSpot.API.Controllers
         }
 
 
-        [Authorize(Policy = "AdminOrCompany")]
+        
         [HttpPost]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Create(CylinderOption cylinderOption)
         {
             if (string.IsNullOrWhiteSpace(cylinderOption.Name))
@@ -77,8 +80,9 @@ namespace CarSpot.API.Controllers
         }
 
 
-        [Authorize(Policy = "AdminOnly")]
+        
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Update(int id, CylinderOption updated)
         {
             if (id != updated.Id)
@@ -96,8 +100,9 @@ namespace CarSpot.API.Controllers
         }
 
 
-        [Authorize(Policy = "AdminOnly")]
+        
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id)
         {
             var item = await _repository.GetByIdAsync(id);

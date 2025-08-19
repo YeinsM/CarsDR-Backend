@@ -35,6 +35,8 @@ public class ApplicationDbContext : DbContext
     public required DbSet<Menu> Menus { get; set; }
     public required DbSet<EmailSettings> EmailSettings { get; set; }
     public required DbSet<Listing> Listings { get; set; } = null!;
+    public DbSet<UserPlan> UserPlans { get; set; } = null!;
+    public DbSet<Plan>? Plans { get; set; }
     public required DbSet<Color> Colors { get; set; }
     public DbSet<Comment>? Comments { get; set; }
     public DbSet<VehicleMediaFile> VehicleMediaFiles { get; set; } = null!;

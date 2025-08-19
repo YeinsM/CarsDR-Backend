@@ -19,7 +19,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Get()
         {
             var statuses = await _repository.GetAllAsync();

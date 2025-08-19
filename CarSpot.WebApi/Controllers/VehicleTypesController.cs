@@ -20,7 +20,7 @@ namespace CarSpot.WebApi.Controllers
 
         
         [HttpGet]
-        [Authorize(Policy = "AdminOrCompanyOrUser")]
+       [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             var result = await _repository.GetAllAsync();
@@ -30,7 +30,7 @@ namespace CarSpot.WebApi.Controllers
 
       
         [HttpGet("{id}")]
-        [Authorize(Policy = "AdminDealerClient")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(int id)
         {
             var tipo = await _repository.GetByIdAsync(id);
@@ -39,7 +39,7 @@ namespace CarSpot.WebApi.Controllers
 
     
         [HttpPost]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Create([FromBody] CreateVehicleTypeRequest request)
         {
             var entity = new VehicleType { Name = request.Name };

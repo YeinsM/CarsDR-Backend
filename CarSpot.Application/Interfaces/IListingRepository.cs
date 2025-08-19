@@ -7,4 +7,6 @@ public interface IListingRepository
     Task<Listing> Add(Listing listing);
     Task UpdateAsync(Listing listing);
     Task DeleteAsync(Guid id);
+    Task<IEnumerable<Listing>> GetBySellerIdAsync(Guid sellerId);
+
 }

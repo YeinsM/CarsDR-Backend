@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using CarSpot.WebApi.Extensions;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Cargar configuración sensible desde .env y variables de entorno
@@ -34,25 +35,17 @@ builder.Services.AddJwtAuthentication(builder.Configuration);
 // 🔹 Agregar autorización con Policies
 builder.Services.AddAuthorization(options =>
 {
-    // Solo administradores
-    options.AddPolicy("RequireAdminRole", policy =>
+    // Policy para administradores
+    options.AddPolicy("AdminOnly", policy =>
         policy.RequireRole("Admin"));
 
-    // Solo Company
-    options.AddPolicy("RequireCompanyRole", policy =>
-        policy.RequireRole("Company"));
+    // Policy para usuarios comunes
+    options.AddPolicy("UserOnly", policy =>
+        policy.RequireRole("User"));
 
-    // Admin o Company
-    options.AddPolicy("RequireAdminOrCompanyRole", policy =>
-        policy.RequireRole("Admin", "Company"));
-
-    // Admin o Company o User
-    options.AddPolicy("RequireAdminOrCompanyOrUserRole", policy =>
-        policy.RequireRole("Admin", "Company", "User"));
-
-        
-
-    
+    // Policy que permita Admin o User
+    options.AddPolicy("AdminOrUser", policy =>
+        policy.RequireRole("Admin", "User"));
 });
 
 // Registrar servicios de aplicación

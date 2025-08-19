@@ -30,7 +30,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "AdminOrCompanyOrUser")]
+        [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<VehicleVersionDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
@@ -59,10 +59,9 @@ namespace CarSpot.API.Controllers
             return Ok(paginatedResult);
         }
 
-
-
+ 
         [HttpGet("{id}")]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(int id)
         {
             var version = await _repository.GetByIdAsync(id);
@@ -72,9 +71,9 @@ namespace CarSpot.API.Controllers
             return Ok(ApiResponseBuilder.Success(version));
         }
 
-
+        
         [HttpPost]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Create([FromBody] VehicleVersion vehicleVersion)
         {
             var model = await _modelRepository.GetByIdAsync(vehicleVersion.ModelId);
@@ -111,7 +110,6 @@ namespace CarSpot.API.Controllers
 
             return Ok(ApiResponseBuilder.Success(existing, "Vehicle version updated successfully."));
         }
-
 
         [HttpDelete("{id}")]
         [Authorize(Policy = "AdminOnly")]

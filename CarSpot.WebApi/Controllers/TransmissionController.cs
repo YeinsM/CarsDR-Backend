@@ -24,7 +24,7 @@ namespace CarSpot.API.Controllers
 
 
         [HttpGet]
-        [Authorize(Policy = "AdminOrCompany")]
+        [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<TransmissionDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
@@ -52,7 +52,7 @@ namespace CarSpot.API.Controllers
 
 
         [HttpGet("{id}")]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(int id)
         {
             var transmission = await _repository.GetByIdAsync(id);
@@ -64,7 +64,8 @@ namespace CarSpot.API.Controllers
 
 
         [HttpPost]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOrUser")]
+
         public async Task<IActionResult> Create([FromBody] CreateTransmissionRequest request)
         {
             if (!ModelState.IsValid || string.IsNullOrWhiteSpace(request.Name))
@@ -80,7 +81,8 @@ namespace CarSpot.API.Controllers
 
 
         [HttpPut("{id}")]
-        [Authorize(Policy = "AdminOnly")]
+         [Authorize(Policy = "AdminOnly")]
+
         public async Task<IActionResult> Update(int id, [FromBody] UpdateTransmissionRequest request)
         {
             if (!ModelState.IsValid || id != request.Id)

@@ -23,7 +23,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
-        [Authorize]
+        [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<MarketVersionDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
@@ -51,7 +51,7 @@ namespace CarSpot.API.Controllers
 
 
         [HttpGet("{id}")]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(int id)
         {
             var item = await _repository.GetByIdAsync(id);
@@ -62,7 +62,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "AdminOnly")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Create([FromBody] MarketVersion marketVersion)
         {
             if (string.IsNullOrWhiteSpace(marketVersion.Name))
@@ -77,7 +77,7 @@ namespace CarSpot.API.Controllers
 
 
         [HttpPut("{id}")]
-        [Authorize(Policy = "AdminOnly")]
+         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Update(int id, [FromBody] MarketVersion updated)
         {
             if (id != updated.Id)
@@ -95,7 +95,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Policy = "AdminOnly")]
+       [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id)
         {
             var item = await _repository.GetByIdAsync(id);

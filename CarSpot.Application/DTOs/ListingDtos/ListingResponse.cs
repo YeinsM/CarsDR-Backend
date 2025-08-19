@@ -20,11 +20,17 @@ namespace CarSpot.Application.DTOS
         public bool IsFeatured { get; set; }
         public DateTime? FeaturedUntil { get; set; }
         public DateTime? ExpiresAt { get; set; }
+        public DateTime? FeaturedFrom { get; set; }
+
+        public bool IsHighlighted { get; set; }
+        public DateTime? HighlightUntil { get; set; }
+        public DateTime? HighlightFrom { get; set; }
 
         public int ViewCount { get; set; }
 
         public DateTime CreatedAt { get; set; }
 
         public List<string> ImageUrls { get; set; } = new();
+        
     }
 }

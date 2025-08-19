@@ -36,7 +36,7 @@ namespace CarSpot.WebApi.Controllers
 
 
         [HttpPost]
-        [Authorize]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Create([FromBody] CreateCommentRequest request)
         {
             var userId = User.GetUserId();
@@ -74,9 +74,10 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpGet("listing/{listingId}")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<ActionResult<PaginatedResponse<CommentResponse>>> GetByListing(
-    Guid listingId,
-    [FromQuery] PaginationParameters pagination)
+        Guid listingId,
+            [FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
@@ -110,10 +111,10 @@ namespace CarSpot.WebApi.Controllers
 
 
         [HttpGet("user/{userId}")]
-        [Authorize]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<ActionResult<PaginatedResponse<CommentResponse>>> GetByUser(
-    Guid userId,
-    [FromQuery] PaginationParameters pagination)
+            Guid userId,
+            [FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
 
@@ -147,7 +148,7 @@ namespace CarSpot.WebApi.Controllers
 
 
         [HttpDelete("{id}")]
-        [Authorize(Policy = "AdminOrOwner")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var comment = await _commentRepository.GetByIdAsync(id);
@@ -161,7 +162,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPatch("{id}")]
-        [Authorize(Policy = "AdminOrOwner")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCommentRequest request)
         {
             var comment = await _commentRepository.GetByIdAsync(id);
@@ -175,7 +176,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPatch("{id}/report")]
-        [Authorize]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Report(Guid id)
         {
             var comment = await _commentRepository.GetByIdAsync(id);

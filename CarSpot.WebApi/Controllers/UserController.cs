@@ -49,7 +49,7 @@ namespace CarSpot.WebApi.Controllers
 
 
         [HttpGet]
-        [Authorize(Policy = "AdminOnly")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<ActionResult<PaginatedResponse<UserDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
@@ -84,8 +84,9 @@ namespace CarSpot.WebApi.Controllers
 
 
 
-        [Authorize(Policy = "AdminOnly")]
+      
         [HttpGet("basic")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetAllBasic()
         {
             var users = await _userRepository.GetAllBasicAsync();
@@ -107,8 +108,9 @@ namespace CarSpot.WebApi.Controllers
         }
 
 
-        [Authorize(Policy = "AdminOnly")]
+        
         [HttpGet("{id:Guid}")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var user = await _userRepository.GetByIdAsync(id);
@@ -135,8 +137,9 @@ namespace CarSpot.WebApi.Controllers
         }
 
 
-        [AllowAnonymous]
+        
         [HttpPost]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Register([FromBody] CreateUserRequest request)
         {
             try
@@ -199,8 +202,9 @@ namespace CarSpot.WebApi.Controllers
         }
 
 
-        [AllowAnonymous]
+       
         [HttpPost("login")]
+         [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             User? user = await _userRepository.GetByEmailAsync(request.EmailOrUsername!);
@@ -224,8 +228,9 @@ namespace CarSpot.WebApi.Controllers
         }
 
 
-        [Authorize(Policy = "AdminOrCompany")]
+        
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
         {
             var user = await _userRepository.GetByIdAsync(id);
@@ -244,8 +249,9 @@ namespace CarSpot.WebApi.Controllers
         }
 
 
-        [Authorize(Policy = "AdminOrCompany")]
+        
         [HttpPatch("{id:Guid}/change-password")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangePasswordRequest request)
         {
             try
@@ -266,8 +272,9 @@ namespace CarSpot.WebApi.Controllers
         }
 
 
-        [Authorize(Policy = "AdminOnly")]
+        
         [HttpPatch("{id:Guid}/deactivate")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Deactivate(Guid id)
         {
             var user = await _userRepository.GetByIdAsync(id);
@@ -280,8 +287,9 @@ namespace CarSpot.WebApi.Controllers
         }
 
 
-        [Authorize(Policy = "AdminOnly")]
+        
         [HttpPatch("{id:Guid}/activate")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Activate(Guid id)
         {
             var user = await _userRepository.GetByIdAsync(id);
@@ -294,8 +302,9 @@ namespace CarSpot.WebApi.Controllers
         }
 
 
-        [Authorize(Policy = "AdminOnly")]
+        
         [HttpGet("test-connection")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> TestConnection()
         {
             try
@@ -311,8 +320,9 @@ namespace CarSpot.WebApi.Controllers
         }
 
 
-        [Authorize(Policy = "Authenticated")]
+        
         [HttpGet("profile")]
+        [Authorize]
         public async Task<IActionResult> GetProfile()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);

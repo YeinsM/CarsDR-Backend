@@ -9,6 +9,7 @@ namespace CarSpot.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class CabTypesController : ControllerBase
     {
         private readonly IAuxiliarRepository<CabType> _repository;
@@ -23,6 +24,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<CabTypeDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
@@ -45,6 +47,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(int id)
         {
             var item = await _repository.GetByIdAsync(id);

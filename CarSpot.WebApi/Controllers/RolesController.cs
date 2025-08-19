@@ -21,7 +21,7 @@ namespace CarSpot.API.Controllers
 
      
         [HttpGet]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetAll()
         {
             var items = await _repository.GetAllAsync();
@@ -29,7 +29,7 @@ namespace CarSpot.API.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var item = await _repository.GetByIdAsync(id);

@@ -25,8 +25,7 @@ namespace CarSpot.API.Controllers
 
       
         [HttpGet]
-        [Authorize(Policy = "AdminOrCompany")]
-        public async Task<IActionResult> GetAllAsync()
+       [Authorize(Policy = "AdminOrUser")]        public async Task<IActionResult> GetAllAsync()
         {
             var menus = await _repository.GetAllAsync();
             var tree = _menuTreeBuilder.Build(menus.ToList());
@@ -35,7 +34,7 @@ namespace CarSpot.API.Controllers
 
       
         [HttpGet("{id}")]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var menu = await _repository.GetByIdAsync(id);
@@ -72,7 +71,7 @@ namespace CarSpot.API.Controllers
 
         
         [HttpDelete("{id}")]
-        [Authorize(Policy = "AdminOnly")]
+       [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var menu = await _repository.GetByIdAsync(id);

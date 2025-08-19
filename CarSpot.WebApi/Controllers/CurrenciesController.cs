@@ -26,6 +26,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<CurrencyResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
@@ -54,8 +55,9 @@ namespace CarSpot.WebApi.Controllers
 
 
 
-        [Authorize]
+        
         [HttpGet("{id:guid}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var currency = await _repository.GetById(id);
@@ -65,8 +67,9 @@ namespace CarSpot.WebApi.Controllers
         }
 
 
-        [Authorize(Policy = "AdminOnly")]
+        
         [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Create([FromBody] CreateCurrencyRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Code) || string.IsNullOrWhiteSpace(request.Symbol))
@@ -87,8 +90,9 @@ namespace CarSpot.WebApi.Controllers
         }
 
 
-        [Authorize(Policy = "AdminOnly")]
+        
         [HttpPut("{id:guid}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCurrencyRequest request)
         {
             var existing = await _repository.GetById(id);
@@ -103,8 +107,9 @@ namespace CarSpot.WebApi.Controllers
             return Ok(ApiResponseBuilder.Success(new CurrencyResponse(existing.Id, existing.Name, existing.Code, existing.Symbol), "Currency updated successfully."));
         }
 
-        [Authorize(Policy = "AdminOnly")]
+        
         [HttpDelete("{id:guid}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var existing = await _repository.GetById(id);

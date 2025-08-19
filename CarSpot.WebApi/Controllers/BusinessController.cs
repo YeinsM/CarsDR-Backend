@@ -26,6 +26,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<BusinessResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
@@ -55,6 +56,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<ActionResult<BusinessResponse>> GetById(Guid id)
         {
             var business = await _businessRepository.GetByIdAsync(id);

@@ -11,6 +11,7 @@ namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class CitiesController : ControllerBase
     {
         private readonly IAuxiliarRepository<City> _cityRepository;

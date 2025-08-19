@@ -54,7 +54,6 @@ namespace CarSpot.WebApi.Controllers
             _paginationService = paginationService;
         }
 
-
         [HttpGet]
         [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<Vehicle>>> GetAll([FromQuery] PaginationParameters pagination)
@@ -78,20 +77,29 @@ namespace CarSpot.WebApi.Controllers
             return Ok(paginatedResult);
         }
 
-
-
         [HttpGet("{id:Guid}")]
-        [AllowAnonymous]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
-            return vehicle is null
-                ? NotFound(ApiResponseBuilder.Fail<object>(404, $"Vehicle with ID {id} not found."))
-                : Ok(ApiResponseBuilder.Success(vehicle, "Vehicle retrieved successfully."));
+            var vehicle = await _vehicleRepository.GetByIdAsync(id);
+
+            if (vehicle is null)
+            {
+                return NotFound(ApiResponseBuilder.Fail<object>(404, $"Vehicle with ID {id} not found."));
+            }
+
+            
+            vehicle.ViewCount++;
+
+            
+            await _vehicleRepository.UpdateAsync(vehicle);
+
+            return Ok(ApiResponseBuilder.Success(vehicle, "Vehicle retrieved successfully."));
         }
 
+
         [HttpPost]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Create([FromBody] CreateVehicleRequest request)
         {
             User? user = await _userRepository.GetByIdAsync(request.UserId);
@@ -154,7 +162,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPut("{id:Guid}")]
-        [Authorize(Policy = "AdminOrOwner")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateVehicleRequest request)
         {
             Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
@@ -183,9 +191,8 @@ namespace CarSpot.WebApi.Controllers
             return NoContent();
         }
 
-
         [HttpDelete("{id:Guid}")]
-        [Authorize(Policy = "AdminOrOwner")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(Guid id)
         {
             Vehicle? vehicle = await _vehicleRepository.GetByIdAsync(id);
@@ -196,7 +203,6 @@ namespace CarSpot.WebApi.Controllers
 
             return NoContent();
         }
-
 
         [HttpPost("filter")]
         [AllowAnonymous]

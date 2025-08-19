@@ -66,5 +66,15 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
         {
             return await _context.SaveChangesAsync(cancellationToken);
         }
+
+         public async Task<IEnumerable<Listing>> GetBySellerIdAsync(Guid sellerId)
+        {
+            return await _context.Listings
+                .Include(l => l.Vehicle)  
+                .Include(l => l.MediaFiles)    
+                .Include(l => l.Currency) 
+                .Where(l => l.UserId == sellerId)
+                .ToListAsync();
+        }
     }
 }

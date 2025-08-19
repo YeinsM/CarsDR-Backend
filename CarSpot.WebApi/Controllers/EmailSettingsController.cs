@@ -29,8 +29,9 @@ public class EmailSettingsController : ControllerBase
     }
 
    
-    [Authorize(Policy = "AdminOnly")]
+    
     [HttpPost]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Create([FromBody] EmailSettings settings)
     {
         var existing = await _repository.GetSettingsAsync();
@@ -42,8 +43,9 @@ public class EmailSettingsController : ControllerBase
     }
 
 
-    [Authorize(Policy = "AdminOnly")]
+    
     [HttpPut]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Update([FromBody] EmailSettings updatedSettings)
     {
         var updated = await _repository.UpdateAsync(updatedSettings);

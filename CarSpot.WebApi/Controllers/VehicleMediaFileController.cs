@@ -21,8 +21,9 @@ public class VehicleMediaController : ControllerBase
     }
 
 
-    [Authorize(Policy = "AdminOrCompany")]
+    
     [HttpPost("upload")]
+    [Authorize(Policy = "AdminOrUser")]
     public async Task<IActionResult> Upload([FromForm] UploadVehicleMediaFileRequest request)
     {
         foreach (var file in request.Files)
@@ -57,8 +58,9 @@ public class VehicleMediaController : ControllerBase
     }
 
 
-    [Authorize(Policy = "AdminOrCompany")]
+    
     [HttpDelete("{id}")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Delete(Guid id)
     {
         var media = await _repository.GetByIdAsync(id);
@@ -76,8 +78,9 @@ public class VehicleMediaController : ControllerBase
         return Ok("Media deleted successfully.");
     }
 
-    [AllowAnonymous]
+   
     [HttpGet("vehicle/{vehicleId}")]
+     [AllowAnonymous]
     public async Task<ActionResult<PaginatedResponse<Comment>>> GetByVehicle(Guid vehicleId, [FromQuery] PaginationParameters pagination)
     {
         const int maxPageSize = 100;

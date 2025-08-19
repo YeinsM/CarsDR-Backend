@@ -27,7 +27,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpGet]
-        [Authorize(Policy = "AdminOrCompany")]
+        [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<MakeDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
             const int maxPageSize = 100;
@@ -50,7 +50,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Policy = "AdminOrCompany")]
+         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(Guid id)
         {
             var item = await _repository.GetByIdAsync(id);
@@ -60,7 +60,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPost]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Create([FromBody] CreateMakeRequest request)
         {
             var make = new Make(request.Name);
@@ -72,7 +72,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPut]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Update([FromBody] UpdateMakeRequest request)
         {
             var existingMake = await _repository.GetByIdAsync(request.Id);
@@ -85,7 +85,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Policy = "AdminOrCompany")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var make = await _repository.GetByIdAsync(id);

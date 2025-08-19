@@ -50,6 +50,8 @@ namespace CarSpot.Infrastructure.Extensions
             services.AddScoped<IAuxiliarRepository<City>, AuxiliarRepository<City>>();
             services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
             services.AddScoped<IPaginationService, PaginationService>();
+            services.AddScoped<IPlanService, PlanService>();
+
 
 
 
