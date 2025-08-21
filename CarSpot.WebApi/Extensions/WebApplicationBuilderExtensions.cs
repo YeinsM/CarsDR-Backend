@@ -14,8 +14,11 @@ namespace CarSpot.WebApi.Extensions
         public static WebApplicationBuilder AddEnvConfig(this WebApplicationBuilder builder)
         {
             // Cargar archivo .env (navega un nivel arriba para la raíz)
-            var envPath = Path.Combine(Directory.GetCurrentDirectory(), "..", ".env");
-            if (File.Exists(envPath)) Env.Load(envPath);
+            string envPath = Path.Combine(Directory.GetCurrentDirectory(), "..", ".env");
+            if (File.Exists(envPath))
+            {
+                Env.Load(envPath);
+            }
 
             // Leer variables de entorno
             builder.Configuration.AddEnvironmentVariables();
