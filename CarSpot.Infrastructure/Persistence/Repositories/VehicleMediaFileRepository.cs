@@ -1,3 +1,4 @@
+
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,6 +16,13 @@ public class VehicleMediaFileRepository(ApplicationDbContext context) : IVehicle
     {
         await _context.VehicleMediaFiles.AddAsync(media);
     }
+
+    public IQueryable<VehicleMediaFile> Query()
+    {
+        return _context.VehicleMediaFiles.AsQueryable();
+    }
+
+
 
     public async Task DeleteAsync(Guid id)
     {

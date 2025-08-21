@@ -21,7 +21,6 @@ namespace CarSpot.Domain.Entities
 
 
         public ICollection<Vehicle> Vehicles { get; set; } = new List<Vehicle>();
-        public ICollection<Comment> Comments { get; set; } = new List<Comment>();
         public HashedPassword Password { get; private set; }
 
         [NotMapped]
@@ -61,8 +60,6 @@ namespace CarSpot.Domain.Entities
             RoleId = roleId;
             CreatedAt = DateTime.UtcNow;
 
-            // El evento se disparará desde el repositorio después de guardar
-            // AddDomainEvent(new UserRegisteredEvent(Email, FullName));
 
         }
 

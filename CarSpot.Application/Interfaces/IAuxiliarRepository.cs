@@ -2,6 +2,7 @@ using CarSpot.Domain.Common;
 
 public interface IAuxiliarRepository<T> where T : BaseAuxiliar
 {
+    IQueryable<T> Query();
     Task<IEnumerable<T>> GetAllAsync();
     Task<T?> GetByIdAsync(int id);
     Task<T> Add(T entity);

@@ -5,73 +5,81 @@ using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
 using CarSpot.Application.Services;
 using CarSpot.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-[ApiController]
-[Route("api/[controller]")]
-public class MenuController : ControllerBase
+namespace CarSpot.API.Controllers
 {
-    private readonly IMenuRepository _repository;
-    private readonly MenuTreeBuilder _menuTreeBuilder;
-
-    public MenuController(IMenuRepository repository)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class MenuController : ControllerBase
     {
-        _repository = repository;
-        _menuTreeBuilder = new MenuTreeBuilder();
-    }
+        private readonly IMenuRepository _repository;
+        private readonly MenuTreeBuilder _menuTreeBuilder;
 
-
-    [HttpGet]
-    public async Task<IActionResult> GetAllAsync()
-    {
-        var menus = await _repository.GetAllAsync();
-        var tree = _menuTreeBuilder.Build(menus.ToList());
-        return Ok(tree);
-    }
-
-
-    [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(Guid id)
-    {
-        var menu = await _repository.GetByIdAsync(id);
-        if (menu == null) return NotFound();
-        return Ok(menu);
-    }
-
-    [HttpPost]
-    public async Task<IActionResult> Create([FromBody] CreateMenuRequest request)
-    {
-        var menu = new Menu(request.Label, request.Icon, request.To);
-        await _repository.AddAsync(menu);
-        return CreatedAtAction(nameof(GetById), new { id = menu.Id }, menu);
-    }
-
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UpdateMenuRequest request)
-    {
-        var menu = await _repository.GetByIdAsync(id);
-        if (menu == null) return NotFound();
-
-        menu.Update(request.Label, request.Icon, request.To);
-        await _repository.Update(menu);
-
-        return NoContent();
-    }
-
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(Guid id)
-    {
-        var menu = await _repository.GetByIdAsync(id);
-        if (menu == null)
+        public MenuController(IMenuRepository repository)
         {
-            return NotFound();
+            _repository = repository;
+            _menuTreeBuilder = new MenuTreeBuilder();
         }
 
-        await _repository.DeleteAsync(id);
-        return NoContent();
+      
+        [HttpGet]
+       [Authorize(Policy = "AdminOrUser")]        public async Task<IActionResult> GetAllAsync()
+        {
+            var menus = await _repository.GetAllAsync();
+            var tree = _menuTreeBuilder.Build(menus.ToList());
+            return Ok(tree);
+        }
+
+      
+        [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrUser")]
+        public async Task<IActionResult> GetById(Guid id)
+        {
+            var menu = await _repository.GetByIdAsync(id);
+            if (menu == null)
+                return NotFound();
+
+            return Ok(menu);
+        }
+
+        
+        [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> Create([FromBody] CreateMenuRequest request)
+        {
+            var menu = new Menu(request.Label, request.Icon, request.To);
+            await _repository.AddAsync(menu);
+            return CreatedAtAction(nameof(GetById), new { id = menu.Id }, menu);
+        }
+
+        
+        [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> UpdateAsync(Guid id, [FromBody] UpdateMenuRequest request)
+        {
+            var menu = await _repository.GetByIdAsync(id);
+            if (menu == null)
+                return NotFound();
+
+            menu.Update(request.Label, request.Icon, request.To);
+            await _repository.Update(menu);
+
+            return NoContent();
+        }
+
+        
+        [HttpDelete("{id}")]
+       [Authorize(Policy = "AdminOnly")]
+        public async Task<IActionResult> Delete(Guid id)
+        {
+            var menu = await _repository.GetByIdAsync(id);
+            if (menu == null)
+                return NotFound();
+
+            await _repository.DeleteAsync(id);
+            return NoContent();
+        }
     }
 }
-
-

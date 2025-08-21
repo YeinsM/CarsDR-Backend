@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 
 
+
 namespace CarSpot.Application.Common.Responses
 {
     public static class ApiResponseBuilder

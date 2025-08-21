@@ -1,43 +1,62 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces.Repositories;
+using CarSpot.Application.Interfaces.Services;
+using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize] 
     public class BusinessController : ControllerBase
     {
         private readonly IBusinessRepository _businessRepository;
+        private readonly IPaginationService _paginationService;
 
-        public BusinessController(IBusinessRepository businessRepository)
+        public BusinessController(IBusinessRepository businessRepository, IPaginationService paginationService)
         {
             _businessRepository = businessRepository;
+            _paginationService = paginationService;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BusinessResponse>>> GetAll()
+        [AllowAnonymous]
+        public async Task<ActionResult<PaginatedResponse<BusinessResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
-            var bussinesList = await _businessRepository.GetAllAsync();
+            const int maxPageSize = 100;
 
-            var response = bussinesList.Select(b => new BusinessResponse(
-                b.Id,
-                b.Name!,
-                b.BusinessNumber!,
-                b.Phone,
-                b.Extension,
-                b.Address
-            ));
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
-            return Ok(response);
+            var query = _businessRepository.Query();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query.Select(b => new BusinessResponse(
+                    b.Id,
+                    b.Name!,
+                    b.BusinessNumber!,
+                    b.Phone,
+                    b.Extension,
+                    b.Address
+                )),
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
+
+            return Ok(paginatedResult);
         }
 
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<ActionResult<BusinessResponse>> GetById(Guid id)
         {
             var business = await _businessRepository.GetByIdAsync(id);
@@ -57,6 +76,7 @@ namespace CarSpot.WebApi.Controllers
         }
 
         [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> Create(CreateBusinessRequest request)
         {
             try
@@ -75,7 +95,11 @@ namespace CarSpot.WebApi.Controllers
                 await _businessRepository.Add(business);
                 await _businessRepository.SaveChangesAsync();
 
-                return CreatedAtAction(nameof(GetById), new { id = business.Id }, null);
+                return CreatedAtAction(nameof(GetById), new { id = business.Id }, new
+                {
+                    message = "Business created successfully!",
+                    id = business.Id
+                });
             }
             catch (Exception ex)
             {
@@ -87,8 +111,8 @@ namespace CarSpot.WebApi.Controllers
             }
         }
 
-
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> Update(Guid id, UpdateBusinessRequest request)
         {
             if (id != request.Id) return BadRequest();
@@ -104,10 +128,11 @@ namespace CarSpot.WebApi.Controllers
             _businessRepository.Update(bussines);
             await _businessRepository.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(new { message = "Business updated successfully" });
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<ActionResult> Delete(Guid id)
         {
             var bussines = await _businessRepository.GetByIdAsync(id);
@@ -116,7 +141,7 @@ namespace CarSpot.WebApi.Controllers
             _businessRepository.Delete(bussines);
             await _businessRepository.SaveChangesAsync();
 
-            return NoContent();
+            return Ok(new { message = "Business deleted successfully." });
         }
     }
 }

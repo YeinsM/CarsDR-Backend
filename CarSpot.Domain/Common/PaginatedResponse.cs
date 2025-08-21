@@ -2,7 +2,7 @@ namespace CarSpot.Domain.Common;
 
 public class PaginatedResponse<T>
 {
-    public CollectionMetadata Collection { get; set; }
+    public PaginationMetadata Pagination { get; set; }
     public IEnumerable<T> Data { get; set; }
 
     public PaginatedResponse(IEnumerable<T> data, int page, int pageSize, int total, string baseUrl)
@@ -11,7 +11,7 @@ public class PaginatedResponse<T>
 
         var totalPages = pageSize > 0 ? (int)Math.Ceiling((double)total / pageSize) : 0;
 
-        Collection = new CollectionMetadata
+        Pagination = new PaginationMetadata
         {
             Url = baseUrl,
             Count = data.Count(),
@@ -25,14 +25,3 @@ public class PaginatedResponse<T>
     }
 }
 
-public class CollectionMetadata
-{
-    public string? Url { get; set; }
-    public int Count { get; set; }
-    public int Total { get; set; }
-    public int Pages { get; set; }
-    public string? Next { get; set; }
-    public string? Prev { get; set; }
-    public string? First { get; set; }
-    public string? Last { get; set; }
-}

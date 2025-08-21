@@ -24,15 +24,33 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.Configure<CloudinarySettings>(
     builder.Configuration.GetSection("CloudinarySettings"));
 
+builder.Services.AddScoped<IPhotoService, PhotoService>();
 
-// Register application services
-builder.AddEnvConfig();
+// 🔹 Configuración de autenticación JWT
 builder.Services.AddJwtAuthentication(builder.Configuration);
+
+// 🔹 Agregar autorización con Policies
+builder.Services.AddAuthorization(options =>
+{
+    // Policy para administradores
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireRole("Admin"));
+
+    // Policy para usuarios comunes
+    options.AddPolicy("UserOnly", policy =>
+        policy.RequireRole("User"));
+
+    // Policy que permita Admin o User
+    options.AddPolicy("AdminOrUser", policy =>
+        policy.RequireRole("Admin", "User"));
+});
+
+// Registrar servicios de aplicación
 builder.Services.AddApplicationServices(builder.Configuration);
 builder.Services.AddSwaggerWithJwt();
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
 
 builder.Services.AddCors(options =>
 {
@@ -40,12 +58,11 @@ builder.Services.AddCors(options =>
     policy =>
     {
         policy
-    .AllowAnyOrigin()
-    .AllowAnyMethod()
-    .AllowAnyHeader();
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
-
 
 var app = builder.Build();
 
@@ -62,6 +79,7 @@ if (app.Environment.IsProduction())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowWebApp");
+
 app.UseAuthentication();
 app.UseAuthorization();
 

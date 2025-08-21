@@ -19,6 +19,12 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             return await _context.Business.ToListAsync();
         }
 
+        
+        public IQueryable<Business> Query()
+        {
+            return _context.Business.AsQueryable();
+        }
+
         public async Task Add(Business bussines)
         {
             await _context.Business.AddAsync(bussines);

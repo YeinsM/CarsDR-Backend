@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using CarSpot.Application.Interfaces;
 using CarSpot.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 [ApiController]
@@ -10,14 +11,13 @@ public class EmailSettingsController : ControllerBase
     private readonly IEmailSettingsRepository _repository;
     private readonly IEmailService _emailService;
 
-
     public EmailSettingsController(IEmailSettingsRepository repository, IEmailService emailService)
     {
         _repository = repository;
         _emailService = emailService;
     }
 
-
+    [Authorize(Policy = "AdminOnly")]
     [HttpGet]
     public async Task<IActionResult> Get()
     {
@@ -28,8 +28,10 @@ public class EmailSettingsController : ControllerBase
         return Ok(settings);
     }
 
-
+   
+    
     [HttpPost]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Create([FromBody] EmailSettings settings)
     {
         var existing = await _repository.GetSettingsAsync();
@@ -41,8 +43,9 @@ public class EmailSettingsController : ControllerBase
     }
 
 
-
+    
     [HttpPut]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<IActionResult> Update([FromBody] EmailSettings updatedSettings)
     {
         var updated = await _repository.UpdateAsync(updatedSettings);
@@ -51,5 +54,4 @@ public class EmailSettingsController : ControllerBase
 
         return NoContent();
     }
-
 }

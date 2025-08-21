@@ -1,7 +1,6 @@
-
-using CarSpot.Domain.Common;
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
+using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 using CarSpot.Infrastructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
@@ -29,38 +28,38 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .Include(v => v.CabType)
                 .Include(v => v.MarketVersion)
                 .Include(v => v.VehicleVersion)
+                .Include(v => v.User)
                 .AsNoTracking()
                 .ToListAsync();
 
-            IEnumerable<VehicleDto> result = vehicles.Select(v => new VehicleDto(
-                v.Id,
-                v.VIN,
-                v.Price,
-                v.Title!,
-                v.IsFeatured ?? false,
-                v.FeaturedUntil,
-                v.Mileage,
-                v.Year,
-                v.VehicleType?.Name ?? "N/A",
-                v.Make.Name,
-                v.Model.Name!,
-                v.Model.Id,
-                v.Color.Name,
-                v.Condition.Name,
-                v.Transmission.Name,
-                v.Drivetrain.Name,
-                v.CylinderOption.Name,
-                v.CabType.Name,
-                v.MarketVersion.Name,
-                v.VehicleVersion.Name,
-                v.UserId,
-               v.MediaFiles.Select(med => new VehicleMediaFileDto(
-                med.Id,
-                med.Url ?? ""
-                )).ToList()
-            ));
+            return vehicles.Select(v => new VehicleDto(
+         v.Id,
+         v.VIN,
+         v.Price,
+         v.Title ?? "",
+         v.IsFeatured ?? false,
+         v.FeaturedUntil,
+         v.Mileage,
+         v.Year,
+         v.VehicleType?.Name ?? "N/A",
+         v.Make?.Name ?? "",
+         v.Model?.Name ?? "",
+         v.Model?.Id ?? Guid.Empty,
+         v.Color?.Name ?? "",
+         v.Condition?.Name ?? "",
+         v.Transmission?.Name ?? "",
+         v.Drivetrain?.Name ?? "",
+         v.CylinderOption?.Name ?? "",
+         v.CabType?.Name ?? "",
+         v.MarketVersion?.Name ?? "",
+         v.VehicleVersion?.Name ?? "",
+         v.UserId,
+         v.MediaFiles?.Select(med => new VehicleMediaFileDto(
+             med.Id,
+             med.Url ?? ""
+         )).ToList() ?? new List<VehicleMediaFileDto>()
+     ));
 
-            return result;
         }
 
         public async Task<Vehicle?> GetByIdAsync(Guid id)
@@ -86,7 +85,6 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             await _context.Vehicles.AddAsync(vehicle);
             await _context.SaveChangesAsync();
 
-            // Disparar el evento después de que el vehículo tenga un ID válido
             vehicle.NotifyVehicleCreated();
             return vehicle;
         }
@@ -103,34 +101,26 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        public async Task<int> SaveChangesAsync(System.Threading.CancellationToken cancellationToken = default)
         {
             return await _context.SaveChangesAsync(cancellationToken);
         }
 
-        public async Task DeleteByIdAsync(Guid id)
+        public IQueryable<Vehicle> Query()
         {
-            Vehicle? vehicle = await _context.Vehicles
+            return _context.Vehicles
+                .Include(v => v.Make)
+                .Include(v => v.Model)
+                .Include(v => v.Condition)
+                .Include(v => v.Drivetrain)
+                .Include(v => v.CylinderOption)
+                .Include(v => v.CabType)
                 .Include(v => v.MediaFiles)
-                .FirstOrDefaultAsync(v => v.Id == id);
-
-            if (vehicle is null) return;
-
-            foreach (VehicleMediaFile med in vehicle.MediaFiles)
-            {
-                if (med.ListingId != Guid.Empty)
-                {
-                    await _photoService.DeleteImageAsync(med.PublicId);
-                }
-
-                _context.VehicleMediaFiles.Remove(med);
-            }
-
-            _context.Vehicles.Remove(vehicle);
-            await _context.SaveChangesAsync();
+                .AsNoTracking();
         }
 
-        public async Task<PaginatedResponse<Vehicle>> FilterAsync(VehicleFilterRequest filter, string baseUrl)
+
+        public async Task<PaginatedResponse<VehicleDto>> FilterAsync(VehicleFilterRequest filter, string baseUrl)
         {
             IQueryable<Vehicle> query = _context.Vehicles
                 .Include(v => v.Make)
@@ -162,9 +152,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             if (filter.MinMileage.HasValue && filter.MaxMileage.HasValue)
             {
                 if (filter.MinMileage > filter.MaxMileage)
-                {
                     throw new ArgumentException("MinMileage cannot be greater than MaxMileage.");
-                }
 
                 query = query.Where(v => v.Mileage >= filter.MinMileage.Value && v.Mileage <= filter.MaxMileage.Value);
             }
@@ -176,12 +164,11 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
             {
                 query = query.Where(v => v.Mileage <= filter.MaxMileage.Value);
             }
+
             if (filter.MinYear.HasValue && filter.MaxYear.HasValue)
             {
                 if (filter.MinYear > filter.MaxYear)
-                {
                     throw new ArgumentException("MinYear cannot be greater than MaxYear.");
-                }
 
                 query = query.Where(v => v.Year >= filter.MinYear.Value && v.Year <= filter.MaxYear.Value);
             }
@@ -201,25 +188,41 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .Take(filter.PageSize)
                 .ToListAsync();
 
-            return new PaginatedResponse<Vehicle>(
-                data: vehicles,
-                page: filter.Page,
-                pageSize: filter.PageSize,
-                total: totalItems,
-                baseUrl: baseUrl
+            var vehicleDtos = vehicles.Select(v => new VehicleDto(
+                v.Id,
+                v.VIN,
+                v.Price,
+                v.Title ?? "",
+                v.IsFeatured ?? false,
+                v.FeaturedUntil,
+                v.Mileage,
+                v.Year,
+                v.VehicleType?.Name ?? "N/A",
+                v.Make.Name,
+                v.Model.Name ?? "",
+                v.Model.Id,
+                v.Color.Name,
+                v.Condition.Name,
+                v.Transmission.Name,
+                v.Drivetrain.Name,
+                v.CylinderOption.Name,
+                v.CabType.Name,
+                v.MarketVersion.Name,
+                v.VehicleVersion.Name,
+                v.UserId,
+                v.MediaFiles.Select(med => new VehicleMediaFileDto(
+                    med.Id,
+                    med.Url ?? ""
+                )).ToList()
+            ));
+
+            return new PaginatedResponse<VehicleDto>(
+                vehicleDtos,
+                filter.Page,
+                filter.PageSize,
+                totalItems,
+                baseUrl
             );
         }
-
-
-
-
-
-        public IQueryable<Vehicle> Query()
-        {
-            return _context.Vehicles.AsQueryable();
-        }
-
-
-
     }
 }

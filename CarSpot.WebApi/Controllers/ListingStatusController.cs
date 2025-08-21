@@ -1,26 +1,29 @@
-using System.Collections.Generic;
+
 using System.Threading.Tasks;
+using CarSpot.Application.Common.Responses;
 using CarSpot.Application.Interfaces;
-using CarSpot.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-
-
-[ApiController]
-[Route("api/[controller]")]
-public class ListingStatusController : ControllerBase
+namespace CarSpot.API.Controllers
 {
-    private readonly IListingStatusRepository _repository;
-
-    public ListingStatusController(IListingStatusRepository repository)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ListingStatusController : ControllerBase
     {
-        _repository = repository;
-    }
+        private readonly IListingStatusRepository _repository;
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<ListingStatus>>> Get()
-    {
-        var statuses = await _repository.GetAllAsync();
-        return Ok(statuses);
+        public ListingStatusController(IListingStatusRepository repository)
+        {
+            _repository = repository;
+        }
+
+        [HttpGet]
+        [Authorize(Policy = "AdminOrUser")]
+        public async Task<IActionResult> Get()
+        {
+            var statuses = await _repository.GetAllAsync();
+            return Ok(ApiResponseBuilder.Success(statuses, "Listing statuses retrieved successfully."));
+        }
     }
 }

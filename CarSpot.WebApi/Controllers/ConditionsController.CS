@@ -4,7 +4,12 @@ using CarSpot.Domain.Entities;
 using CarSpot.Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Common.Responses;
-
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using CarSpot.Domain.Common;
+using Microsoft.AspNetCore.Authorization;
+using CarSpot.Application.DTOs;
+using CarSpot.Application.Interfaces.Services;
 
 namespace CarSpot.API.Controllers
 {
@@ -13,20 +18,48 @@ namespace CarSpot.API.Controllers
     public class ConditionsController : ControllerBase
     {
         private readonly IAuxiliarRepository<Condition> _repository;
+        private readonly IPaginationService _paginationService;
 
-        public ConditionsController(IAuxiliarRepository<Condition> repository)
+        public ConditionsController(IAuxiliarRepository<Condition> repository, IPaginationService paginationService)
         {
             _repository = repository;
+            _paginationService = paginationService;
+
         }
 
+
+        
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [AllowAnonymous]
+        public async Task<ActionResult<PaginatedResponse<ConditionDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
-            var items = await _repository.GetAllAsync();
-            return Ok(ApiResponseBuilder.Success(items, "List of conditions retrieved successfully."));
+            const int maxPageSize = 100;
+
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
+
+            var query = _repository.Query();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query.Select(c => new ConditionDto(
+                    c.Id,
+                    c.Name
+                )),
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
+
+            return Ok(ApiResponseBuilder.Success(paginatedResult, "List of conditions retrieved successfully."));
         }
 
+
+
+        
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(int id)
         {
             var condition = await _repository.GetByIdAsync(id);
@@ -35,7 +68,10 @@ namespace CarSpot.API.Controllers
                 : Ok(ApiResponseBuilder.Success(condition));
         }
 
+
+        
         [HttpPost]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Create(Condition condition)
         {
             if (condition == null || string.IsNullOrWhiteSpace(condition.Name))
@@ -45,7 +81,7 @@ namespace CarSpot.API.Controllers
             {
                 await _repository.Add(condition);
                 await _repository.SaveChangesAsync();
-                return CreatedAtAction(nameof(GetById), new { id = condition.Id }, 
+                return CreatedAtAction(nameof(GetById), new { id = condition.Id },
                     ApiResponseBuilder.Success(condition, "Condition created successfully."));
             }
             catch (Exception ex)
@@ -54,7 +90,10 @@ namespace CarSpot.API.Controllers
             }
         }
 
+
+      
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Update(int id, Condition updated)
         {
             if (id != updated.Id)
@@ -78,7 +117,9 @@ namespace CarSpot.API.Controllers
             }
         }
 
+        
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id)
         {
             var condition = await _repository.GetByIdAsync(id);

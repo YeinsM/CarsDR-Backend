@@ -1,8 +1,13 @@
+
 using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Common.Responses;
+using CarSpot.Domain.Common;
+using CarSpot.Application.Interfaces.Services;
+
 
 namespace CarSpot.API.Controllers
 {
@@ -11,21 +16,48 @@ namespace CarSpot.API.Controllers
     public class CountryController : ControllerBase
     {
         private readonly IAuxiliarRepository<Country> _repository;
+        private readonly IPaginationService _paginationService;
 
-        public CountryController(IAuxiliarRepository<Country> repository)
+        public CountryController(IAuxiliarRepository<Country> repository, IPaginationService paginationService)
         {
             _repository = repository;
+            _paginationService = paginationService;
         }
 
+
+        
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [AllowAnonymous]
+        public async Task<ActionResult<PaginatedResponse<CountryResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
-            var countries = await _repository.GetAllAsync();
-            var response = countries.Select(c => new CountryResponse(c.Id, c.Name, c.Abbreviation));
-            return Ok(ApiResponseBuilder.Success(response, "List of countries retrieved successfully."));
+            const int maxPageSize = 100;
+
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
+
+            var query = _repository.Query();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query.Select(c => new CountryResponse(
+                    c.Id,
+                    c.Name,
+                    c.Abbreviation
+                )),
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
+
+            return Ok(ApiResponseBuilder.Success(paginatedResult, "List of countries retrieved successfully."));
         }
 
+
+
+        
         [HttpGet("{id:int}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetById(int id)
         {
             var country = await _repository.GetByIdAsync(id);
@@ -34,7 +66,10 @@ namespace CarSpot.API.Controllers
                 : Ok(ApiResponseBuilder.Success(new CountryResponse(country.Id, country.Name, country.Abbreviation)));
         }
 
+
+        
         [HttpPost]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Create(CreateCountryRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Abbreviation))
@@ -53,7 +88,10 @@ namespace CarSpot.API.Controllers
             return CreatedAtAction(nameof(GetById), new { id = country.Id }, ApiResponseBuilder.Success(response, "Country created successfully."));
         }
 
+
+        
         [HttpPut("{id:int}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Update(int id, UpdateCountryRequest request)
         {
             if (string.IsNullOrWhiteSpace(request.Name) || string.IsNullOrWhiteSpace(request.Abbreviation))
@@ -72,7 +110,9 @@ namespace CarSpot.API.Controllers
             return Ok(ApiResponseBuilder.Success(new CountryResponse(country.Id, country.Name, country.Abbreviation), "Country updated successfully."));
         }
 
+       
         [HttpDelete("{id:int}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id)
         {
             var country = await _repository.GetByIdAsync(id);

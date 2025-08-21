@@ -1,14 +1,12 @@
 using CarSpot.Domain.Entities;
 
-namespace CarSpot.Application.Interfaces
+public interface IListingRepository
 {
-    public interface IListingRepository
-    {
-        Task<IEnumerable<Listing>> GetAllAsync();
-        Task<Listing?> GetByIdAsync(Guid id);
-        Task<Listing> Add(Listing listing);
-        Task<Listing> UpdateAsync(Listing listing);
-        Task<Listing> DeleteAsync(Guid id);
-        Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
-    }
+    IQueryable<Listing> Query();              
+    Task<Listing?> GetByIdAsync(Guid id);
+    Task<Listing> Add(Listing listing);
+    Task UpdateAsync(Listing listing);
+    Task DeleteAsync(Guid id);
+    Task<IEnumerable<Listing>> GetBySellerIdAsync(Guid sellerId);
+
 }

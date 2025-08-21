@@ -1,6 +1,11 @@
+
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using CarSpot.Application.Common.Responses;
+using CarSpot.Application.Interfaces.Services;
+using CarSpot.Domain.Common;
 
 namespace CarSpot.API.Controllers
 {
@@ -9,20 +14,46 @@ namespace CarSpot.API.Controllers
     public class CylinderOptionsController : ControllerBase
     {
         private readonly IAuxiliarRepository<CylinderOption> _repository;
+        private readonly IPaginationService _paginationService;
 
-        public CylinderOptionsController(IAuxiliarRepository<CylinderOption> repository)
+        public CylinderOptionsController(IAuxiliarRepository<CylinderOption> repository, IPaginationService paginationService)
         {
             _repository = repository;
+            _paginationService = paginationService;
         }
 
+
+        
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        [AllowAnonymous]
+        public async Task<ActionResult<PaginatedResponse<CylinderOptionDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
-            var items = await _repository.GetAllAsync();
-            return Ok(ApiResponseBuilder.Success(items, "List of cylinder options retrieved successfully."));
+            const int maxPageSize = 100;
+
+            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
+            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
+
+            var query = _repository.Query();
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+
+            var paginatedResult = await _paginationService.PaginateAsync(
+                query.Select(c => new CylinderOptionDto(
+                    c.Id,
+                    c.Name
+                )),
+                pageNumber,
+                pageSize,
+                baseUrl
+            );
+
+            return Ok(paginatedResult);
         }
 
+
+        
         [HttpGet("{id}")]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(int id)
         {
             var item = await _repository.GetByIdAsync(id);
@@ -32,7 +63,10 @@ namespace CarSpot.API.Controllers
             return Ok(ApiResponseBuilder.Success(item));
         }
 
+
+        
         [HttpPost]
+        [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Create(CylinderOption cylinderOption)
         {
             if (string.IsNullOrWhiteSpace(cylinderOption.Name))
@@ -45,7 +79,10 @@ namespace CarSpot.API.Controllers
                 ApiResponseBuilder.Success(cylinderOption, "Cylinder option created successfully."));
         }
 
+
+        
         [HttpPut("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Update(int id, CylinderOption updated)
         {
             if (id != updated.Id)
@@ -62,7 +99,10 @@ namespace CarSpot.API.Controllers
             return Ok(ApiResponseBuilder.Success(existing, "Cylinder option updated successfully."));
         }
 
+
+        
         [HttpDelete("{id}")]
+        [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id)
         {
             var item = await _repository.GetByIdAsync(id);
