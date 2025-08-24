@@ -21,7 +21,7 @@ namespace CarSpot.Infrastructure.Services
 
         public async Task<DateTime?> GetUserPlanExpiration(Guid userId)
         {
-            var plan = await _context.UserPlans
+            Domain.Entities.UserPlan? plan = await _context.UserPlans
                 .Where(up => up.UserId == userId && up.EndDate > DateTime.UtcNow)
                 .OrderByDescending(up => up.EndDate)
                 .FirstOrDefaultAsync();

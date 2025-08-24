@@ -1,28 +1,19 @@
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using CarSpot.Application.Common.Responses;
 using CarSpot.Application.Interfaces.Services;
 using CarSpot.Domain.Common;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class CabTypesController : ControllerBase
+    public class CabTypesController(
+        IAuxiliarRepository<CabType> repository,
+        IPaginationService paginationService) : ControllerBase
     {
-        private readonly IAuxiliarRepository<CabType> _repository;
-        private readonly IPaginationService _paginationService;
-
-        public CabTypesController(
-            IAuxiliarRepository<CabType> repository,
-            IPaginationService paginationService)
-        {
-            _repository = repository;
-            _paginationService = paginationService;
-        }
-
         [HttpGet]
         [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<CabTypeDto>>> GetAll([FromQuery] PaginationParameters pagination)
@@ -32,11 +23,11 @@ namespace CarSpot.API.Controllers
             int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
             int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
-            var query = _repository.Query();
+            System.Linq.IQueryable<CabType> query = repository.Query();
 
-            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+            string baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var paginatedResult = await _paginationService.PaginateAsync(
+            PaginatedResponse<CabType> paginatedResult = await paginationService.PaginateAsync(
                 query,
                 pageNumber,
                 pageSize,
@@ -50,10 +41,12 @@ namespace CarSpot.API.Controllers
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(int id)
         {
-            var item = await _repository.GetByIdAsync(id);
+            CabType? item = await repository.GetByIdAsync(id);
 
             if (item is null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<string>(404, "Item not found."));
+            }
 
             return Ok(ApiResponseBuilder.Success(item, "Item found successfully."));
         }
@@ -63,12 +56,14 @@ namespace CarSpot.API.Controllers
         public async Task<IActionResult> Create([FromBody] CabType cabType)
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ApiResponseBuilder.Fail<string>(400, "Invalid input."));
+            }
 
-            await _repository.Add(cabType);
-            await _repository.SaveChangesAsync();
+            await repository.Add(cabType);
+            await repository.SaveChangesAsync();
 
-            var response = ApiResponseBuilder.Success(cabType, "CabType created successfully.");
+            ApiResponse<CabType> response = ApiResponseBuilder.Success(cabType, "CabType created successfully.");
 
             return CreatedAtAction(nameof(GetById), new { id = cabType.Id }, response);
         }
@@ -78,16 +73,20 @@ namespace CarSpot.API.Controllers
         public async Task<IActionResult> Update(int id, CabType updated)
         {
             if (id != updated.Id)
+            {
                 return BadRequest(ApiResponseBuilder.Fail<string>(400, "The ID in the URL does not match the request body."));
+            }
 
-            var existing = await _repository.GetByIdAsync(id);
+            CabType? existing = await repository.GetByIdAsync(id);
 
             if (existing is null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<string>(404, "Cab type not found."));
+            }
 
             existing.Name = updated.Name;
-            await _repository.UpdateAsync(existing);
-            await _repository.SaveChangesAsync();
+            await repository.UpdateAsync(existing);
+            await repository.SaveChangesAsync();
 
             return Ok(ApiResponseBuilder.Success<string>(null, "Cab type updated successfully."));
         }
@@ -96,13 +95,15 @@ namespace CarSpot.API.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id)
         {
-            var cabType = await _repository.GetByIdAsync(id);
+            CabType? cabType = await repository.GetByIdAsync(id);
 
             if (cabType is null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<string>(404, "Cab type not found."));
+            }
 
-            await _repository.DeleteAsync(cabType);
-            await _repository.SaveChangesAsync();
+            await repository.DeleteAsync(cabType);
+            await repository.SaveChangesAsync();
 
             return Ok(ApiResponseBuilder.Success<string>(null, "Cab type deleted successfully."));
         }

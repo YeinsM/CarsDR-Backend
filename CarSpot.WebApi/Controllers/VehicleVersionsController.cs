@@ -1,62 +1,41 @@
+using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Application.Common.Responses;
-using CarSpot.Application.Interfaces.Repositories;
-using CarSpot.Domain.Common;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using System.Linq;
 using CarSpot.Application.DTOs;
+using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Application.Interfaces.Services;
+using CarSpot.Domain.Common;
+using CarSpot.WebApi.Controllers.Base;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class VehicleVersionsController : ControllerBase
+    public class VehicleVersionsController(
+        IAuxiliarRepository<VehicleVersion> repository,
+        IModelRepository modelRepository,
+        IPaginationService paginationService
+        ) : PaginatedControllerBase(paginationService)
     {
-        private readonly IAuxiliarRepository<VehicleVersion> _repository;
-        private readonly IModelRepository _modelRepository;
-        private readonly IPaginationService _paginationService;
-
-        public VehicleVersionsController(
-            IAuxiliarRepository<VehicleVersion> repository,
-            IModelRepository modelRepository,
-            IPaginationService paginationService
-        )
-        {
-            _repository = repository;
-            _modelRepository = modelRepository;
-            _paginationService = paginationService;
-        }
-
         [HttpGet]
         [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<VehicleVersionDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
-            const int maxPageSize = 100;
-
-            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
-            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
-
-            if (pageNumber <= 0)
+            if (pagination.PageNumber <= 0)
+            {
                 return BadRequest(ApiResponseBuilder.Fail<object>(400, "Page number must be greater than zero."));
+            }
 
-            var query = _repository.Query();
-
-            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
-
-            var paginatedResult = await _paginationService.PaginateAsync(
-                query.Select(vv => new VehicleVersionDto(
+            IQueryable<VehicleVersionDto> query = repository.Query()
+                .Select(vv => new VehicleVersionDto(
                     vv.Id,
                     vv.Name!,
                     vv.ModelId
-                )),
-                pageNumber,
-                pageSize,
-                baseUrl
-            );
+                ));
 
-            return Ok(paginatedResult);
+            return await GetPaginatedResultAsync(query, pagination);
         }
 
  
@@ -64,9 +43,11 @@ namespace CarSpot.API.Controllers
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(int id)
         {
-            var version = await _repository.GetByIdAsync(id);
+            VehicleVersion? version = await repository.GetByIdAsync(id);
             if (version is null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<VehicleVersion>(404, $"Vehicle version with ID {id} not found."));
+            }
 
             return Ok(ApiResponseBuilder.Success(version));
         }
@@ -76,12 +57,14 @@ namespace CarSpot.API.Controllers
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Create([FromBody] VehicleVersion vehicleVersion)
         {
-            var model = await _modelRepository.GetByIdAsync(vehicleVersion.ModelId);
+            Domain.Entities.Model? model = await modelRepository.GetByIdAsync(vehicleVersion.ModelId);
             if (model is null)
+            {
                 return BadRequest(ApiResponseBuilder.Fail<VehicleVersion>(400, $"Model with ID {vehicleVersion.ModelId} does not exist."));
+            }
 
-            await _repository.Add(vehicleVersion);
-            await _repository.SaveChangesAsync();
+            await repository.Add(vehicleVersion);
+            await repository.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetById), new { id = vehicleVersion.Id },
                 ApiResponseBuilder.Success(vehicleVersion, "Vehicle version created successfully."));
@@ -92,21 +75,27 @@ namespace CarSpot.API.Controllers
         public async Task<IActionResult> Update(int id, [FromBody] VehicleVersion updated)
         {
             if (id != updated.Id)
+            {
                 return BadRequest(ApiResponseBuilder.Fail<VehicleVersion>(400, "The ID in the URL does not match the ID in the payload."));
+            }
 
-            var existing = await _repository.GetByIdAsync(id);
+            VehicleVersion? existing = await repository.GetByIdAsync(id);
             if (existing is null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<VehicleVersion>(404, $"Vehicle version with ID {id} not found."));
+            }
 
-            var model = await _modelRepository.GetByIdAsync(updated.ModelId);
+            Domain.Entities.Model? model = await modelRepository.GetByIdAsync(updated.ModelId);
             if (model is null)
+            {
                 return BadRequest(ApiResponseBuilder.Fail<VehicleVersion>(400, $"Model with ID {updated.ModelId} does not exist."));
+            }
 
             existing.Name = updated.Name;
             existing.ModelId = updated.ModelId;
 
-            await _repository.UpdateAsync(existing);
-            await _repository.SaveChangesAsync();
+            await repository.UpdateAsync(existing);
+            await repository.SaveChangesAsync();
 
             return Ok(ApiResponseBuilder.Success(existing, "Vehicle version updated successfully."));
         }
@@ -115,12 +104,14 @@ namespace CarSpot.API.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(int id)
         {
-            var version = await _repository.GetByIdAsync(id);
+            VehicleVersion? version = await repository.GetByIdAsync(id);
             if (version is null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<VehicleVersion>(404, $"Vehicle version with ID {id} not found."));
+            }
 
-            await _repository.DeleteAsync(version);
-            await _repository.SaveChangesAsync();
+            await repository.DeleteAsync(version);
+            await repository.SaveChangesAsync();
 
             return Ok(ApiResponseBuilder.Success<VehicleVersion>(null, "Vehicle version deleted successfully."));
         }

@@ -11,24 +11,24 @@ public class JwtTokenGenerator(IConfiguration configuration) : IJwtTokenGenerato
 
     public string GenerateToken(User user)
     {
-       
-        var secret = _configuration["JwtSettings:Secret"]
+
+        string secret = _configuration["JwtSettings:Secret"]
             ?? throw new InvalidOperationException("JwtSettings:Secret is missing in configuration.");
 
-        var issuer = _configuration["JwtSettings:Issuer"]
+        string issuer = _configuration["JwtSettings:Issuer"]
             ?? throw new InvalidOperationException("JwtSettings:Issuer is missing in configuration.");
 
-        var audience = _configuration["JwtSettings:Audience"]
+        string audience = _configuration["JwtSettings:Audience"]
             ?? throw new InvalidOperationException("JwtSettings:Audience is missing in configuration.");
 
-        var expiryMinutesValue = _configuration["JwtSettings:ExpiryMinutes"]
+        string expiryMinutesValue = _configuration["JwtSettings:ExpiryMinutes"]
             ?? throw new InvalidOperationException("JwtSettings:ExpiryMinutes is missing in configuration.");
 
-        if (!int.TryParse(expiryMinutesValue, out var expiryMinutes))
+        if (!int.TryParse(expiryMinutesValue, out int expiryMinutes))
             throw new InvalidOperationException("JwtSettings:ExpiryMinutes must be a valid integer.");
 
-        
-        var now = DateTime.UtcNow;
+
+        DateTime now = DateTime.UtcNow;
 
        
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
@@ -57,7 +57,7 @@ public class JwtTokenGenerator(IConfiguration configuration) : IJwtTokenGenerato
         };
 
         var tokenHandler = new JwtSecurityTokenHandler();
-        var token = tokenHandler.CreateToken(tokenDescriptor);
+        SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
 
         
         return tokenHandler.WriteToken(token);

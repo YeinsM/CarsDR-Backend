@@ -9,7 +9,7 @@ public class PaginatedResponse<T>
     {
         Data = data;
 
-        var totalPages = pageSize > 0 ? (int)Math.Ceiling((double)total / pageSize) : 0;
+        int totalPages = pageSize > 0 ? (int)Math.Ceiling((double)total / pageSize) : 0;
 
         Pagination = new PaginationMetadata
         {

@@ -9,20 +9,13 @@ namespace CarSpot.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ListingStatusController : ControllerBase
+    public class ListingStatusController(IListingStatusRepository repository) : ControllerBase
     {
-        private readonly IListingStatusRepository _repository;
-
-        public ListingStatusController(IListingStatusRepository repository)
-        {
-            _repository = repository;
-        }
-
         [HttpGet]
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Get()
         {
-            var statuses = await _repository.GetAllAsync();
+            System.Collections.Generic.IEnumerable<Domain.Entities.ListingStatus> statuses = await repository.GetAllAsync();
             return Ok(ApiResponseBuilder.Success(statuses, "Listing statuses retrieved successfully."));
         }
     }

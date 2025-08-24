@@ -1,51 +1,28 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Application.Common.Responses;
+using CarSpot.Application.Interfaces.Services;
 using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
-using Microsoft.AspNetCore.Mvc;
+using CarSpot.WebApi.Controllers.Base;
 using Microsoft.AspNetCore.Authorization;
-using CarSpot.Application.Interfaces.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class CitiesController : ControllerBase
+    public class CitiesController(IAuxiliarRepository<City> cityRepository, IPaginationService paginationService) : PaginatedControllerBase(paginationService)
     {
-        private readonly IAuxiliarRepository<City> _cityRepository;
-        private readonly IPaginationService _paginationService;
-
-        public CitiesController(IAuxiliarRepository<City> cityRepository, IPaginationService paginationService)
-        {
-            _cityRepository = cityRepository;
-            _paginationService = paginationService;
-        }
-
-
         [HttpGet]
         [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<CityResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
-            const int maxPageSize = 100;
-
-            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
-            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
-
-            var query = _cityRepository.Query()
+            IQueryable<CityResponse> query = cityRepository.Query()
                 .Select(c => new CityResponse(c.Id, c.Name, c.CountryId));
 
-            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
-
-            var paginatedResult = await _paginationService.PaginateAsync(
-                query,
-                pageNumber,
-                pageSize,
-                baseUrl
-            );
-
-            return Ok(ApiResponseBuilder.Success(paginatedResult));
+            return await GetPaginatedResultAsync(query, pagination, useApiResponseBuilder: true);
         }
 
 
@@ -54,9 +31,11 @@ namespace CarSpot.WebApi.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)
         {
-            var city = await _cityRepository.GetByIdAsync(id);
+            City? city = await cityRepository.GetByIdAsync(id);
             if (city == null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<string>(404, $"City with id {id} not found."));
+            }
 
             var response = new CityResponse(city.Id, city.Name, city.CountryId);
             return Ok(ApiResponseBuilder.Success(response));
@@ -68,7 +47,9 @@ namespace CarSpot.WebApi.Controllers
         public async Task<IActionResult> CreateAsync([FromBody] CreateCityRequest request)
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ApiResponseBuilder.Fail<string>(400, "Invalid request payload."));
+            }
 
             var city = new City
             {
@@ -76,8 +57,8 @@ namespace CarSpot.WebApi.Controllers
                 CountryId = request.CountryId
             };
 
-            await _cityRepository.Add(city);
-            await _cityRepository.SaveChangesAsync();
+            await cityRepository.Add(city);
+            await cityRepository.SaveChangesAsync();
 
             var response = new CityResponse(city.Id, city.Name, city.CountryId);
 
@@ -90,17 +71,21 @@ namespace CarSpot.WebApi.Controllers
         public async Task<IActionResult> UpdateAsync(int id, [FromBody] UpdateCityRequest request)
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ApiResponseBuilder.Fail<string>(400, "Invalid request payload."));
+            }
 
-            var city = await _cityRepository.GetByIdAsync(id);
+            City? city = await cityRepository.GetByIdAsync(id);
             if (city == null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<string>(404, $"City with id {id} not found."));
+            }
 
             city.Name = request.Name;
             city.CountryId = request.CountryId;
 
-            await _cityRepository.UpdateAsync(city);
-            await _cityRepository.SaveChangesAsync();
+            await cityRepository.UpdateAsync(city);
+            await cityRepository.SaveChangesAsync();
 
             return Ok(ApiResponseBuilder.Success<string>(null, "City updated successfully."));
         }
@@ -110,12 +95,14 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> DeleteAsync(int id)
         {
-            var city = await _cityRepository.GetByIdAsync(id);
+            City? city = await cityRepository.GetByIdAsync(id);
             if (city == null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<string>(404, $"City with id {id} not found."));
+            }
 
-            await _cityRepository.DeleteAsync(city);
-            await _cityRepository.SaveChangesAsync();
+            await cityRepository.DeleteAsync(city);
+            await cityRepository.SaveChangesAsync();
 
             return Ok(ApiResponseBuilder.Success<string>(null, "City deleted successfully."));
         }

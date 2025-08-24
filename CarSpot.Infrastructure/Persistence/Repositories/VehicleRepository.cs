@@ -188,7 +188,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
                 .Take(filter.PageSize)
                 .ToListAsync();
 
-            var vehicleDtos = vehicles.Select(v => new VehicleDto(
+            IEnumerable<VehicleDto> vehicleDtos = vehicles.Select(v => new VehicleDto(
                 v.Id,
                 v.VIN,
                 v.Price,

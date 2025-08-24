@@ -10,21 +10,20 @@ using CarSpot.Domain.Common;
 using Microsoft.AspNetCore.Authorization;
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces.Services;
+using CarSpot.WebApi.Controllers.Base;
 
-namespace CarSpot.API.Controllers
+namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ConditionsController : ControllerBase
+    public class ConditionsController : PaginatedControllerBase
     {
         private readonly IAuxiliarRepository<Condition> _repository;
-        private readonly IPaginationService _paginationService;
 
-        public ConditionsController(IAuxiliarRepository<Condition> repository, IPaginationService paginationService)
+        public ConditionsController(IAuxiliarRepository<Condition> repository, IPaginationService paginationService) 
+            : base(paginationService)
         {
             _repository = repository;
-            _paginationService = paginationService;
-
         }
 
 
@@ -33,26 +32,10 @@ namespace CarSpot.API.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<ConditionDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
-            const int maxPageSize = 100;
+            var query = _repository.Query()
+                .Select(c => new ConditionDto(c.Id, c.Name));
 
-            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
-            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
-
-            var query = _repository.Query();
-
-            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
-
-            var paginatedResult = await _paginationService.PaginateAsync(
-                query.Select(c => new ConditionDto(
-                    c.Id,
-                    c.Name
-                )),
-                pageNumber,
-                pageSize,
-                baseUrl
-            );
-
-            return Ok(ApiResponseBuilder.Success(paginatedResult, "List of conditions retrieved successfully."));
+            return await GetPaginatedResultAsync(query, pagination, "List of conditions retrieved successfully.", true);
         }
 
 
@@ -75,9 +58,11 @@ namespace CarSpot.API.Controllers
         public async Task<IActionResult> Create(Condition condition)
         {
             if (condition == null || string.IsNullOrWhiteSpace(condition.Name))
-                return BadRequest(ApiResponseBuilder.Fail<Condition>(400, "Invalid condition data."));
+    {
+        return BadRequest(ApiResponseBuilder.Fail<Condition>(400, "Invalid condition data."));
+    }
 
-            try
+    try
             {
                 await _repository.Add(condition);
                 await _repository.SaveChangesAsync();
@@ -97,13 +82,17 @@ namespace CarSpot.API.Controllers
         public async Task<IActionResult> Update(int id, Condition updated)
         {
             if (id != updated.Id)
-                return BadRequest(ApiResponseBuilder.Fail<Condition>(400, "ID mismatch between URL and body."));
+    {
+        return BadRequest(ApiResponseBuilder.Fail<Condition>(400, "ID mismatch between URL and body."));
+    }
 
-            var existing = await _repository.GetByIdAsync(id);
+    var existing = await _repository.GetByIdAsync(id);
             if (existing == null)
-                return NotFound(ApiResponseBuilder.Fail<Condition>(404, $"Condition with ID {id} does not exist."));
+    {
+        return NotFound(ApiResponseBuilder.Fail<Condition>(404, $"Condition with ID {id} does not exist."));
+    }
 
-            existing.Name = updated.Name;
+    existing.Name = updated.Name;
 
             try
             {
@@ -124,9 +113,11 @@ namespace CarSpot.API.Controllers
         {
             var condition = await _repository.GetByIdAsync(id);
             if (condition == null)
-                return NotFound(ApiResponseBuilder.Fail<Condition>(404, $"Condition with ID {id} does not exist."));
+    {
+        return NotFound(ApiResponseBuilder.Fail<Condition>(404, $"Condition with ID {id} does not exist."));
+    }
 
-            try
+    try
             {
                 await _repository.DeleteAsync(condition);
                 await _repository.SaveChangesAsync();

@@ -11,7 +11,7 @@ namespace CarSpot.Domain.ValueObjects
 
         public static HashedPassword Create(string password)
         {
-            var hashed = BCrypt.Net.BCrypt.HashPassword(password);
+            string hashed = BCrypt.Net.BCrypt.HashPassword(password);
             return new HashedPassword(hashed);
         }
 

@@ -1,48 +1,33 @@
 using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using CarSpot.Application.Common;
 using CarSpot.Application.DTOs;
+using CarSpot.Application.DTOS;
 using CarSpot.Application.Interfaces.Services;
+using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using CarSpot.Application.DTOS;
-using CarSpot.Domain.Common;
 
 namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class ListingsController : ControllerBase
+    public class ListingsController(IListingRepository listingRepository, IPaginationService paginationService, IPlanService planService) : ControllerBase
     {
-        private readonly IListingRepository _listingRepository;
-        private readonly IPaginationService _paginationService;
-        private readonly IPlanService _planService;
-
-        public ListingsController(IListingRepository listingRepository, IPaginationService paginationService, IPlanService planService)
-        {
-            _listingRepository = listingRepository;
-            _paginationService = paginationService;
-            _planService = planService;
-        }
-
-        
         [HttpGet]
         [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<ListingResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
-            const int maxPageSize = 100;
+            var (pageNumber, pageSize) = PaginationHelper.ValidateParameters(pagination);
+            string baseUrl = PaginationHelper.BuildBaseUrl(Request);
 
-            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
-            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
+            IQueryable<Listing> query = listingRepository.Query();
 
-            var query = _listingRepository.Query();
-
-            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
-
-            var paginatedResult = await _paginationService.PaginateAsync(
+            PaginatedResponse<ListingResponse> paginatedResult = await paginationService.PaginateAsync(
                 query.Select(listing => new ListingResponse
                 {
                     Id = listing.Id,
@@ -73,9 +58,11 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Policy = "AdminOrUser")]
         public async Task<ActionResult<ListingResponse>> GetById(Guid id)
         {
-            var listing = await _listingRepository.GetByIdAsync(id);
+            Listing? listing = await listingRepository.GetByIdAsync(id);
             if (listing == null)
+            {
                 return NotFound(new { Message = $"Listing with ID {id} not found." });
+            }
 
             var response = new ListingResponse
             {
@@ -96,7 +83,7 @@ namespace CarSpot.WebApi.Controllers
             };
 
             listing.ViewCount++;
-            await _listingRepository.UpdateAsync(listing);
+            await listingRepository.UpdateAsync(listing);
 
             return Ok(response);
         }
@@ -107,7 +94,9 @@ namespace CarSpot.WebApi.Controllers
         public async Task<IActionResult> Create([FromBody] CreateListingRequest request)
         {
             if (request == null)
+            {
                 return BadRequest(new { Message = "Request body cannot be null." });
+            }
 
             var listing = new Listing(
                 request.UserId,
@@ -123,7 +112,7 @@ namespace CarSpot.WebApi.Controllers
                 ExpiresAt = request.ExpiresAt
             };
 
-            var savedListing = await _listingRepository.Add(listing);
+            Listing savedListing = await listingRepository.Add(listing);
 
             return CreatedAtAction(nameof(GetById), new { id = savedListing.Id }, new
             {
@@ -137,9 +126,11 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateListingRequest request)
         {
-            var existingListing = await _listingRepository.GetByIdAsync(id);
+            Listing? existingListing = await listingRepository.GetByIdAsync(id);
             if (existingListing == null)
+            {
                 return NotFound(new { Message = $"Listing with ID {id} not found." });
+            }
 
             existingListing.Title = request.Title;
             existingListing.Description = request.Description;
@@ -150,7 +141,7 @@ namespace CarSpot.WebApi.Controllers
             existingListing.ExpiresAt = request.ExpiresAt;
             existingListing.UpdatedAt = DateTime.UtcNow;
 
-            await _listingRepository.UpdateAsync(existingListing);
+            await listingRepository.UpdateAsync(existingListing);
 
             return Ok(new { Message = "Listing updated successfully" });
         }
@@ -160,11 +151,13 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var listing = await _listingRepository.GetByIdAsync(id);
+            Listing? listing = await listingRepository.GetByIdAsync(id);
             if (listing == null)
+            {
                 return NotFound(new { Message = $"Listing with ID {id} not found." });
+            }
 
-            await _listingRepository.DeleteAsync(id);
+            await listingRepository.DeleteAsync(id);
 
             return NoContent();
         }
@@ -174,22 +167,28 @@ namespace CarSpot.WebApi.Controllers
         [HttpPost("{listingId}/mark-feature")]
         public async Task<IActionResult> MarkAsFeatured(Guid listingId, [FromBody] FeatureListingRequest request)
         {
-            var listing = await _listingRepository.GetByIdAsync(listingId);
+            Listing? listing = await listingRepository.GetByIdAsync(listingId);
             if (listing == null)
+            {
                 return NotFound(new { message = "Listing not found." });
+            }
 
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string? userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (string.IsNullOrEmpty(userIdClaim))
+            {
                 return Unauthorized(new { message = "Invalid token or user ID not found." });
+            }
 
             var userId = Guid.Parse(userIdClaim);
 
-            var hasPlan = await _planService.UserHasActivePlan(userId);
+            bool hasPlan = await planService.UserHasActivePlan(userId);
             if (!hasPlan)
+            {
                 return BadRequest(new { message = "You need an active plan to feature a listing." });
+            }
 
             listing.MarkAsFeatured(request.StartDate, request.EndDate);
-            await _listingRepository.UpdateAsync(listing);
+            await listingRepository.UpdateAsync(listing);
 
             return Ok(new
             {
@@ -204,12 +203,14 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> RemoveFeatured(Guid listingId)
         {
-            var listing = await _listingRepository.GetByIdAsync(listingId);
+            Listing? listing = await listingRepository.GetByIdAsync(listingId);
             if (listing == null)
+            {
                 return NotFound(new { message = "Listing not found." });
+            }
 
             listing.RemoveFeatured();
-            await _listingRepository.UpdateAsync(listing);
+            await listingRepository.UpdateAsync(listing);
 
             return Ok(new { message = "Listing removed from featured successfully.", listingId = listing.Id });
         }
@@ -219,12 +220,14 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> HighlightListing(Guid listingId, [FromBody] HighlightListingRequest request)
         {
-            var listing = await _listingRepository.GetByIdAsync(listingId);
+            Listing? listing = await listingRepository.GetByIdAsync(listingId);
             if (listing == null)
+            {
                 return NotFound(new { message = "Listing not found." });
+            }
 
             listing.MarkAsHighlighted(request.StartDate, request.EndDate);
-            await _listingRepository.UpdateAsync(listing);
+            await listingRepository.UpdateAsync(listing);
 
             return Ok(new
             {
@@ -239,12 +242,14 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> RemoveHighlight(Guid listingId)
         {
-            var listing = await _listingRepository.GetByIdAsync(listingId);
+            Listing? listing = await listingRepository.GetByIdAsync(listingId);
             if (listing == null)
+            {
                 return NotFound(new { message = "Listing not found." });
+            }
 
             listing.RemoveHighlighted();
-            await _listingRepository.UpdateAsync(listing);
+            await listingRepository.UpdateAsync(listing);
 
             return Ok(new { message = "Listing removed from highlight successfully.", listingId = listing.Id });
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using CarSpot.Application.Common;
 using CarSpot.Application.DTOs;
 using CarSpot.Application.Interfaces;
 using CarSpot.Application.Interfaces.Services;
@@ -19,49 +20,25 @@ namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UsersController : ControllerBase
+    public class UsersController(
+        IUserRepository userRepository,
+        IPaginationService paginationService,
+        IEmailService emailService,
+        IEmailSettingsRepository emailSettingsRepository,
+        IConfiguration configuration,
+        IJwtTokenGenerator jwtTokenGenerator,
+        IVehicleRepository vehicleRepository) : ControllerBase
     {
-        private readonly IUserRepository _userRepository;
-        private readonly IPaginationService _paginationService;
-        private readonly IEmailService _emailService;
-        private readonly IEmailSettingsRepository _emailSettingsRepository;
-        private readonly IConfiguration _configuration;
-        private readonly IJwtTokenGenerator _jwtTokenGenerator;
-        private readonly IVehicleRepository _vehicleRepository;
-
-        public UsersController(
-            IUserRepository userRepository,
-            IPaginationService paginationService,
-            IEmailService emailService,
-            IEmailSettingsRepository emailSettingsRepository,
-            IConfiguration configuration,
-            IJwtTokenGenerator jwtTokenGenerator,
-            IVehicleRepository vehicleRepository)
-        {
-            _userRepository = userRepository;
-            _paginationService = paginationService;
-            _emailService = emailService;
-            _emailSettingsRepository = emailSettingsRepository;
-            _configuration = configuration;
-            _jwtTokenGenerator = jwtTokenGenerator;
-            _vehicleRepository = vehicleRepository;
-        }
-
-
         [HttpGet]
         [Authorize(Policy = "AdminOrUser")]
         public async Task<ActionResult<PaginatedResponse<UserDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
-            const int maxPageSize = 100;
+            var (pageNumber, pageSize) = PaginationHelper.ValidateParameters(pagination);
+            string baseUrl = PaginationHelper.BuildBaseUrl(Request);
 
-            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
-            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
+            IQueryable<User> query = userRepository.Query();
 
-            var query = _userRepository.Query();
-
-            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
-
-            var paginatedResult = await _paginationService.PaginateAsync(
+            PaginatedResponse<UserDto> paginatedResult = await paginationService.PaginateAsync(
                 query.Select(u => new UserDto(
                     u.Id,
                     u.Email,
@@ -89,9 +66,9 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetAllBasic()
         {
-            var users = await _userRepository.GetAllBasicAsync();
+            IEnumerable<User> users = await userRepository.GetAllBasicAsync();
 
-            var response = users.Select(u => new UserDto(
+            IEnumerable<UserDto> response = users.Select(u => new UserDto(
                 u.Id,
                 u.Email,
                 u.Username,
@@ -113,11 +90,13 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            User? user = await userRepository.GetByIdAsync(id);
             if (user == null)
+            {
                 return NotFound(new { message = "User not found" });
+            }
 
-            var vehicles = await _vehicleRepository.GetAllAsync();
+            IEnumerable<VehicleDto> vehicles = await vehicleRepository.GetAllAsync();
             var userVehicles = vehicles.Where(v => v.UserId == user.Id).ToList();
 
             var response = new UserDto(
@@ -145,19 +124,29 @@ namespace CarSpot.WebApi.Controllers
             try
             {
                 if (request == null)
+                {
                     return BadRequest(new { Status = 400, Message = "Request body is required" });
+                }
 
                 if (string.IsNullOrWhiteSpace(request.FirstName))
+                {
                     return BadRequest(new { Status = 400, Message = "FirstName is required" });
+                }
 
                 if (string.IsNullOrWhiteSpace(request.Email))
+                {
                     return BadRequest(new { Status = 400, Message = "Email is required" });
+                }
 
-                if (await _userRepository.IsEmailRegisteredAsync(request.Email))
+                if (await userRepository.IsEmailRegisteredAsync(request.Email))
+                {
                     return BadRequest(new { Status = 400, Message = "Email already registered" });
+                }
 
-                if (await _userRepository.GetByUsernameAsync(request.Username) != null)
+                if (await userRepository.GetByUsernameAsync(request.Username) != null)
+                {
                     return BadRequest(new { Status = 400, Message = "Username already registered" });
+                }
 
                 var hashedPassword = HashedPassword.Create(request.Password);
 
@@ -174,8 +163,8 @@ namespace CarSpot.WebApi.Controllers
                     request.RoleId
                 );
 
-                await _userRepository.RegisterUserAsync(user);
-                await _userRepository.SaveChangesAsync();
+                await userRepository.RegisterUserAsync(user);
+                await userRepository.SaveChangesAsync();
 
                 return Ok(new { Status = 200, Message = "User registered successfully", UserId = user.Id });
             }
@@ -207,15 +196,19 @@ namespace CarSpot.WebApi.Controllers
          [AllowAnonymous]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            User? user = await _userRepository.GetByEmailAsync(request.EmailOrUsername!);
+            User? user = await userRepository.GetByEmailAsync(request.EmailOrUsername!);
 
             if (user == null)
-                user = await _userRepository.GetByUsernameAsync(request.EmailOrUsername!);
+            {
+                user = await userRepository.GetByUsernameAsync(request.EmailOrUsername!);
+            }
 
             if (user == null || !user.Password.Verify(request.Password!))
+            {
                 return Unauthorized(new { Status = 401, Message = "Invalid credentials" });
+            }
 
-            var token = _jwtTokenGenerator.GenerateToken(user);
+            string token = jwtTokenGenerator.GenerateToken(user);
 
             return Ok(new
             {
@@ -233,9 +226,11 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UpdateUserRequest request)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            User? user = await userRepository.GetByIdAsync(id);
             if (user == null)
+            {
                 return NotFound(new { Status = 404, Message = "User not found" });
+            }
 
             user.UpdateBasicInfo(
                 request.FirstName,
@@ -243,7 +238,7 @@ namespace CarSpot.WebApi.Controllers
                 request.Username
             );
 
-            await _userRepository.UpdateAsync(id);
+            await userRepository.UpdateAsync(id);
 
             return Ok(new { Status = 200, Message = "User updated successfully", User = new { user.Id, user.Username } });
         }
@@ -256,13 +251,15 @@ namespace CarSpot.WebApi.Controllers
         {
             try
             {
-                var user = await _userRepository.GetByIdAsync(id);
+                User? user = await userRepository.GetByIdAsync(id);
                 if (user == null)
+                {
                     return NotFound(new { Status = 404, Message = "User not found" });
+                }
 
                 user.ChangePassword(request.CurrentPassword, request.NewPassword, request.ConfirmNewPassword);
 
-                await _userRepository.UpdateAsync(id);
+                await userRepository.UpdateAsync(id);
                 return NoContent();
             }
             catch (ArgumentException ex)
@@ -277,12 +274,14 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Deactivate(Guid id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            User? user = await userRepository.GetByIdAsync(id);
             if (user == null)
+            {
                 return NotFound(new { Status = 404, Message = "User not found" });
+            }
 
             user.Deactivate();
-            await _userRepository.UpdateAsync(id);
+            await userRepository.UpdateAsync(id);
             return NoContent();
         }
 
@@ -292,12 +291,14 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Activate(Guid id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            User? user = await userRepository.GetByIdAsync(id);
             if (user == null)
+            {
                 return NotFound(new { Status = 404, Message = "User not found" });
+            }
 
             user.Activate();
-            await _userRepository.UpdateAsync(id);
+            await userRepository.UpdateAsync(id);
             return NoContent();
         }
 
@@ -309,7 +310,7 @@ namespace CarSpot.WebApi.Controllers
         {
             try
             {
-                using var conn = new SqlConnection(_configuration.GetConnectionString("Default"));
+                using var conn = new SqlConnection(configuration.GetConnectionString("Default"));
                 await conn.OpenAsync();
                 return Ok("Connected to Azure SQL successfully!");
             }
@@ -325,17 +326,21 @@ namespace CarSpot.WebApi.Controllers
         [Authorize]
         public async Task<IActionResult> GetProfile()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            string? userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrEmpty(userId))
+            {
                 return Unauthorized(new { message = "Invalid token or user ID not found." });
+            }
 
-            var user = await _userRepository.GetByIdAsync(Guid.Parse(userId));
+            User? user = await userRepository.GetByIdAsync(Guid.Parse(userId));
 
             if (user == null)
+            {
                 return NotFound(new { message = "User not found." });
+            }
 
-            var vehicles = await _vehicleRepository.GetAllAsync();
+            IEnumerable<VehicleDto> vehicles = await vehicleRepository.GetAllAsync();
             var userVehicles = vehicles.Where(v => v.UserId == user.Id).ToList();
 
             var response = new UserDto(

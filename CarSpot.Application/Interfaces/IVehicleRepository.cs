@@ -1,6 +1,6 @@
 using CarSpot.Application.DTOs;
-using CarSpot.Domain.Entities;
 using CarSpot.Domain.Common;
+using CarSpot.Domain.Entities;
 
 
 namespace CarSpot.Application.Interfaces

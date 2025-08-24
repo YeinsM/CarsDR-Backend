@@ -54,7 +54,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
 
         public async Task DeleteAsync(Guid id)
         {
-            var listing = await _context.Listings.FindAsync(id);
+            Listing? listing = await _context.Listings.FindAsync(id);
             if (listing != null)
             {
                 _context.Listings.Remove(listing);

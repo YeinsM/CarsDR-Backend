@@ -7,6 +7,7 @@ using CarSpot.Application.Interfaces.Repositories;
 using CarSpot.Application.Interfaces.Services;
 using CarSpot.Domain.Common;
 using CarSpot.Domain.Entities;
+using CarSpot.WebApi.Controllers.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,53 +15,31 @@ namespace CarSpot.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ModelsController : ControllerBase
+    public class ModelsController(IModelRepository modelRepository, IMakeRepository makeRepository, IPaginationService paginationService) : PaginatedControllerBase(paginationService)
     {
-        private readonly IModelRepository _modelRepository;
-        private readonly IMakeRepository _makeRepository;
-        private readonly IPaginationService _paginationService;
-
-        public ModelsController(IModelRepository modelRepository, IMakeRepository makeRepository, IPaginationService paginationService)
-        {
-            _modelRepository = modelRepository;
-            _makeRepository = makeRepository;
-            _paginationService = paginationService;
-        }
-
         [HttpGet]
         [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<ModelDto>>> GetAll([FromQuery] PaginationParameters pagination)
         {
-            const int maxPageSize = 100;
-
-            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
-            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
-
-            var query = _modelRepository.Query();
-
-            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
-
-            var paginatedResult = await _paginationService.PaginateAsync(
-                query.Select(m => new ModelDto(
+            IQueryable<ModelDto> query = modelRepository.Query()
+                .Select(m => new ModelDto(
                     m.Id,
                     m.Name!,
                     m.MakeId
-                )),
-                pageNumber,
-                pageSize,
-                baseUrl
-            );
+                ));
 
-            return Ok(paginatedResult);
+            return await GetPaginatedResultAsync(query, pagination);
         }
 
         [HttpGet("{id}")]
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var model = await _modelRepository.GetByIdAsync(id);
+            Model? model = await modelRepository.GetByIdAsync(id);
             if (model == null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<Model>(404, $"Model with ID {id} not found."));
+            }
 
             return Ok(ApiResponseBuilder.Success(model));
         }
@@ -69,11 +48,13 @@ namespace CarSpot.API.Controllers
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Create([FromBody] Model model)
         {
-            var make = await _makeRepository.GetByIdAsync(model.MakeId);
+            Make make = await makeRepository.GetByIdAsync(model.MakeId);
             if (make == null)
+            {
                 return BadRequest(ApiResponseBuilder.Fail<object>(400, $"Make with ID {model.MakeId} does not exist."));
+            }
 
-            await _modelRepository.Add(model);
+            await modelRepository.Add(model);
 
             return CreatedAtAction(nameof(GetById), new { id = model.Id },
                 ApiResponseBuilder.Success(model, "Model created successfully."));
@@ -84,17 +65,23 @@ namespace CarSpot.API.Controllers
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateModelRequest updated)
         {
             if (id != updated.Id)
+            {
                 return BadRequest(ApiResponseBuilder.Fail<object>(400, "URL ID does not match body ID."));
+            }
 
-            var make = await _makeRepository.GetByIdAsync(updated.MakeId);
+            Make make = await makeRepository.GetByIdAsync(updated.MakeId);
             if (make == null)
+            {
                 return BadRequest(ApiResponseBuilder.Fail<object>(400, $"Make with ID {updated.MakeId} does not exist."));
+            }
 
-            var existingModel = await _modelRepository.GetByIdAsync(id);
+            Model? existingModel = await modelRepository.GetByIdAsync(id);
             if (existingModel == null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<object>(404, $"Model with ID {id} not found."));
+            }
 
-            await _modelRepository.UpdateAsync(updated.Id, updated.Name, updated.MakeId);
+            await modelRepository.UpdateAsync(updated.Id, updated.Name, updated.MakeId);
 
             return NoContent();
         }
@@ -103,11 +90,13 @@ namespace CarSpot.API.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var model = await _modelRepository.GetByIdAsync(id);
+            Model? model = await modelRepository.GetByIdAsync(id);
             if (model == null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<object>(404, $"Model with ID {id} not found."));
+            }
 
-            await _modelRepository.DeleteAsync(id);
+            await modelRepository.DeleteAsync(id);
 
             return NoContent();
         }

@@ -1,52 +1,41 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Collections.Generic;
+using CarSpot.Application.Common.Extensions;
 using CarSpot.Application.Common.Responses;
 using CarSpot.Application.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using CarSpot.Application.Common.Extensions;
 using CarSpot.Application.Interfaces.Services;
 using CarSpot.Domain.Common;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CarSpot.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CommentsController : ControllerBase
+    public class CommentsController(
+        ICommentRepository commentRepository,
+        IUserRepository userRepository,
+        IListingRepository listingRepository,
+        IPaginationService paginationService) : ControllerBase
     {
-        private readonly ICommentRepository _commentRepository;
-        private readonly IUserRepository _userRepository;
-        private readonly IListingRepository _listingRepository;
-        private readonly IPaginationService _paginationService;
-
-        public CommentsController(
-            ICommentRepository commentRepository,
-            IUserRepository userRepository,
-            IListingRepository listingRepository,
-            IPaginationService paginationService)
-        {
-            _commentRepository = commentRepository;
-            _userRepository = userRepository;
-            _listingRepository = listingRepository;
-            _paginationService = paginationService;
-
-        }
-
-
         [HttpPost]
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Create([FromBody] CreateCommentRequest request)
         {
-            var userId = User.GetUserId();
-            var user = await _userRepository.GetByIdAsync(userId);
+            Guid userId = User.GetUserId();
+            Domain.Entities.User? user = await userRepository.GetByIdAsync(userId);
             if (user is null)
+            {
                 return Unauthorized(ApiResponseBuilder.Fail<string>(401, "Invalid user"));
+            }
 
-            var listing = await _listingRepository.GetByIdAsync(request.ListingId);
+            Domain.Entities.Listing? listing = await listingRepository.GetByIdAsync(request.ListingId);
             if (listing is null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<string>(404, "Listing not found"));
+            }
 
             var comment = new Comment
             {
@@ -57,8 +46,8 @@ namespace CarSpot.WebApi.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            await _commentRepository.CreateAddAsync(comment);
-            await _commentRepository.SaveChangesAsync();
+            await commentRepository.CreateAddAsync(comment);
+            await commentRepository.SaveChangesAsync();
 
             var response = new CommentResponse(
                 comment.Id,
@@ -84,11 +73,11 @@ namespace CarSpot.WebApi.Controllers
             int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
             int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
-            var query = _commentRepository.QueryByListingId(listingId);
+            IQueryable<Comment> query = commentRepository.QueryByListingId(listingId);
 
-            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+            string baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var paginatedResult = await _paginationService.PaginateAsync(
+            PaginatedResponse<CommentResponse> paginatedResult = await paginationService.PaginateAsync(
                 query
                     .OrderBy(c => c.CreatedAt)
                     .Select(c => new CommentResponse(
@@ -121,11 +110,11 @@ namespace CarSpot.WebApi.Controllers
             int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
             int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
 
-            var query = _commentRepository.QueryByUserId(userId);
+            IQueryable<Comment> query = commentRepository.QueryByUserId(userId);
 
-            var baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
+            string baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
 
-            var paginatedResult = await _paginationService.PaginateAsync(
+            PaginatedResponse<CommentResponse> paginatedResult = await paginationService.PaginateAsync(
                 query
                     .OrderBy(c => c.CreatedAt)
                     .Select(c => new CommentResponse(
@@ -151,12 +140,14 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var comment = await _commentRepository.GetByIdAsync(id);
+            Comment? comment = await commentRepository.GetByIdAsync(id);
             if (comment is null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<string>(404, "Comment not found."));
+            }
 
-            await _commentRepository.DeleteAsync(comment);
-            await _commentRepository.SaveChangesAsync();
+            await commentRepository.DeleteAsync(comment);
+            await commentRepository.SaveChangesAsync();
 
             return Ok(ApiResponseBuilder.Success<string>(null, "Comment deleted successfully"));
         }
@@ -165,12 +156,14 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCommentRequest request)
         {
-            var comment = await _commentRepository.GetByIdAsync(id);
+            Comment? comment = await commentRepository.GetByIdAsync(id);
             if (comment is null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<string>(404, "Comment not found."));
+            }
 
             comment.Content = request.Content;
-            await _commentRepository.SaveChangesAsync();
+            await commentRepository.SaveChangesAsync();
 
             return Ok(ApiResponseBuilder.Success<string>(null, "Comment updated successfully"));
         }
@@ -179,12 +172,14 @@ namespace CarSpot.WebApi.Controllers
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> Report(Guid id)
         {
-            var comment = await _commentRepository.GetByIdAsync(id);
+            Comment? comment = await commentRepository.GetByIdAsync(id);
             if (comment is null)
+            {
                 return NotFound(ApiResponseBuilder.Fail<string>(404, "Comment not found."));
+            }
 
             comment.IsReported = true;
-            await _commentRepository.SaveChangesAsync();
+            await commentRepository.SaveChangesAsync();
 
             return Ok(ApiResponseBuilder.Success<string>(null, "Comment reported successfully"));
         }

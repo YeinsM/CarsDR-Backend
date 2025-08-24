@@ -1,4 +1,3 @@
-using System;
 using CarSpot.Domain.Common;
 
 namespace CarSpot.Domain.Events

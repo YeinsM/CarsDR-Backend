@@ -73,7 +73,7 @@ namespace CarSpot.Domain.Entities
             if (!IsFeatured || !FeaturedFrom.HasValue || !FeaturedUntil.HasValue)
                 return false;
 
-            var now = DateTime.UtcNow;
+            DateTime now = DateTime.UtcNow;
             if (now > FeaturedUntil.Value)
             {
                 RemoveFeatured();
@@ -103,7 +103,7 @@ namespace CarSpot.Domain.Entities
             if (!IsHighlighted || !HighlightFrom.HasValue || !HighlightUntil.HasValue)
                 return false;
 
-            var now = DateTime.UtcNow;
+            DateTime now = DateTime.UtcNow;
             if (now > HighlightUntil.Value)
             {
                 RemoveHighlighted();

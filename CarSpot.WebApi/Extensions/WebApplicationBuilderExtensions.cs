@@ -22,7 +22,7 @@ namespace CarSpot.WebApi.Extensions
 
             // Leer variables de entorno
             builder.Configuration.AddEnvironmentVariables();
-            var cfg = builder.Configuration;
+            ConfigurationManager cfg = builder.Configuration;
 
             // JwtSettings
             cfg["JwtSettings:Secret"] = Environment.GetEnvironmentVariable("JWT_SECRET") ?? cfg["JwtSettings:Secret"];

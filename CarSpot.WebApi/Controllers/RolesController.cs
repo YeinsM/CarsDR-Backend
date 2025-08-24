@@ -10,21 +10,13 @@ namespace CarSpot.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class RolesController : ControllerBase
+    public class RolesController(IRoleRepository repository) : ControllerBase
     {
-        private readonly IRoleRepository _repository;
-
-        public RolesController(IRoleRepository repository)
-        {
-            _repository = repository;
-        }
-
-     
         [HttpGet]
         [Authorize(Policy = "AdminOrUser")]
         public async Task<IActionResult> GetAll()
         {
-            var items = await _repository.GetAllAsync();
+            System.Collections.Generic.IEnumerable<Role> items = await repository.GetAllAsync();
             return Ok(ApiResponseBuilder.Success(items, "Roles retrieved successfully."));
         }
 
@@ -32,7 +24,7 @@ namespace CarSpot.API.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var item = await _repository.GetByIdAsync(id);
+            Role? item = await repository.GetByIdAsync(id);
             return item is null
                 ? NotFound(ApiResponseBuilder.Fail<object?>(StatusCodes.Status404NotFound, $"Role with ID {id} not found."))
                 : Ok(ApiResponseBuilder.Success(item, "Role retrieved successfully."));
@@ -48,8 +40,8 @@ namespace CarSpot.API.Controllers
                 return BadRequest(ApiResponseBuilder.Fail<object?>(StatusCodes.Status400BadRequest, "Invalid role data."));
             }
 
-            await _repository.CreateAsync(role);
-            await _repository.SaveChangesAsync();
+            await repository.CreateAsync(role);
+            await repository.SaveChangesAsync();
 
             return CreatedAtAction(nameof(GetById), new { id = role.Id },
                 ApiResponseBuilder.Success(role, "Role created successfully."));
@@ -65,14 +57,14 @@ namespace CarSpot.API.Controllers
                 return BadRequest(ApiResponseBuilder.Fail<object?>(StatusCodes.Status400BadRequest, "URL ID does not match body ID."));
             }
 
-            var existing = await _repository.GetByIdAsync(id);
+            Role? existing = await repository.GetByIdAsync(id);
             if (existing is null)
             {
                 return NotFound(ApiResponseBuilder.Fail<object?>(StatusCodes.Status404NotFound, $"Role with ID {id} not found."));
             }
 
-            await _repository.UpdateAsync(updated);
-            await _repository.SaveChangesAsync();
+            await repository.UpdateAsync(updated);
+            await repository.SaveChangesAsync();
 
             return Ok(ApiResponseBuilder.Success(updated, "Role updated successfully."));
         }
@@ -82,14 +74,14 @@ namespace CarSpot.API.Controllers
         [Authorize(Policy = "AdminOnly")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var role = await _repository.GetByIdAsync(id);
+            Role? role = await repository.GetByIdAsync(id);
             if (role is null)
             {
                 return NotFound(ApiResponseBuilder.Fail<object?>(StatusCodes.Status404NotFound, $"Role with ID {id} not found."));
             }
 
-            await _repository.DeleteAsync(id);
-            await _repository.SaveChangesAsync();
+            await repository.DeleteAsync(id);
+            await repository.SaveChangesAsync();
 
             return Ok(ApiResponseBuilder.Success<object?>(null, "Role deleted successfully."));
         }

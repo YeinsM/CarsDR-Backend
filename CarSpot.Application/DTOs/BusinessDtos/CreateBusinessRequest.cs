@@ -1,4 +1,4 @@
-namespace CarSpot.Application.DTOs
+namespace CarSpot.Application.DTOs.BusinessDtos
 {
     public record CreateBusinessRequest(
         string Name,

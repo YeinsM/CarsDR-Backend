@@ -37,7 +37,7 @@ namespace CarSpot.Infrastructure.Persistence.Repositories
 
         public async Task Delete(Guid id)
         {
-            var currency = await _context.Currencies.FindAsync(id);
+            Currency? currency = await _context.Currencies.FindAsync(id);
             if (currency != null)
             {
                 _context.Currencies.Remove(currency);
