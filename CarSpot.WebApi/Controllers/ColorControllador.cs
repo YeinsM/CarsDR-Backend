@@ -1,8 +1,10 @@
 using System.Linq;
 using System.Threading.Tasks;
 using CarSpot.Application.Common.Responses;
+using CarSpot.Application.DTOs.ColorDtos;
 using CarSpot.Application.Interfaces.Services;
 using CarSpot.Domain.Common;
+using CarSpot.WebApi.Controllers.Base;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,34 +13,20 @@ namespace CarSpot.WebApi.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class ColorsController(IAuxiliarRepository<Color> repository, IPaginationService paginationService) : ControllerBase
+    public class ColorsController(IAuxiliarRepository<Color> repository, IPaginationService paginationService) : PaginatedControllerBase(paginationService)
     {
         [HttpGet]
         [AllowAnonymous]
         public async Task<ActionResult<PaginatedResponse<ColorResponse>>> GetAll([FromQuery] PaginationParameters pagination)
         {
-            const int maxPageSize = 100;
-
-            int pageSize = pagination.PageSize > maxPageSize ? maxPageSize : pagination.PageSize;
-            int pageNumber = pagination.PageNumber < 1 ? 1 : pagination.PageNumber;
-
-            IQueryable<ColorResponse> query = repository.Query()
+            var query = repository.Query()
                 .Select(c => new ColorResponse
                     {
                         Id = c.Id,
                         Name = c.Name
                     });
 
-            string baseUrl = $"{Request.Scheme}://{Request.Host}{Request.Path}";
-
-            PaginatedResponse<ColorResponse> paginatedResult = await paginationService.PaginateAsync(
-                query,
-                pageNumber,
-                pageSize,
-                baseUrl
-            );
-
-            return Ok(ApiResponseBuilder.Success(paginatedResult, "Colors retrieved successfully."));
+            return await GetPaginatedResultAsync(query, pagination);
         }
 
 
